@@ -1,7 +1,8 @@
 ---
 layout: post
-title: Headed to JavaOne!
-date: '2017-09-12 14:23'
+title: Headed to JavaOne 2017!
+author: erin
+tags: [javaone, conferences]
 ---
 
 That's right, Game On! is going back to JavaOne this year!
