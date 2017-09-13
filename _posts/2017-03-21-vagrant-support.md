@@ -1,6 +1,6 @@
 ---
 layout: post
-title: Local development with vagrant
+title: Local development with Vagrant
 author: erin
 tags: [local, vagrant]
 ---

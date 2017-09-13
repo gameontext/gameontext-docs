@@ -2,7 +2,7 @@
 layout: post
 title: A Room for Jane Austen
 summary: Exploration of ngrams and using ngram probabilities to construct sentences and paragraphs.
-tags: [fun, profit, hadoop, java. scala]
+tags: [fun, profit, hadoop, java, scala]
 author: ilan
 ---
 ## An Exploration of N-gram In Celebration Of Jane Austen
