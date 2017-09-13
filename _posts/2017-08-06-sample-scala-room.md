@@ -1,10 +1,13 @@
 ---
 layout: post
-title: sample scala room
+title: We have a Scala Room!
 summary: play with play in scala in game on!
 tags: [fun, profit, scala, play]
 author: ilan
 ---
+
+What follows is the stream-of-conciousness and research that lead up to our newest sample room!
+
 ## tl;dr
 
 - [advanced adventures](https://book.gameontext.org/walkthroughs/creatingYourOwnRoom.html).
