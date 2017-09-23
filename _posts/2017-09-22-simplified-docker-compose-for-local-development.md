@@ -21,4 +21,9 @@ Yes, yes. Kubernetes is next, we promise. But with this revision of the Docker C
 
 We'll try to cut "releases" of the gameon repository a little more frequently, so there is always a last-known-good state to work from (rather than always using whatever the most recent / experimental docker images are).
 
+More: 
+* [Game Overview](https://book.gameontext.org/)
+* [Creating a room](https://book.gameontext.org/walkthroughs/createRoom.html)
+* [Local Development](https://book.gameontext.org/walkthroughs/local-build.html) -- new stuff here. ;)
+
 Stay tuned! Enjoy! Go play!
