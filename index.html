@@ -12,7 +12,7 @@ describes our own misadventures as we do the same.
 </section>
 
 <section class="articles">
-  {% for post in site.posts limit:10%}
+  {% for post in site.posts limit:10 %}
     {% assign author = site.data.authors[post.author] %}
     {% assign tags = post.tags | sort %}
     <article>
