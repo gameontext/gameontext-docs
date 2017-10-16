@@ -58,18 +58,17 @@ Using this [guide](https://www.ibm.com/blogs/bluemix/2017/09/creating-running-de
                                     
   The project, springmsdemo, has been successfully saved into the current directory.
   OK
-  {% endhighlight %}
-
+{% endhighlight %}
 
 Time to fill in our own code!
 
 ## Borrowing from the Java room
 
- The [Java room](https://github.com/gameontext/sample-room-java) had a lot of code we could reuse, so that's what we did.
- 
- Notable differences:
- 
- - We needed a [WebSocketConfig](https://github.com/gameontext/sample-room-spring/blob/master/src/main/java/app/WebSocketConfig.java) to map our [SocketHandler](https://github.com/gameontext/sample-room-spring/blob/master/src/main/java/app/SocketHandler.java) to `/room`
+The [Java room](https://github.com/gameontext/sample-room-java) had a lot of code we could reuse, so that's what we did.
+
+Notable differences:
+
+  - We needed a [WebSocketConfig](https://github.com/gameontext/sample-room-spring/blob/master/src/main/java/app/WebSocketConfig.java) to map our [SocketHandler](https://github.com/gameontext/sample-room-spring/blob/master/src/main/java/app/SocketHandler.java) to `/room` [WebSocketConfig](https://github.com/gameontext/sample-room-spring/blob/master/src/main/java/app/WebSocketConfig.java) to map our [SocketHandler](https://github.com/gameontext/sample-room-spring/blob/master/src/main/java/app/SocketHandler.java) to `/room`
 
   {% highlight java linenos %}
   @Configuration
@@ -85,7 +84,7 @@ Time to fill in our own code!
   }
   {% endhighlight %}
  
- - We also needed to use a Spring WebSocket  (`org.springframework.web.socket.WebSocketSession`) instead of the standard one (`javax.websocket.Session`). It looks roughly like this (simplified): 
+  - We also needed to use a Spring WebSocket  (`org.springframework.web.socket.WebSocketSession`) instead of the standard one (`javax.websocket.Session`). It looks roughly like this (simplified):  (`org.springframework.web.socket.WebSocketSession`) instead of the standard one (`javax.websocket.Session`). It looks roughly like this (simplified): 
 
   {% highlight java linenos %}
   @Component
@@ -139,11 +138,11 @@ After porting some common code, we can run `mvn spring-boot:run` to see our Spri
  
 After adding [Travis](https://github.com/gameontext/sample-room-spring/blob/master/.travis.yml), [Docker](https://github.com/gameontext/sample-room-spring/blob/master/pom.xml#L75), and [JaCoCo](https://github.com/gameontext/sample-room-spring/blob/master/pom.xml#L83), we were ready to deploy to Bluemix:
  
- `bx dev build`
+  `bx dev build`
  
- then
+then
  
- `bx dev deploy`
+  `bx dev deploy`
  
 and our room is deployed as a Cloud Foundry service with a reachable endpoint!
  

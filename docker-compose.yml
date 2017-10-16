@@ -13,7 +13,7 @@ services:
 
   go-blog:
     build: .
-    command: [sh, -c, "while [ ! -f '/srv/jekyll/vendor/done' ]; do echo 'waiting for update...'; sleep 2; done; bundle exec jekyll s --drafts --watch --incremental --host=0.0.0.0"]
+    command: [sh, -c, "while [ ! -f '/srv/jekyll/vendor/done' ]; do echo 'waiting for update...'; sleep 2; done; bundle exec jekyll s --verbose --drafts --future --watch --incremental --host=0.0.0.0"]
     depends_on:
       - jekyll
     volumes:

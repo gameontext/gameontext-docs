@@ -6,14 +6,14 @@
 @import "colors";
 
 html {
-  font-size: 62.5%;
+  font-size: 80%;
 }
 
 body {
   position: relative;
   min-height: 100vh;
   font-size: 1.2em; /* currently ems cause chrome bug misinterpreting rems on body element */
-  line-height: 1.3;
+  line-height: 1.4;
   font-weight: 400;
   font-family: "HelveticaNeue", "Helvetica Neue", Helvetica, Arial, sans-serif;
   background-color: white;
@@ -51,7 +51,7 @@ header.head h1 .on {
 header.head div {
   margin-top: 0;
   margin-bottom: 0;
-  font-size: 1.5rem;
+  font-size: 1.2rem;
   font-weight: normal;
   line-height: 1.3rem;
   letter-spacing: 0;
