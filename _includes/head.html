@@ -13,7 +13,7 @@
   <![endif]-->
   <link rel="shortcut icon" href="/favicon.ico"  type="image/x-icon"/>
 
-  <title>{% if page.title %}{{ page.title | escape }}{% else %}{{ site.title | escape }}{% endif %}</title>
+  <title>{% if page.title %}GO: {{ page.title | escape }}{% else %}{{ site.title | escape }}{% endif %}</title>
   <meta name="description" content="{{ page.summary | default: site.description | strip_html | normalize_whitespace | truncate: 160 | escape }}">
 {% if page.canonical %}
   <link rel="canonical" href="{{ page.canonical }}">
