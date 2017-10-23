@@ -1,0 +1,43 @@
+# Use the same image we use to build/run locally to build static content.
+# sudo: required
+# services:
+#   - docker
+#
+# env:
+#   global:
+#   - DOCKER_COMPOSE_VERSION: 1.14.0
+#   - ENCRYPTION_LABEL: "752dfc0eab06"
+#   - NOKOGIRI_USE_SYSTEM_LIBRARIES: true
+#
+# before_install:
+#   - bash <(curl -s https://raw.githubusercontent.com/gameontext/gameon/master/images/updateTravisDocker.sh)
+#   - gem install html-proofer
+#   - mkdir publish
+#
+# script:
+#   - ls -al
+#   - docker-compose run -e PAGES_REPO_NWO site jekyll b --verbose
+#   - ls -al
+#
+# after_success:
+#   - ./deploy.sh
+language: ruby
+rvm:
+- 2.3.3
+
+branches:
+  only:
+  - master
+
+env:
+  global:
+  - NOKOGIRI_USE_SYSTEM_LIBRARIES=true # speeds up installation of html-proofer
+
+sudo: false # route your build to the container-based infrastructure for a faster build
+
+install:
+  - gem install jekyll html-proofer
+
+script:
+  - bundle exec jekyll build && \
+    bundle exec htmlproofer ./_site --disable-external

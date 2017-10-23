@@ -17,11 +17,15 @@ plugins:
   - jekyll-avatar
   - jekyll-sitemap
   - jekyll-mentions
+  - jekyll-github-metadata
 exclude:
+  - .travis.yml
   - Gemfile
   - Gemfile.lock
+  - deploy.sh
   - Dockerfile
   - docker-compose.yml
+  - publish
   - README.md
   - CODE_OF_CONDUCT.md
   - CONTRIBUTING.md

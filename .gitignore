@@ -1,6 +1,7 @@
 _site
 .sass-cache
 .jekyll-metadata
+deploy_rsa
 .bundle
 *~
 *.DS_Store
