@@ -9,6 +9,8 @@ description: > # this means to ignore newlines until "baseurl:"
 baseurl: "" # the subpath of your site, e.g. /blog
 url: "" # the base hostname & protocol for your site, e.g. http://example.com
 
+github: [metadata]
+
 # Build settings
 markdown: kramdown
 excerpt_separator: <!--more-->
@@ -23,6 +25,7 @@ exclude:
   - Gemfile
   - Gemfile.lock
   - deploy.sh
+  - deploy_rsa*
   - Dockerfile
   - docker-compose.yml
   - publish

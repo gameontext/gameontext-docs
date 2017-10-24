@@ -1,5 +1,6 @@
 #!/bin/bash
 # https://gist.github.com/domenic/ec8b0fc8ab45f39403dd
+set -x
 set -e # Exit with nonzero exit code if anything fails
 
 SOURCE_BRANCH="master"
@@ -19,18 +20,15 @@ SSH_REPO=${REPO/https:\/\/github.com\//git@github.com:}
 SHA=`git rev-parse --verify HEAD`
 
 # Clone the existing gh-pages for this repo into publish
-ls -al
 git clone -b $TARGET_BRANCH --single-branch $REPO publish
 
 cd publish
-find
 # git checkout $TARGET_BRANCH
 # And, yes -- right after we go to our target branch, remove everything
 rm -rf *
 
 # Copy built site content
 cp -R ../_site/* .
-find
 
 # Look for differences
 # If there are no changes to the compiled out, then just bail.
@@ -47,15 +45,15 @@ git config user.email "$COMMITTER_EMAIL"
 git add -A .
 git commit -m "Deploy to GitHub Pages: ${SHA}"
 
-# # Get the deploy key by using Travis's stored variables to decrypt deploy_key.enc
-# ENCRYPTED_KEY_VAR="encrypted_${ENCRYPTION_LABEL}_rsa"
-# ENCRYPTED_IV_VAR="encrypted_${ENCRYPTION_LABEL}_iv"
-# ENCRYPTED_KEY=${!ENCRYPTED_KEY_VAR}
-# ENCRYPTED_IV=${!ENCRYPTED_IV_VAR}
-# openssl aes-256-cbc -K $ENCRYPTED_KEY -iv $ENCRYPTED_IV -in deploy_rsa.enc -out deploy_rsa -d
-# chmod 600 ../deploy_key
-# eval `ssh-agent -s`
-# ssh-add deploy_key
-#
-# # Now that we're all set up, we can push.
-# git push $SSH_REPO $TARGET_BRANCH
+# Get the deploy key by using Travis's stored variables to decrypt deploy_key.enc
+ENCRYPTED_KEY_VAR="encrypted_${ENCRYPTION_LABEL}_key"
+ENCRYPTED_IV_VAR="encrypted_${ENCRYPTION_LABEL}_iv"
+ENCRYPTED_KEY=${!ENCRYPTED_KEY_VAR}
+ENCRYPTED_IV=${!ENCRYPTED_IV_VAR}
+openssl aes-256-cbc -K $ENCRYPTED_KEY -iv $ENCRYPTED_IV -in ../deploy_rsa.enc -out ../deploy_rsa -d
+chmod 600 ../deploy_rsa
+eval `ssh-agent -s`
+ssh-add ../deploy_rsa
+
+# Now that we're all set up, we can push.
+git push $SSH_REPO $TARGET_BRANCH

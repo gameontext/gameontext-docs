@@ -14,6 +14,12 @@ This will perform any updates to the gemfile and start jekyll listening on port 
 
 The `--drafts` option is included, so you will see any draft posts.
 
+To validate your posts, use  
+```
+docker-compose run --rm site jekyll build
+docker-compose run --rm site htmlproofer --assume-extension ./_site
+```
+
 ## Updating dependencies
 
 ```
