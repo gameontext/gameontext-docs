@@ -236,6 +236,9 @@ nav.project a > span {
   article header .tags {
     display: inline;
   }
+  section.articles article {
+    max-width: 380px;
+  }
 }
 /* Larger than phablet */
 @media (min-width: 550px) {
@@ -244,6 +247,9 @@ nav.project a > span {
   }
   nav.project a > span > span {
     display: none;
+  }
+  section.articles article {
+    max-width: 520px;
   }
 }
 /* Larger than tablet */
@@ -274,7 +280,7 @@ nav.project a > span {
     align-items: center;
   }
   section.articles article {
-    max-width: 750px;
+    max-width: 700px;
     flex: 1;
     padding: 45px;
   }
