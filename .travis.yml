@@ -1,4 +1,4 @@
-# Use the same image we use to build/run locally to build static content.
+# Use the same image we use to build/run locally to test branches & PRs
 sudo: required
 
 language: generic
@@ -12,15 +12,17 @@ env:
   - ENCRYPTION_LABEL: 752dfc0eab06
 
 before_install:
-  - bash <(curl -s https://raw.githubusercontent.com/gameontext/gameon/master/images/updateTravisDocker.sh)
-  - docker-compose pull
-  - mkdir publish
+  - 'if [ "$TRAVIS_PULL_REQUEST" != "false" ] || [ "$TRAVIS_BRANCH" != "master" ]; then
+      bash <(curl -s https://raw.githubusercontent.com/gameontext/gameon/master/images/updateTravisDocker.sh);
+      docker-compose pull;
+    fi'
 
 script:
-  - docker-compose run -e PAGES_REPO_NWO site jekyll b --verbose
-    && sudo chown -R travis:travis .
-    && (docker-compose run site htmlproofer --assume-extension ./_site || true)
-
-
-after_success:
-  - ./deploy.sh
+  - 'if [ "$TRAVIS_PULL_REQUEST" != "false" ] || [ "$TRAVIS_BRANCH" != "master" ]; then
+      mkdir -p _site
+      docker-compose run -e PAGES_REPO_NWO site jekyll b --verbose;
+      docker-compose run site htmlproofer --assume-extension ./_site;
+    fi'
+  - 'if [ "$TRAVIS_EVENT_TYPE" == "cron" ] || [ "$TRAVIS_BRANCH" != "test_date" ]; then
+      ./today.sh
+    fi'
