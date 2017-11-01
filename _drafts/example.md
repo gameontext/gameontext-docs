@@ -12,26 +12,23 @@ The format of these files is without a date: title.md
 
 ## Make sure author is listed in `_data/authors.yml` !
 
-Use only h2 - h6 ...
+* [Use template to link event pictures]({{ page.url }}#including-media-at-the-end-of-posts)
+* Remember that posts are jekll/liquid + markdown, [syntax highlighting]({{ page.url }}#syntax-highlighting) is different
+* Use only h2 - h6 ...
+* Define tags in front matter: 
 
-tags: [array, of, tags]
-or
-tags:
-- game-on
-- microservices
-- java
-- liberty
+  tags: [array, of, tags]
+  or
+  tags:
+  - game-on
+  - microservices
+  - java
+  - liberty
 
-One or multiple tags can be added to a post.
-
-
-Text can be **bold**, _italic_, or ~~strikethrough~~.
-
-[Link to another page](another-page).
-
-There should be whitespace between paragraphs.
-
-There should be whitespace between paragraphs. We recommend including a README, or a file with information about your project.
+  One or multiple tags can be added to a post.
+* Text can be **bold**, _italic_, or ~~strikethrough~~.
+* [Link to another page](another-page).
+* There should be whitespace between paragraphs.
 
 <!--more-->
 
@@ -43,20 +40,7 @@ There should be whitespace between paragraphs. We recommend including a README, 
 
 ### [](#header-3)Header 3
 
-```js
-// Javascript code with syntax highlighting.
-var fun = function lang(l) {
-  dateformat.i18n = require('./lang/' + l)
-  return true;
-}
-```
-
-```ruby
-# Ruby code with syntax highlighting
-GitHubPages::Dependencies.gems.each do |gem, version|
-  s.add_dependency(gem, "= #{version}")
-end
-```
+Some text
 
 #### [](#header-4)Header 4
 
@@ -82,6 +66,8 @@ end
 ### There's a horizontal rule below this.
 
 * * *
+
+## Lists 
 
 ### Here is an unordered list:
 
@@ -113,15 +99,6 @@ end
   - level 2 item
 - level 1 item
 
-### Small image
-
-![](https://assets-cdn.github.com/images/icons/emoji/octocat.png)
-
-### Large image
-
-![](https://guides.github.com/activities/hello-world/branching.png)
-
-
 ### Definition lists can be used with HTML syntax.
 
 <dl>
@@ -134,6 +111,63 @@ end
 <dt>Color</dt>
 <dd>Green</dd>
 </dl>
+
+## Images 
+
+### Small image
+
+![](https://assets-cdn.github.com/images/icons/emoji/octocat.png)
+
+### Large image
+
+![](https://guides.github.com/activities/hello-world/branching.png)
+
+### Including media at the end of posts
+
+Define the following in the page's front matter: 
+```
+media: 
+- type: ...
+  content: '...'
+- type: image
+  content: '<img tag with no width or height />'
+- type: video
+  content: 'paste youtube embed string'
+- type: tweet
+  content: 'paste twitter embed string'
+```
+
+If you have several tweets in the same post, remove the script element from each tweet, and add as a separate media element
+
+```
+- type: script
+  content: '<script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>'
+```
+
+Then add the following at the end of your post: 
+
+```
+{% include media.html items=page.media %}
+```
+
+See [2017-10-31-lagom-gets-in-the-game.md](https://github.com/gameontext/gameontext.github.io/blob/master/_posts/2017-10-31-lagom-gets-in-the-game.md) as an example.
+
+## Syntax highlighting
+{% highlight javascript linenos %}{% raw %}
+// Javascript code with syntax highlighting.
+var fun = function lang(l) {
+  dateformat.i18n = require('./lang/' + l)
+  return true;
+}
+{% endraw %}{% endhighlight %}
+
+
+{% highlight ruby linenos %}
+# Ruby code with syntax highlighting with line numbers
+GitHubPages::Dependencies.gems.each do |gem, version|
+  s.add_dependency(gem, "= #{version}")
+end
+{% endhighlight %}
 
 ```
 Long, single-line code blocks should not wrap. They should horizontally scroll if they are too long. This line should be long enough to demonstrate this.

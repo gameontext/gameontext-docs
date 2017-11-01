@@ -6,6 +6,13 @@ author: heather
 tags:
   - conferences
   - devopsdays
+media: 
+  - type: image
+    content: '<img src="/files/2017-devops-rtp/ibm-booth.png" title="Heather and Venu at the IBM Booth"/>'
+  - type: image
+    content: '<img src="/files/2017-devops-rtp/ibm-booth-1.jpg" />'
+  - type: image
+    content: '<img src="/files/2017-devops-rtp/ibm-booth-2.jpg" />'
 ---
   
 Venu Beyagudem, Jarek Gawor, Ranjan Kumar, and I (Heather Saunders) brought Game On! for its debut at DevOps Days in Raleigh, NC in early September.
@@ -18,8 +25,4 @@ As it turns out, Game On! was the perfect medium for engaging the attendees at t
 
 I look forward to seeing how the game grows as a result of introducing it straight to developers at events like this, and am glad to have joined the Game On community myself!
 
-<div class="flex-media">
-  <div class="item"><img src="/files/2017-devops-rtp/ibm-booth.png" title="Heather and Venu at the IBM Booth"/></div>
-  <div class="item"><img src="/files/2017-devops-rtp/ibm-booth-1.jpg" title=""/></div>
-  <div class="item"><img src="/files/2017-devops-rtp/ibm-booth-2.jpg" title=""/></div>
-</div>
+{% include media.html items=page.media %}

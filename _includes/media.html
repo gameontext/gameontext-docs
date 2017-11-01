@@ -1,0 +1,11 @@
+<div class="flex-media">
+{% for item in include.items %}
+<div class="item">
+  {% if item.type == "video" %}
+    <div class="video">{{ item.content }}</div>
+  {% else %}
+    {{ item.content }}
+  {% endif %}
+</div>
+{% endfor %}
+</div>
