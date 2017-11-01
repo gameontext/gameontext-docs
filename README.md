@@ -7,6 +7,7 @@ Customized github minimal theme. Built using Docker to avoid the annoyance of ma
 ## Running jekyll
 
 ```
+docker-compose pull
 docker-compose up
 ```
 

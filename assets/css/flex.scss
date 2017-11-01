@@ -62,6 +62,7 @@ header.head a.button {
 /* Article list
 –––––––––––––––––––––––––––––––––––––––––––––––––– */
 section.articles article {
+  margin-bottom: 3rem;
   border: 1px solid silver;
   padding: 15px;
   border-bottom-right-radius: 3px;
@@ -74,9 +75,6 @@ section.articles article h1 {
 –––––––––––––––––––––––––––––––––––––––––––––––––– */
 article header {
   margin-bottom: 1.5rem;
-}
-.articles article { /* Just for post in list */
-  margin-bottom: 3rem;
 }
 article header h1 {
   margin-bottom: .2rem;
@@ -152,6 +150,42 @@ article header .tags ul {
 .archive_list .date::after {
   content: ']';
 }
+article .flex-media {
+  width: 100%;
+  display: flex;
+  flex-flow: row wrap;
+  justify-content: flex-start;
+  align-items: flex-start;
+}
+article .flex-media .item {
+  width: 400px;
+  height: auto;
+  margin: 0 10px;
+}
+article .flex-media .item .video,
+article .flex-media .item img {
+  width: 100%;
+  margin-top: 10px;
+  margin-bottom: 10px;
+  box-sizing: border-box;
+  border-width: 1px;
+  border-style: solid;
+  border-color: rgba(225, 232, 237, 0.75);
+  border-radius: 4px;
+}
+article .flex-media .item .video{
+  position: relative;
+  padding-bottom: 56.25%; /* 16:9 */
+  padding-top: 25px;
+}
+article .flex-media .item .video iframe {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+}
+
 /* Colors
 –––––––––––––––––––––––––––––––––––––––––––––––––– */
 a {
@@ -197,19 +231,17 @@ nav.project a {
 }
 /* Layout
 –––––––––––––––––––––––––––––––––––––––––––––––––– */
-article iframe,
-article twitterwidget,
 article blockquote {
   margin-left: 2em;
+}
+nav.project {
+  display: flex;
+  justify-content: space-around;
 }
 section.articles,
 section.page,
 article.post {
   flex-grow: 1;
-}
-nav.project {
-  display: flex;
-  justify-content: space-around;
 }
 footer.foot {
   display: flex;
@@ -236,9 +268,6 @@ nav.project a > span {
   article header .tags {
     display: inline;
   }
-  section.articles article {
-    max-width: 380px;
-  }
 }
 /* Larger than phablet */
 @media (min-width: 550px) {
@@ -247,9 +276,6 @@ nav.project a > span {
   }
   nav.project a > span > span {
     display: none;
-  }
-  section.articles article {
-    max-width: 520px;
   }
 }
 /* Larger than tablet */
@@ -272,17 +298,6 @@ nav.project a > span {
   }
   header.head div {
     margin-right: 220px;
-  }
-  section.articles {
-    display: flex;
-    flex-wrap: nowrap;
-    flex-direction: column;
-    align-items: center;
-  }
-  section.articles article {
-    max-width: 700px;
-    flex: 1;
-    padding: 45px;
   }
   footer.foot {
     flex-direction: row;

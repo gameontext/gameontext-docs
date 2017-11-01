@@ -13,3 +13,4 @@ services:
       - 8000:4000
     environment:
       - NOKOGIRI_USE_SYSTEM_LIBRARIES=true
+    container_name: go-blog
