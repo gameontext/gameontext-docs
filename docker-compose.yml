@@ -2,7 +2,7 @@ version: '2'
 
 services:
   site:
-    command: jekyll serve  --verbose --drafts --future --watch --incremental --host 0.0.0.0
+    command: sh -c "rm _site/*.html; jekyll serve  --verbose --drafts --future --watch --incremental --host 0.0.0.0"
     image: jekyll/jekyll:latest
     volumes:
       - $PWD:/srv/jekyll

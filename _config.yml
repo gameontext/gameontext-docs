@@ -28,7 +28,7 @@ exclude:
   - deploy_rsa*
   - Dockerfile
   - docker-compose.yml
-  - publish
+  - today.sh
   - README.md
   - CODE_OF_CONDUCT.md
   - CONTRIBUTING.md
