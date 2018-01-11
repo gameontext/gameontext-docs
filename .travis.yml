@@ -19,7 +19,7 @@ before_install:
 
 script:
   - 'if [ "$TRAVIS_PULL_REQUEST" != "false" ] || [ "$TRAVIS_BRANCH" != "master" ]; then
-      mkdir -p _site
+      mkdir -p _site;
       docker-compose run -e PAGES_REPO_NWO site jekyll b --verbose;
       docker-compose run site htmlproofer --assume-extension ./_site;
     fi'
