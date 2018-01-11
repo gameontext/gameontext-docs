@@ -13,7 +13,7 @@ env:
 
 before_install:
   - 'if [ "$TRAVIS_PULL_REQUEST" != "false" ] || [ "$TRAVIS_BRANCH" != "master" ]; then
-      bash <(curl -s https://raw.githubusercontent.com/gameontext/gameon/master/images/updateTravisDocker.sh);
+      bash <(curl -s https://raw.githubusercontent.com/gameontext/gameon/master/build/updateTravisDocker.sh);
       docker-compose pull;
     fi'
 
