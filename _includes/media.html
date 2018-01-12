@@ -3,6 +3,9 @@
 <div class="item">
   {% if item.type == "video" %}
     <div class="video">{{ item.content }}</div>
+  {% elsif item.type == "image" %}
+    <a class="thumbnail">{{ item.content }}</a>
+    <a target="#_" class="lightbox">{{ item.content }}</a>
   {% else %}
     {{ item.content }}
   {% endif %}
