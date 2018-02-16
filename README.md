@@ -4,7 +4,7 @@
 
 Customized github minimal theme. Built using Docker to avoid the annoyance of maintaining a local ruby development environment (with apologies to lovers of Ruby).
 
-** Remember: [Posts are jekyll/liquid templates, that also happen to use markdown formatting](https://raw.githubusercontent.com/gameontext/gameontext.github.io/master/_drafts/example.md) **
+**Remember: [Posts are jekyll/liquid templates, that also happen to use markdown formatting](https://raw.githubusercontent.com/gameontext/gameontext.github.io/master/_drafts/example.md**
 
 ## Running jekyll
 
