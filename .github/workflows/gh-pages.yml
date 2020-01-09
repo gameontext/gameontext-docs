@@ -12,7 +12,26 @@ jobs:
     - name: check out
       uses: actions/checkout@v1
 
+    - name: Setup ruby
+      uses: actions/setup-ruby@v1
+      with:
+        ruby-version: '2.x'
+
+    - name: Setup Asciidoctor
+      run: |
+        gem install asciidoctor
+        gem install asciidoctor-html5s
+        gem install asciidoctor-diagram
+        . ./wrap_asciidoc.sh
+        asciidoctor --version
+
     - name: Setup Hugo
       uses: peaceiris/actions-hugo@v2
       with:
         hugo-version: '0.62.2'
+
+    - name: Build
+      run: |
+        export PATH=$PWD/bin:$PATH
+        which asciidoctor
+        hugo --minify
