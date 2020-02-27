@@ -34,4 +34,5 @@ jobs:
       run: |
         export PATH=$PWD/bin:$PATH
         which asciidoctor
+        cd site
         hugo --minify

@@ -1,0 +1,26 @@
+<footer class="foot">
+  <div id="copyrights">&#169; 2016-{{ now.Format "2006"}} under terms of the Apache License 2.0.</div>
+
+  <div>Follow us:
+  <a target="_blank" href="https://twitter.com/gameontext" title="Follow @gameontext"><i class="fa fa-twitter" aria-hidden="true"></i></a>
+  {{ range .AlternativeOutputFormats -}}
+  {{ printf `<a target="_blank" href="%s" title="Subscribe"><i class="fa fa-rss" aria-hidden="true"></i></a>` .Permalink | safeHTML }}
+  {{ end -}}
+
+  </div>
+</footer>
+<!-- Google Analytics -->
+<script>
+window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+window.ga(function() {
+  var ga_tracker = window.ga('create', 'UA-90113653-2', 'auto', 'gameontext', {allowLinker: true});
+  window.ga('gameontext.require', 'linker');
+  window.ga('gameontext.linker:autoLink', ['gameontext.org','blog.gameontext.org','book.gameontext.org']);
+  window.ga('gameontext.linker:autoLink', ['gameontext.org','blog.gameontext.org','book.gameontext.org']);
+  window.ga('gameontext.set','dimension1', 'blog');
+  window.ga('gameontext.set','hostname', 'blog.gameontext.org');
+  window.ga('gameontext.send','pageview');
+});
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+<!-- End Google Analytics -->

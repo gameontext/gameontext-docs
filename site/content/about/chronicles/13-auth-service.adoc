@@ -1,0 +1,23 @@
+= Auth Goes Its Own Way
+:icons: font
+:signedHeaders: link:../microservices/ApplicationSecurity.adoc
+:WebSocketProtocol: link:../microservices/WebSocketProtocol.adoc
+:game-on: https://gameontext.org/
+
+image:../images/Progression.013.jpeg[Progression, width=95%]
+
+Remember way back in the beginning when we had only 3 services total and
+the Player service did all the things that ever needed to be done regarding players?
+Well, "all the things" included interacting with Social Login services to
+authenticate the Player and issue an access token (JWT).
+
+As we grew to support additional Social Login services, the dependency
+management for Player become problematic. 3rd party libraries would require dependencies
+that would conflict with others required by our core Player entity store function.
+
+Can you believe it? We couldn't.
+
+Looking at KeyCloak, Auth0, and other auth-handling gateways, it
+seemed more natural to have a service dedicated to issuing
+JWTs in response to Social Login. Lo and behold, a brand new Auth
+Service was born (more or less via transplant).

@@ -1,0 +1,6 @@
+= Creating Non-Player Characters
+:icons: font
+:toc:
+:toc-title:
+:toc-placement: preamble
+:toclevels: 2

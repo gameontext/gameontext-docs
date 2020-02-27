@@ -1,0 +1,27 @@
+baseURL: ""
+disableLiveReload: true
+enableGitInfo: true
+googleAnalytics: UA-90113653-2
+languageCode: en-us
+frontmatter:
+  date:
+    - ":filename"
+    - ":git"
+    - ":default"
+markup:
+  highlight:
+    codeFences: true
+    guessSyntax: false
+    hl_Lines: ""
+    lineNoStart: 1
+    lineNos: true
+    lineNumbersInTable: true
+    noClasses: false
+    style: monokai-light
+    tabWidth: 2
+title: "Game On! Adventures with microservices"
+params:
+  description: "Hands-on experiment building microservices and cloud native applications"
+taxonomies:
+  tag: tags
+publishDir: "../public"

@@ -1,15 +1,9 @@
 *~
-.bundle
-css.json
-deploy_rsa
 .DS_Store
-images.json
-.jekyll-metadata
-js.json
-node_modules
+
+# hugo build
 public
-.sass-cache
-_site
-vendor
-.vendor
-bin
+site/resources
+
+# asciidoctor wrapper
+bin/asciidoctor

@@ -1,0 +1,375 @@
+= Advanced Adventure for JSR-107 Caching (Part Two!)
+:icons: font
+:toc:
+:toc-title:
+:toc-placement: preamble
+:toclevels: 2
+:partOne: link:jsr107caching.html
+:prereqs: link:jsr107caching.html#_prerequisites
+:deps: link:jsr107caching.html#_adding_the_dependencies
+:mgr: link:jsr107caching.html#_creating_the_default_cache_manager_provider
+:bdJSR-107room: https://github.com/BarDweller/gameon-jsr107-room
+:api: http://static.javadoc.io/javax.cache/cache-api/1.0.0/javax/cache/package-summary.html
+:listener: http://static.javadoc.io/javax.cache/cache-api/1.0.0/javax/cache/event/package-summary.html
+:loader: http://static.javadoc.io/javax.cache/cache-api/1.0.0/javax/cache/integration/CacheLoader.html
+:writer: http://static.javadoc.io/javax.cache/cache-api/1.0.0/javax/cache/integration/CacheWriter.html
+:roomitems: link:addItemsToYourRoom.html
+
+
+Where we learn that JSR-107 isn't just about annotations.
+
+## Overview
+
+This adventure will teach you a little of the JSR-107 API, by walking you through
+adding a simple item with shared state to a Game On room.
+
+You will come away understanding how to use JSR-107 without the annotations, with
+additional suggestions for how this could be used further within a room.
+
+## Why JSR-107 API?
+
+As mentioned over in {partOne}[Part One] JSR-107 is an effort to standardise a
+Java API for Caching. In part one we looked only at the Annotations part of JSR-107,
+and here we'll be covering a quick example of using the Java API directly.
+
+When using the {api}[API] directly, rather than via the Annotations, some actions
+become considerably simpler, because you always have direct access to the objects
+representing the underlying cache, instead of having to abstract your Cache usage
+via methods that can be appropriately annotated.
+
+We'll be walking through adding a simple 'toggle' switch to your room, which will
+be backed by a cache, and have it's state monitored via a CacheListener.
+
+## Prerequisites
+
+This walkthrough builds heavily on the {partOne}[first JSR-107 walkthrough],
+relying on the previous walkthrough to have;
+
+* {prereqs}[Created the Redis service instance and connected it to the room.]
+* {deps}[Added the dependencies to the room project.]
+* {mgr}[Created a default cache manager provider.]
+
+## Walkthrough
+
+Since we've already done all the setup within {partOne}[Part One], here we can
+jump straight into the code =).
+
+### Implementing the Toggle
+
+For our simple 'toggle' example, we'll start by creating an application scoped CDI bean.
+We'll inject that to the RoomImplementation, and add a simple block to the `processCommand`
+switch statement to invoke our toggle.
+
+[source,java]
+----
+@ApplicationScoped
+public class Toggle {
+  private Cache<String,String> toggleCache;
+  public void toggle(){
+  }
+  public String getToggleState(){
+  }
+}
+----
+
+That will form the basic framework for our toggle bean.
+
+The first thing to do is instantiate the `Cache` we plan to use, this is where we
+ideally would like to just do:
+
+[source,java]
+----
+@PostConstruct
+public void init(){
+  CacheManager manager = Caching.getCachingProvider().getCacheManager();
+  MutableConfiguration<String, String> config =
+          new MutableConfiguration<String,String>().setStoreByValue(true);
+  toggleCache = manager.createCache("toggle", config);
+}
+----
+
+...however if we try that, Redisson will go look for it's configuration in it's
+flat json files. Said json files do not exist, and we'll end up with an exception to
+handle etc.
+
+Thankfully, we've already written something that can give us a nicely configured
+CacheManager, and thats our 'default cache manager provider' from {mgr}[part one].
+
+So that allows us to update the boiler plate JSR-107 code just a little to look
+like:
+
+[source,java]
+----
+@PostConstruct
+public void init(){
+  CacheManager manager = (new RedissonCacheManagerProvider())
+                            .getDefaultCacheManager();
+  MutableConfiguration<String, String> config =
+            new MutableConfiguration<String,String>().setStoreByValue(true);
+  toggleCache = manager.createCache("toggle", config);
+}
+----
+
+Great! We have our cache instance, now lets look at implementing our `toggle`
+and `getToggleState` methods.
+
+We'll use the cache as a map, with only a single key "`toggle`", that we'll map
+to the values "`on`" and "`off`" depending on the state of the toggle.
+
+NOTE: Since we need to start somewhere, we'll assume that if there's no value in
+the cache when we look, that the toggle is assumed to be 'on'.
+
+Here's our first attempt at `toggle` and `getToggleState`;
+
+[source,java]
+----
+public void toggle(){
+    String value = getToggleState();
+    if("on".equals(value)){
+      toggleCache.put("toggle","off");
+    }else{
+      toggleCache.put("toggle","on");
+    }
+}
+
+public String getToggleState(){
+    String value = toggleCache.get("toggle");
+    if(value==null){ value = "on"; }
+    return value;
+}
+----
+
+These look pretty reasonable at first glance, but they hide the fact that
+the toggle operation should be performed atomically. The test for the toggle state
+and the update of the state must not allow the state to change between them,
+otherwise 2 people could attempt to flip the toggle, and instead of the toggle
+ending back where it started, it will go to it's alternate state. Not really
+an issue if you are just testing ideas, but imagine if financial compensation was
+at stake ;)
+
+One option could be to try to use the `replace` method of `Cache` which allows
+us to only perform the update if the cache has the expected value.
+
+[source,java]
+----
+public void toggle(){
+    String value = getToggleState();
+    if("on".equals(value)){
+      toggleCache.replace("toggle","on","off");
+    }else{
+      toggleCache.replace("toggle","off","on");
+    }
+}
+----
+
+Problem solved? not so much! We've gone from being unaware there's an issue, to
+being aware, but ignoring the implications. We should likely test the return
+for the method, and if we failed our update then we could reattempt the toggle.
+
+[source,java]
+----
+public void toggle(){
+    String value = getToggleState();
+    if("on".equals(value)){
+      if(!toggleCache.replace("toggle","on","off")){
+        toggle();
+      }
+    }else{
+      if(!toggleCache.replace("toggle","off","on")){
+        toggle();
+      }
+    }
+}
+----
+
+Awesome, this will pretty much do as we need, except if the system gets really
+busy, we risk running out of stack as we recurse deeper and deeper. We could continue
+to try to find ways to make replace work, or perhaps look at the JSR-107
+`EntryProcessor`.
+
+Documented as _"An invocable function that allows applications
+to perform compound operations on a `Cache.Entry` atomically,
+according the defined consistency of a Cache"_, EntryProcessor is typed by the
+Key/Value type of the Cache, and the return type of the processor method.
+For our toggle, we really don't need a return type, since all we want to do is
+flip the value atomically.
+
+Here's a simple EntryProcessor that will flip the toggle as we require.
+
+[source,java]
+----
+public static class BooleanToggle implements EntryProcessor<String,String,Object>{
+
+    @Override
+    public Object process(MutableEntry<String,String> entry, Object... arguments)
+      throws EntryProcessorException {
+
+        if(entry.getValue().equals("off"))
+            entry.setValue("on");
+        else {
+            entry.setValue("off");
+        }
+        return null;
+    }
+}
+----
+
+We use this by updating our `toggle` method:
+
+[source,java]
+----
+public void toggle(){
+    toggleCache.invoke("toggle", new BooleanToggle());
+}
+----
+
+Now when the toggle is flipped, JSR-107 will use our EntryProcessor to update
+the value atomically.
+
+We have however, just lost our default 'on' behavior that was provided
+until now via our 'getToggleState' method.
+
+The easy solution here is to stop making that assumption, and ensure the cache
+always has a default state before we interact with it.
+
+Doing so is really quite simple, we just add;
+
+[source,java]
+----
+    toggleCache.putIfAbsent("toggle", "on");
+----
+
+to our `init` method. Now if the cache really has no value, and _only_ if it has
+no value, we'll set the value to be 'on'.
+
+### Adding the toggle to the room.
+
+Inject the toggle to the `RoomImplementation` class by adding the following near
+where the `MapClient` is injected.
+
+[source,java]
+----
+@Inject
+protected Toggle toggle;
+----
+
+Find the switch block in the `processCommand` method of `RoomImplementation`,
+add a block like;
+
+[source,java]
+----
+case "/toggle":
+    toggle.toggle();
+    break;
+----
+
+Awesome, you can now test your toggle. It's admittedly kinda hard to tell it did
+anything ;) it's almost as if I've deliberately left out a part so I can have
+another section in the walkthrough, I'm sensing something titled...
+
+### Cache Listeners
+
+Imagine you had a cache that was being modified either by yourself, or another
+instance of yourself (if you were a room that had been dynamically scaled under load).
+Imagine further that you wanted to react when the cache changed. Maybe it's important to you to
+know when a key has been added or removed. Or just hypothetically, you
+might want to know when an imaginary toggle has been flipped, so you can send
+a message to everyone.
+
+#### Creating our listener.
+
+Before we create our listener, we should understand what type of cache event we
+want to listen to, as each type has its {listener}[own listener interface] to implement.
+
+For our toggle cache, we're really only interested in Create and Update events,
+so we'll implement `CacheEntryCreatedListener` and `CacheEntryUpdatedListener`
+
+[source,java]
+----
+public class MyCacheEntryListener implements CacheEntryCreatedListener<String, String>,
+        CacheEntryUpdatedListener<String, String>, Serializable {
+    private static final long serialVersionUID = -1306798197522730101L;
+
+    public MyCacheEntryListener() {
+    }
+
+    @Override
+    public void onCreated(Iterable<CacheEntryEvent<? extends String, ? extends String>> cacheEntryEvents)
+            throws CacheEntryListenerException {
+        for (CacheEntryEvent<? extends String, ? extends String> entryEvent : cacheEntryEvents) {
+            System.out.println("Toggle initialized to have value "+
+                                entryEvent.getValue());
+        }
+    }
+
+    @Override
+    public void onUpdated(Iterable<CacheEntryEvent<? extends String, ? extends String>> cacheEntryEvents)
+            throws CacheEntryListenerException {
+        for (CacheEntryEvent<? extends String, ? extends String> entryEvent : cacheEntryEvents) {
+          System.out.println("Toggle updated to have value "+
+                              entryEvent.getValue());
+        }
+    }
+}
+----
+
+#### Wiring the listener up to the Cache
+
+We plug this in within our `init` method, using one of JSR-107's utility
+factory creators to add a factory for our listener, that we register
+with the Cache.
+
+[source,java]
+----
+@PostConstruct
+public void init(){
+    toggleCache = getCache();
+
+    MyCacheEntryListener mcel = new MyCacheEntryListener();
+
+    CacheEntryListenerConfiguration<String,String> listenConfig =
+          new MutableCacheEntryListenerConfiguration<String,String>(
+                            FactoryBuilder.factoryOf(mcel),
+                            null,
+                            false,
+                            true);
+
+    toggleCache.registerCacheEntryListener(listenConfig);
+
+    toggleCache.putIfAbsent("toggle", "on");
+}
+----
+
+Now, when you use `/toggle` within your room, you'll see the message
+`Toggle updated to have value on|off` within the logs for your Room.
+
+TIP: The logs can be viewed via the bluemix web console for your app, or via the
+cf command `cf ssh your-room-app-name -c "cat /logs/messages.log"`
+
+### Working example repo.
+
+For complete versions of the code discussed so far, check out my
+{bdJSR-107room}[Sample JSR-107 Room]. It does everything described here, and more,
+showing usage of both JSR-107 annotations, and direct API usage.
+
+## Suggested extensions
+
+* Experiment with the {loader}[CacheLoader] / {writer}[CacheWriter] classes to prepopulate
+a cache, or write cache updates through to a persistence store.
+* Share a cache instance between an annotated method & a non annotated approach.
+
+## Conclusion
+
+While the annotated approach for JSR-107 can feel quite restrictive, the API approach
+offers much more flexibility. The ability to add {listener}[CacheListeners] that
+respond to cache updates greatly expand the options available to a developer when
+authoring a microservice that may scale beyond a single instance.
+
+By working through the toggle example, you have built a basic service using a cache,
+and understood some of the pitfalls you may meet when using the API.
+
+## Suggested further adventures.
+
+Why not take a look at the {roomitems}['Adding Items to a Room']
+walkthrough next. It'll teach you ways you can expose your cache understanding
+within a Room in Game On.

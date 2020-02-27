@@ -1,0 +1,130 @@
+= Logging using the ELK stack
+:icons: font
+:toc:
+:toc-title:
+:toc-placement: preamble
+:toclevels: 2
+:12-factor: link:../about/12-factor.adoc
+:api-key: link:../microservices/ApplicationSecurity.adoc
+:cf-javascript: https://github.com/gameontext/gameon-room-nodejs#introduction
+:cf-java: https://github.com/gameontext/gameon-room-java#introduction
+:docker-go: https://github.com/gameontext/gameon-room-go#introduction
+:docker-java: https://github.com/gameontext/gameon-room-java#deploy-using-docker
+:first-room: https://gameontext.org/#/play
+:swagger: https://gameontext.org/swagger/
+:sweep: link:../microservices/TheSweep.adoc
+:WebSocket: link:../microservices/WebSocketProtocol.adoc
+
+Once you've created a room, the next thing you'll want to do is figure out how
+to send the room's logs somewhere so that when your room is stopped (and its
+local filesystem disappears) you don't lose your diagnostic data.  You also
+will want to be able to view your logs, and other events, from a dashboard to
+make it easy to find problems without having to look at each room's files one at a time.
+
+== The ELK Stack
+
+ELK is Elasticsearch, Logstash, and Kibana. It is a very common stack used
+to collect, aggregate, search, and view logs in the cloud. Logstash is to used to
+ingest events and forward them to an Elasticsearch instance. Elasticsearch stores
+and indexes events.  You use your browser to interact with Kibana, which provides
+customizable dashboards using events it queries from Elasticsearch.
+
+== Working with logs in Bluemix
+
+Each Bluemix space has its own dedicated place to store logs and other events.
+This event storage is a multi-tenant ELK setup. To ensure security, each Bluemix
+space has its own separate Elasticsearch tenant.
+
+=== Send your Java room's logs to ELK
+
+If your room is running on Liberty, and you have a Bluemix org/space, you can
+set up your server to send its events to Bluemix's ELK in under 5 minutes.  Liberty
+has a convenient command, the bluemixUtility, to help you leverage services in Bluemix.
+
+Log in to your Bluemix org/space using Liberty's bluemixUtility.  This tells the bluemixUtility which org/space to target.
+
+- US South:
+```
+bluemixUtility login --api=us-south --user=yourUserName --password=yourPassword --org=yourOrg --space=yourSpace
+```
+
+- United Kingdom:
+```
+bluemixUtility login --api=eu-gb --user=yourUserName --password=yourPassword --org=yourOrg --space=yourSpace
+```
+
+
+Use bluemixUtility to import a Liberty configuration snippet for sending events
+to the Bluemix log service.  Note that trace and access logs are not enabled in
+your Liberty server by default -- if they are not enabled explicitly in your
+server.xml then no trace / access logs will be sent to the Bluemix log service.
+
+```
+bluemixUtility import bluemixLog --psource="message,trace,garbageCollection,ffdc,accessLog"
+```
+
+Use bluemixUtility to configure your Liberty server to use the configuration snippet you just downloaded.
+```
+bluemixUtility bind defaultServer bluemixLog
+```
+
+Your Liberty server will now send its events to the ELK tenant in the Bluemix
+org/space you specified.
+
+=== Deploy your ELK-enabled server to Bluemix Cloud Foundry
+
+You can run your ELK-enabled Liberty server in Bluemix Cloud Foundry.
+
+As a workaround to a beta issue, you'll need to add bluemixLogCollector-1.1
+directly to your server.xml's featureManager section as follows:
+
+```
+<featureManager>
+    <feature>bluemixLogCollector-1.1</feature>
+</featureManager>
+```
+
+The Liberty bluemixLogCollector-1.1 feature, which is what sends your events to
+Bluemix, is currently in beta.  To run your room in Bluemix Cloud Foundry, tell
+the Liberty buildpack to use the beta version of the Liberty runtime:
+
+```
+server package defaultServer --include=usr
+cf push myApp -p defaultServer.zip
+cf set-env myApp IBM_LIBERTY_BETA true
+cf set-env myApp JBP_CONFIG_LIBERTY "version: +"
+cf restage myApp
+```
+
+Take a look at your log file in Bluemix CF to make sure things are running as
+expected.
+
+```
+cf files theBadApp logs/messages.log
+```
+
+You should see a message similar to the following:
+
+```
+[7/25/16 1:53:27:437 UTC] 00000029 com.ibm.ws.logmet.collector.internal.LogmetClient            I TRAS0214I: The collector is connected to the Bluemix log collection server on the specified host logs.eu-gb.opvis.bluemix.net and port number 9091.
+```
+
+=== Use your Kibana dashboard to see your log (and other) events
+
+Once you have your log (and other) events going to Bluemix's ELK you can use Kibana's powerful dashboards to explore your data.
+
+To access your Kibana dashboard, use the URL below that matches where your Bluemix space is located:
+
+- US South: https://logmet.ng.bluemix.net/
+- United Kingdom: https://logmet.eu-gb.bluemix.net/
+
+Initially you will see the default Kibana dashboard.  This dashboard shows you log and trace events over time from all servers that have sent their events to that Bluemix org/space's ELK tenant.  You can zoom in on a particular time range by clicking on the graph and dragging across the time range you want to see.
+
+To see the Liberty dashboard, click the load (folder) icon in the top right corner of the Kibana interface and select the Liberty-K3-* choice.  A set of tables and graphs specific to Liberty should appear.  A few things you can try:
+
+- look at the Hosts / User Directories / Servers row to see if you can spot your server.  The "count" shows how many events have been consumed by Elasticsearch in the time window you are looking at.  If you are sending data from multiple servers to ELK, try clicking on the magnifying glass icon to filter in only the server you are interested in.  Filters apply to the whole dashboard.
+- look at the Hot Messages / Hot Response Codes / Slow Hits / Slow GC row to see if there are any highlights you need to be aware of immediately.
+- expand each of the collapsed rows (for example, the Record Counts - Logs row, or the Garbage Collection Row) to explore your data.
+- try zooming in on a time range by clicking and dragging across a time range on a graph - look for correlations between graphs (for example a long hit duration at about the same time as a message printed to your logs) when you zoom.
+- expand rows near the bottom (messages table, access log table, and others) to see the your actual logs, trace, access logs, ffdc and garbage collection events.
+- feeling adventurous?  Try clicking "ADD A ROW" at the bottom of the dashboard and adding your own visualizations -- there are lots of youtube videos showing how to use Kibana!

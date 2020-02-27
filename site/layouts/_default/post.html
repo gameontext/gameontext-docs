@@ -1,0 +1,24 @@
+{{ define "main" }}
+<main class="page">
+  <header>
+    <h2>{{ .Title }}</h2>
+  </header>
+  <article>
+    {{ .Content }}
+    {{- if isset .Params "media" -}}
+    {{ partial "media.html" .Params }}
+    {{- end -}}
+  </article>
+  <aside class="meta">
+    <div class="back">Back to <a href="{{ .CurrentSection.Permalink }}">{{ .CurrentSection.Title }}</a></div>
+    <div class="tags">{{- with .Params.tags -}}
+    Tags:
+    <ul id="tags">
+      {{- range . -}}
+        <li>{{ partial "tag.html" . }}</li>
+      {{- end -}}
+    </ul>
+    {{- end -}}</div>
+  </aside>
+</main>
+{{ end }}
