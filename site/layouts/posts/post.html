@@ -1,0 +1,24 @@
+{{ define "header" }}
+<header class="head-single">
+  <h1><a href="{{ .Site.BaseURL | absURL }}/">GAME<span class="on">ON</span></a></h1>
+  <div>Hands-on experiment building microservices and cloud native applications</div>
+</header>
+{{ end }}
+{{ define "main" }}
+<article class="post">
+  <header>
+    <h1>{{ .Title }}</h1>
+    {{ partial "byline.html" . }}
+  </header>
+
+  <section class="content">
+    {{ .Content }}
+  </section>
+
+</article>
+<nav class="prev-next">
+  <div class="nav-left">{{ with .PrevInSection }}<a href="{{.RelPermalink}}" title="Previous: {{ .Title }}">Previous</a>{{ end }}</div>
+  <div class="nav-center"><a href="/blog/">Blog</a> | <a href="/archive/">Archive</a></div>
+  <div class="nav-right">{{ with .NextInSection }}<a href="{{.RelPermalink}}" title="Next: {{ .Title }}">Next</a>{{ end }}</div>
+</nav>
+{{ end }}

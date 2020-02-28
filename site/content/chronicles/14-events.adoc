@@ -1,0 +1,32 @@
+---
+title: Pandemonium! Events!
+weight: 14
+type: book
+---
+
+:icons: font
+:signedHeaders: link:/architecture/ApplicationSecurity.html
+:WebSocketProtocol: link:/architecture/WebSocketProtocol.html
+:game-on: https://gameontext.org/
+
+image:../images/Progression.014.jpeg[Progression, width=95%]
+
+There are some things in the game that really aren't good to handle with
+REST APIs.  Reacting to events is a much more efficient
+way of propagating changes through the system.  For example, when a
+player changes their name via the Player service, that change should
+ripple out to all interested parties so that interactions across
+devices can be updated with the new username.
+
+We decided to try using Kafka, or, when we run in BlueMix, MessageHub (which has a
+Kafka interface, so essentially it's still Kafka to us).
+As we looked more into Kafka we realised we can only allow our core
+services to make use of it. While we would really like to make it
+generally accessible, it wasn't really built to be internet facing (It only started
+to add security at version 0.9). Maybe some day...
+
+We wrapped our handling of receieved events into an RxJava based
+API, just by the way. That's worth a look or three.
+
+We're still in early days with our integration of Events, but the
+infrastructure is all there waiting for us to use it.

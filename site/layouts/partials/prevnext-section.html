@@ -1,0 +1,24 @@
+{{- .Scratch.Set "index" -1 -}}
+{{- $sections := (where .Site.Sections "Type" "book") -}}
+{{- range $elem_index, $elem_val := $sections -}}
+  {{- if eq $.FirstSection.RelPermalink $elem_val.RelPermalink -}}
+    {{- $.Scratch.Set "index" $elem_index -}}
+  {{- end -}}
+{{- end -}}
+{{- if gt (.Scratch.Get "index") -1 -}}
+  {{- if eq (.Scratch.Get "prevnext") "prev" -}}
+    {{- .Scratch.Set "index" (add (.Scratch.Get "index") -1) -}}
+  {{- else }}
+    {{- .Scratch.Set "index" (add (.Scratch.Get "index") 1) -}}
+  {{- end -}}
+  {{- with (index $sections (.Scratch.Get "index")) -}}
+    {{- if eq (.Scratch.Get "prevnext") "prev" -}}
+    <div class="long"><a href="{{.RelPermalink}}" title="Next: {{ .Title }}">{{.Title}}</a></div>
+    <div class="short"><a href="{{.RelPermalink}}" title="Next: {{ .Title }}">Next</a></div>
+    {{- else }}
+    <div class="long"><a href="{{.RelPermalink}}" title="Previous: {{ .Title }}">{{.Title}}</a></div>
+    <div class="short"><a href="{{.RelPermalink}}" title="Previous: {{ .Title }}">Previous</a></div>
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+

@@ -1,0 +1,38 @@
+{{ define "header" }}
+<header class="head-single">
+  <h1><a href="{{ .Site.BaseURL | absURL }}/">GAME<span class="on">ON</span></a></h1>
+  <div>Hands-on experiment building microservices and cloud native applications</div>
+</header>
+{{ end }}
+{{ define "main" }}
+<main class="book page">
+  <article>
+    <header>
+      <h1>{{ .Title }}</h1>
+    </header>
+    {{ .Content }}
+  </article>
+  <nav class="prev-next">
+    <div class="nav-left">
+      {{- if .NextInSection -}}
+      <div class="long"><a href="{{.NextInSection.RelPermalink}}" title="Previous: {{ .NextInSection.Title }}">{{.NextInSection.Title}}</a></div>
+      <div class="short"><a href="{{.NextInSection.RelPermalink}}" title="Previous: {{ .NextInSection.Title }}">Previous</a></div>
+      {{- else -}}
+        {{- .Scratch.Set "prevnext" "prev" -}}
+        {{- partial "prevnext-section.html" . -}}
+      {{- end -}}</div>
+    <div class="nav-center">
+      <div class="long">Up: <a href="{{.CurrentSection.RelPermalink}}">{{ .CurrentSection.Title }}</a></div>
+      <div class="short"><a href="{{.CurrentSection.RelPermalink}}">Up</a></div>
+    </div>
+    <div class="nav-right">
+      {{- if .PrevInSection -}}
+      <div class="long"><a href="{{.PrevInSection.RelPermalink}}" title="Next: {{ .PrevInSection.Title }}">{{.PrevInSection.Title}}</a></div>
+      <div class="short"><a href="{{.PrevInSection.RelPermalink}}" title="Next: {{ .PrevInSection.Title }}">Next</a></div>
+      {{- else -}}
+        {{- .Scratch.Set "prevnext" "next" -}}
+        {{- partial "prevnext-section.html" . -}}
+      {{- end -}}</div>
+  </nav>
+</main>
+{{ end }}

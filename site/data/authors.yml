@@ -1,0 +1,29 @@
+# author key should match declared author for post
+# author:
+#  name: display name, required for feed.xml
+#  github: required for profile links
+#  twitter: optional
+#  uri: optional, used in feed.xml if present
+erin:
+  name: erin
+  uri: http://ebullientworks.com/
+  twitter: ebullientworks
+  github: ebullient
+adam_p:
+  name: adam_p
+  twitter: MarkNSweep
+  github: MarkNSweep
+ozzy:
+  name: ozzy
+  github: BarDweller
+ilan:
+  name: ilan
+  uri: http://ilanpillemer.github.io
+  github: ilanpillemer
+  twitter: ilanpillemer
+quan:
+  name: quan
+  github: quanvo87
+heather:
+  name: heather
+  github: hsaunders0788

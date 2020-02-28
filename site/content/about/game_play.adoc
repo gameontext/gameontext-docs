@@ -1,25 +1,28 @@
 ---
-title: Game Play
+title: "How to play"
+weight: 1
+type: book
 ---
 
-= Game Play
-:icons: font
 :toc:
-:toc-title:
-:toc-placement: preamble
+:toc-title: Contents
+:toc-placement: macro
 :toclevels: 2
-:services: link:microservices/README.adoc
+:services:  link:/architecture/
 :swagger: https://gameontext.org/swagger/
-:security: link:microservices/ApplicationSecurity.adoc
-:registerRoom: link:walkthroughs/registerRoom.adoc
-:mapService: link:microservices/Map.adoc
+:security: link:/architecture/ApplicationSecurity.html
+:registerRoom: link:/walkthroughs/registerRoom.html
+:mapService: link:/architecture/Map.html
 :mapClient: https://github.com/gameontext/regutil
 :charm: https://en.wikibooks.org/wiki/Muggles%27_Guide_to_Harry_Potter/Magic/Permanent_Sticking_Charm
 
-Games are meant to be played! The only objective for a game player is to be
-entertained. There may be puzzles to solve, riddles to answer, cryptic speech
-to decipher, whatever! It completely depends on what the developers of any given
-room have decided to build.
+Games are meant to be played!
+
+Players just want to have fun. There may be puzzles to solve, riddles to answer, cryptic speech
+to decipher, whatever! Every room will be different, but will follow the following consistent
+interaction patterns.
+
+toc::[]
 
 == Navigation and common commands
 
@@ -28,7 +31,7 @@ Some commands will always be available. Those that are implemented by
 same.
 
 .Common commands provided by the game
-[cols=".<m,.<2",options="header,footer"]
+[cols=".<m,.<3",options="header"]
 |==========================
 |Command  |Description
 |/help    |List available commands (will vary by room)
@@ -37,7 +40,7 @@ same.
 |==========================
 
 .Common commands provided by rooms: implementations will vary
-[cols=".<m,.<2",options="header"]
+[cols=".<m,.<3",options="header"]
 |==========================
 |Command    | Description
 |/look      | Describe a room or an item. Implementations will vary
@@ -57,12 +60,12 @@ things go terribly wrong or call for a rescue (`/sos`).
 First room also provides some useful custom commands for room developers.
 
 .Custom commands for First Room to support room developers
-[cols=".<m,.<2",options="header"]
+[cols=".<m,.<3",options="header"]
 |==========================
-|Commands   | Description
+|Commands      | Description
 | /listmyrooms | List all of your rooms
 | /teleport    | Teleport to the specified room, e.g. `/teleport room-id`
-| /deleteroom | Delete the specified room, e.g. `/deleteroom room-id`
+| /deleteroom  | Delete the specified room, e.g. `/deleteroom room-id`
 |==========================
 
 

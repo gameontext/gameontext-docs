@@ -1,0 +1,100 @@
+---
+title: Adding your own Social Login apps for local testing
+weight: 6
+type: book
+---
+
+:icons: font
+:toc:
+:toc-title:
+:toc-placement: manual
+:toclevels: 1
+:facebookdevpage: https://developers.facebook.com/
+:sociallogin: https://en.wikipedia.org/wiki/Social_login
+:oauth: https://oauth.net/2/
+:gameonenvfile: https://github.com/gameontext/gameon/blob/master/gameon.env
+
+How to create your own Social Login app, and configure it to use with the game locally.
+
+toc::[]
+
+== Overview
+
+What's a Social Login App? I thought this section was for Game On?
+
+Game On allows players to identify themselves via third party services, such as
+Facebook, Twitter, etc. These are examples of  {sociallogin}['Social Login'],
+where a user can use credentials they have with an existing service, to sign
+into a new application (Game On).
+
+== How does this work ?
+
+When a user accesses Game On, they are offered a choice of which Social Login
+they wish to use, when they select an option, Game On has their browser head to
+the appropriate service login page, where they sign in, the browser then returns
+to Game On after the authentication.
+
+Behind the scenes, when Game On forwards to the social login page, Game On has
+to identify itself to that service, most use a variant of {oauth}[OAuth-2.0].
+Just as Game On wants to trust that the user has authenticated themselves with
+the remote social login service, the remote service needs to know it's only
+performing that task for someone it trusts too.
+
+In each case, that reverse trust is managed by the creation of an application
+with the remote service, the application acting as Game On's authorization to
+use the remote service for login purposes.
+
+== Why do I need my own Social Login apps ?
+
+Given that Game On already clearly has these apps configured when you use it
+today, why do you need your own apps when running Game On locally?
+
+As part of an app definition, you have to tell the app where to send the user
+after the user has authenticated. After all, Game On sent the user to the social
+login service, the service has to send them back. The apps we already have are
+configured to send the user back to the live running Game On servers. If you
+were to configure them locally, and connect to your local Game On, after
+authentication, you'd be connected to the live Game On.
+
+== Adding your own Social Login app (Facebook).
+
+As a start we'll explain how to add just one social login app for local testing,
+Facebook. Adding the other services follow a similar process, hopefully that may
+make a bit more sense after you've seen how to configure the Facebook one.
+
+Start by heading to the {facebookdevpage}[Facebook developer page]
+
+There.. select 'my apps' at the top right of the page, and then 'add an app'
+then select 'website' as the type of app, then give it a name eg 'My Local
+GameOn Testing App'.. then skip the rest of the wizard thing..
+
+From here the instructions will get a little sketchy, because really this needs
+a whole bunh of screengrabs, but I can't get those done at the mo.. so here's
+the rough info you need in the meantime
+
+(please just imagine the screengrabs, being held attractively by suitably clad
+assistants, smiling at the camera, while remonstrating expressively with their
+hands toward said screengrabs, alternatively, send me the screengrabs via our
+slack channel, and I'll add them here.. )
+
+You'll need to grab your 'App ID' .. and the 'App Secret' those are the entries
+you'll need to put in your {gameonenvfile}[gameon.env] file. (In the
+FACEBOOK_APP_ID and FACEBOOK_APP_SECRET vars)
+
+But we're not done yet, we have to sort out a few other bits, and the easiest
+place to sort all this is from the 'Settings' panel on the left side (below
+'Dashboard').
+
+From there you can also get that 'App ID', 'App Secret', and you need to configure..
+
+ - Display Name, thats the one that wil show up when people click 'Facebook'
+   to tell them what they are signing into.
+
+ - App Domains, here you need to put in 127.0.0.1, or 192.168.x.x, what ever
+   address you access your local game on at.
+
+ - PrivacyPolicy / TermsOfService URLs, (may be required for facebook, to access
+   email.. ) just use "https://gameontext.org/#/terms"
+
+ - Site URL, this also needs to be configured to have the domain of wherever
+   your local Game On is running.. eg, http://127.0.0.1/ or http://192.168.x.x/

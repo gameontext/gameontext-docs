@@ -1,0 +1,95 @@
+---
+title: Register your Room
+weight: 6
+type: book
+---
+
+:icons: font
+:toc:
+:toc-title:
+:toc-placement: preamble
+:toclevels: 2
+:javascript: https://github.com/gameontext/sample-room-nodejs#introduction
+:java: https://github.com/gameontext/sample-room-java#introduction
+:go: https://github.com/gameontext/sample-room-go#introduction
+:samples: https://github.com/gameontext?utf8=✓&q=sample-room
+:cf: link:bluemix-cf.adoc
+:docker: link:bluemix-ics.adoc
+:more: link:createMore.adoc
+:first-room: https://gameontext.org/#/play
+:swagger: https://gameontext.org/swagger/
+:sweep: link:/architecture/TheSweep.html
+:WebSocket: link:/architecture/WebSocketProtocol.html
+
+Game On! is relies on a variant of a WebHook to allow the core game to find your
+service. Part of registering a room is providing a publicly reachable endpoint
+(a WebHook) that follows the Room API (primarily the
+{WebSocket}[WebSocket protocol]), as well as other factors like unique room
+names and descriptions, or the presence of customized items or commands.
+
+[NOTE]
+====
+Room registration is long-lived: the registration for your room
+will persist until you delete it. You can list and delete your registered
+rooms using commands in {first-room}[First Room] or the Room Management
+page.
+====
+
+== Room Management: Register a new room
+
+1.  Go to https://gameontext.org[Game On!] and sign in.
+2.  Click on the [room-edit]#building icon# in the top right of the game screen
+    to go to the Room Management page.
+3.  Make sure **Create a new room** is selected from the **Select a room** drop-down.
+4.  Provide a short nickname for your room (required), e.g. `shortcut`
+5.  Provide a descriptive title for your room, e.g. `The Shortest Cut`
+6.  Paste in the WebSocket endpoint.
+    If you visit your deployed application, you should be able to copy the
+    WebSocket address from the (admittedly basic) webpage.
+7.  Fill in as many other fields as you care to.
+    * The description provided in this UI is used in the interactive map and
+      other lists or indexes of defined rooms. The description shown in the
+      game can reuse this text, or can be defined separately.
+    * Doors: <<doors,Describe each door as seen from the outside>>.
+8.  Click **Register** and the room will be registered (added to the Map).
+
+You can come back to this page to update your room registrations
+at any time. Choose the room you want to update from the drop-down,
+make any desired changes, and click either **Update** to save the changes,
+or **Delete** to delete the registration entirely.
+
+
+[[doors]]
+.Describing Doors
+****
+When registering a room, you provide descriptions for at least 4 doors.
+Describe each door as it would appear from outside the room.
+
+.Your room is in green. Describe doors as seen by the navigating player.
+image:../images/roomRegistration.png[title="Describing doors from the outside", align="center", width="400"]
+
+For example, if the green room is a room pretending to be a bouncy castle,
+then the bouncy castle room could declare a description for their 'east'
+door so person walking east would see the following when listing `/exits`:
+
+    (E)ast   An inflated doorway, through which you can seemingly hear much laughter, and merriment
+
+If this doesn't make sense to you, don't worry about it; describe each door
+without referencing a direction, and things will be fine.
+****
+
+== Hello, World!
+
+Once the room is set up and it has registered with Game On!, it will be accessible
+as a room in the game.
+
+1. If you aren't in The First Room, use `/sos` to return there.
+2. Use the Game On! command `/listmyrooms` from The First Room, to see your list
+   of rooms. Your newly registered room should appear in that list.
+3. Use the `/teleport` command to go directly to your room from The First Room to
+   see it in action.
+
+Congratulations, you've deployed a microservice that extended an
+existing microservices-based application so that it can do something new!
+
+On to {more}[Advanced Adventures]...

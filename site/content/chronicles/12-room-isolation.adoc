@@ -1,0 +1,26 @@
+---
+title: Rec Room Gets the Cold Shoulder
+weight: 12
+type: book
+---
+
+:icons: font
+:signedHeaders: link:/architecture/ApplicationSecurity.html
+:WebSocketProtocol: link:/architecture/WebSocketProtocol.html
+:game-on: https://gameontext.org/
+
+image:../images/Progression.012.jpeg[Progression, width=95%]
+
+*Go on Now, Go! Walk out the Door.. (don't turn around, now...)*
+
+As user-created rooms were added to the Map, we started thinking about treating
+our rooms like everybody else's. Up until this point, our rooms have cheated (a little),
+as they've been able to directly talk to the core services. But no more! For we have kicked
+the rooms out of the core services club, and told them they can no longer be members.
+
+As with all recent 'exit' attempts, this one leaves the rooms still with the odd toe in the
+core services pond, mumbling something about freedom of movement, and the fact we can't quite
+yet bring ourselves to require yet another batch file to handle the launching of rooms.
+
+Conceptually however, they are now very much split off. We hope they enjoy their banishment
+and that they do not decide to rise up against us.

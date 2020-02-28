@@ -1,0 +1,33 @@
+---
+title: Marco! Polo! (Service registration and discovery)
+weight: 15
+type: book
+---
+
+:icons: font
+:signedHeaders: link:/architecture/ApplicationSecurity.html
+:WebSocketProtocol: link:/architecture/WebSocketProtocol.html
+:game-on: https://gameontext.org/
+:amalgam8: http://amalgam8.io
+
+image:../images/Progression.015.jpeg[Progression, width=95%]
+
+An item long on our wishlist was to stop having hardcoded endpoint urls
+(passed in as environment variables) for our services. We know it isn't nice,
+and it makes it harder to scale service instances without adding intermediate
+proxies all over the place.
+
+We're using {amalgam8}[Amalgam8] (A8) for it's service discovery and service
+proxying abilities. Amalgam8 uses sidecars to manage service registration
+and discovery. Programmable load balancing and routing is provided via an in-container
+outbound proxy to other services. This simplifies how much our services
+have to deal with.
+
+In effect, our services are still using fixed URLs passed in
+via the environment, but the A8 sidecar is translating that fixed URL into a
+point to point connection with the target remote service. When Mediator wishes to
+talk to Map to discover which room is behind an Exit, it no longer talks to a
+fixed remote endpoint configured via etcd, but instead talks to its
+in-container proxy, asking for the Map service via a known local url.
+A8 then handles connecting the request to the correct service instance running in
+another container.

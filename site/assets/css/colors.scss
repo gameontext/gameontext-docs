@@ -1,7 +1,108 @@
-$dim-gray: #666;
-$nobel: #999;
-$burnt-sienna: #EA6F56;
-$spray: #65CFD9;
-$bluemine: #35566B;
-$gainsboro: #ddd;
-$very-light-gray: #ccc;
+
+/* https://javier.xyz/cohesive-colors/?src=106a72,74c5b3,e77539,edae3e,518a61,e9544a&overlay=106a72&intensity=0.3 */
+
+$pale-aqua: #c5f5f9;
+$light-aqua:#98e2e9;
+$aqua:      #65cfd9;
+$dark-aqua: #3e98aa;
+$teal:      #417285;
+$mid-teal:  #35566b;
+$dark-teal: #294556;
+$deep-teal: #1e3441;
+
+$orange:      #aa5500;
+$bright-blue: #1e90ff;
+$blue:        #0000aa;
+$cyan:        #00aaaa;
+$dark-cyan:   #009999;
+$fuchsia:     #bc00c8;
+$green:       #006c00;
+$lime:        #00c700;
+$maroon:      #880000;
+$navy:        #000080;
+$olive:       #4c8317;
+$purple:      #800080;
+$red:         #aa0000;
+$red-bg:      #f2ecec;
+$yellow:      #BCC700;
+
+$white: #fafafa;
+$very-light-gray: #efefef;
+$light-gray: #d1d1d1;
+$gray: #666;
+$dark-gray: #444;
+$black: #323232;
+
+$light-background: $very-light-gray;
+$light-border-color: $light-gray;
+
+$dark-shadow: $black;
+$dark-border-color: $dark-gray;
+$dark-background: $dark-gray;
+
+$serif-font-family: "Noto Serif","DejaVu Serif",serif;
+$sans-font-family: "HelveticaNeue", "Helvetica Neue", Helvetica, Arial, sans-serif;
+$mono-font-family: 'Anonymous Pro', Courier, 'Menlo', 'Andale Mono', monospace;
+
+$primary-color: $aqua;
+$accent-color:  $orange;
+$dark-color: $dark-teal;
+
+$body-bg: $white;
+$body-font-color: $dark-gray;
+
+$header-font-color: $dark-teal;
+$subheader-font-color: $gray;
+$title-font-color: $mid-teal;
+
+$code-color: $black;
+$code-line-numbers: #7f7f7f;
+$code-comment: #aaaaaa;
+$code-output: #888888;
+$code-prompt: #555;
+$code-bg-color: $very-light-gray;
+$highlight-bg-color: #ffffcc;
+
+$pre-font-color: $black;
+$pre-bg: $very-light-gray;
+
+$invert-color: $very-light-gray;
+$invert-bg: $black;
+
+$menu-color: $black;
+
+$link-font-color: $orange;
+$link-hover: $teal;
+$link-underline: 1px $light-gray dotted;
+
+$blockquote-font-color: $dark-teal;
+$blockquote-cite-font-color: $dark-gray;
+
+$table-color: $black;
+$table-bg: $white;
+$table-head-bg: $pale-aqua;
+$table-head-font-color: $deep-teal;
+$table-even-row-bg: $very-light-gray;
+$table-border-color: $very-light-gray;
+
+$sect-divider-color: $light-border-color;
+$hr-border-color: $light-border-color;
+
+$nav-bg-color: $pale-aqua;
+$nav-font-color: $deep-teal;
+
+$header-on-color: $aqua;
+$footer-bg: $dark-teal;
+$footer-font-color: $white;
+
+$gist-bg: $white;
+
+$tag-color:    $black;
+$tag-bg-color: $pale-aqua;
+
+$icon-color:           $gray;
+$icon-note-color:      $mid-teal;
+$icon-tip-color:       $teal;
+$icon-important-color: $orange;
+$icon-warning-color:   $red;
+$icon-caution-color:   $yellow;

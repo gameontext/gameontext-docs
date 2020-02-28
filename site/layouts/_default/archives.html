@@ -9,13 +9,19 @@
   </article>
   {{- end}}
   <section class="archive_list">
+    {{ range where .Site.Sections "Section" .Params.section }}
+    {{ range .RegularPages.GroupByDate "2006" }}
+    <h2 id="y{{ .Key }}">{{ .Key }}</h2>
     <ul>
       {{ range .Pages }}
       <li>
-          <a href="{{.RelPermalink}}">{{.Date.Format "2006-01-02"}} | {{.Title}}</a>
+        <span class="date">{{.Date.Format "02 Jan"}}</span> <a href="{{.RelPermalink}}">{{.Title}}</a>
+        ({{ .Params.author}})
       </li>
       {{ end }}
     </ul>
+    {{ end }}
+    {{ end }}
   </section>
 </main>
 {{ end }}

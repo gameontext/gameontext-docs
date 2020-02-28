@@ -1,9 +1,18 @@
-<!DOCTYPE html>
-<html lang="{{ .Lang }}">
-  {{ partial "head.html" . }}
-  <body>
-  {{ partial "header.html" . }}
+{{ define "title" }}
+{{ .Site.Title }}
+{{ end }}
+{{ define "description" }}
+<meta name="description" content="{{ .Site.Params.description }}">
+{{ end }}
+{{ define "main" }}
+  <article class="post">
+    {{ .Content }}
 
-  {{ partial "footer.html" . }}
-</body>
-</html>
+    <h2>What next?</h2>
+    <ul>
+      {{- range where .Site.Sections "Type" "book" }}
+      <li><a href="{{.RelPermalink}}">{{.Title}}</a></li>
+      {{- end }}
+    </ul>
+  </article>
+{{ end }}

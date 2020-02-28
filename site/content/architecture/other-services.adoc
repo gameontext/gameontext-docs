@@ -1,0 +1,45 @@
+---
+title: Other services
+weight: 12
+type: book
+---
+
+:chronicles: link:/chronicles/
+:map: link:Map.adoc
+:goroom: https://github.com/gameontext/sample-room-go
+:maproom: https://gameontext.org/swagger/
+:nodejsroom: https://github.com/gameontext/sample-room-nodejs
+:recroom: https://github.com/gameontext/gameon-room
+:security: link:ApplicationSecurty.adoc
+:simpleroom: https://github.com/gameontext/sample-room-java
+:swagger: https://gameontext.org/swagger/
+:WebSocket: link:WebSocketProtocol.adoc
+:walkthroughs: link:/walkthroughs/
+
+image:/images/OtherServices.jpeg["Other services",align="center"]
+
+== Swagger
+
+A simple process that serves the swagger UI with our {swagger}[swagger API documents].
+
+== Room implementations
+
+We have a few room implementations defined within our repositories.
+
+* {simpleroom}[SimpleRoom] -- foundation for the Java-based walkthrough
+* {nodejsroom}[Node.js room] -- foundation for the JavaScript walkthrough
+* {goroom}[Go room] -- foundation for the Go walkthrough
+* {recroom}[The RecRoom and Basement] -- two related rooms, one of which has items
+* {maproom}[The Map room] -- uses the Map's API to display a map of all registered rooms
+
+For most of them, a single service is providing a single room. The notable
+exception is the RecRoom and Basement, where a single service is providing two
+related rooms.
+
+Each service is responsible for managing its own data (if any), and satisfying the
+published APIs for a room to the satisfaction of the Sweep. As mentioned in
+{walkthroughs}[Extending the game], rooms are what allow you to
+experiment with microservices concepts and approaches. In effect you are building
+one microservice (or a subsystem composed of microservices) that becomes one element
+of a larger system of services. You can play in and with a microservices
+architecture without having to build all of the pieces yourself.

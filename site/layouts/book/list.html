@@ -1,0 +1,62 @@
+{{ define "header" }}
+<header class="head-single">
+  <h1><a href="{{ .Site.BaseURL | absURL }}/">GAME<span class="on">ON</span></a></h1>
+  <div>Hands-on experiment building microservices and cloud native applications</div>
+</header>
+{{ end }}
+{{ define "main" }}
+<main class="page">
+  <header class="page-header">
+    <h1 class="page-title">{{.Title}}</h1>
+  </header>
+  {{- with .Content }}
+  <article>
+    {{.}}
+  </article>
+  {{- end}}
+
+  <nav class="index">
+  {{- if (eq .Params.index true)}}
+    <ul class="full">
+      {{- range where .Site.Sections "Type" "book" -}}
+        {{ .Scratch.Set "active" $.Page.RelPermalink }}
+        {{ partial "section-index.html" . }}
+      {{- end -}}
+    </ul>
+  {{- else }}
+    {{- if .RegularPages }}
+    <h2>What's next</h2>
+      <ul class="peers">
+        {{- range .RegularPages.ByWeight }}
+        <li class="article"><a href="{{.RelPermalink}}">{{.Title}}</a></li>
+        {{- end }}
+      </ul>
+    {{- end }}
+
+    <h2>Learn more</h2>
+    <ul class="sections">
+      {{- range where .Site.Sections "Type" "book" }}
+        {{- if (eq $.Page.FirstSection.RelPermalink .RelPermalink) }}
+        <li class="section {{ if (eq $.Page.RelPermalink .RelPermalink) }}current{{ else }}parent{{ end }}">
+          {{- if (ne $.Page.RelPermalink .RelPermalink) }}<a href="{{.RelPermalink}}">{{.Title}}</a>{{else}}<span>{{.Title}}</span>{{end}}
+          {{- if .Sections }}
+          <ul>
+            {{- range .Sections }}
+            <li class="section {{ if (eq $.Page.RelPermalink .RelPermalink) }}current{{ else }}child{{ end }}">
+              {{- if (ne $.Page.RelPermalink .RelPermalink) }}<a href="{{.RelPermalink}}">{{.Title}}</a>{{else}}<span>{{.Title}}</span>{{end}}
+            </li>
+            {{- end }}
+          </ul>
+          {{- end }}
+        </li>
+        {{- else }}
+        <li class="section root">
+          {{- if (ne $.Page.RelPermalink .RelPermalink) }}<a href="{{.RelPermalink}}">{{.Title}}</a>{{else}}{{.Title}}{{end}}
+        </li>
+        {{- end }}
+      {{- end }}
+    </ul>
+   {{- end }}
+  </nav>
+</main>
+{{ end }}

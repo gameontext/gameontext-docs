@@ -1,4 +1,5 @@
 baseURL: ""
+uglyURLs: true
 disableLiveReload: true
 enableGitInfo: true
 googleAnalytics: UA-90113653-2
@@ -8,6 +9,8 @@ frontmatter:
     - ":filename"
     - ":git"
     - ":default"
+permalinks:
+  posts: /:year/:month/:day/:slug
 markup:
   highlight:
     codeFences: true

@@ -1,9 +1,52 @@
 <!DOCTYPE html>
 <html lang="{{ .Lang }}">
-{{ partial "head.html" . }}
+<head>
+  <meta charset="utf-8"/>
+  <meta http-equiv="X-UA-Compatible" content="chrome=1"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+  {{- block "css" . }}
+  <link rel="stylesheet" href="https://use.fontawesome.com/e3112f1bdf.css"/>
+  {{- $flexStyle := resources.Get "css/flex.scss" | toCSS | minify | fingerprint }}
+  <link rel="stylesheet" href="{{ $flexStyle.RelPermalink }}" />
+  {{ end }}
+  <!--[if lt IE 9]>
+  <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+  <![endif]-->
+  <link rel="shortcut icon" href="/favicon.ico"  type="image/x-icon"/>
+  <title>{{ block "title" . }}GO: {{ .Title }}{{ end }}</title>
+  {{- block "description" . }}{{ end }}
+  {{- if isset .Params "canonical" }}
+  <link rel="canonical" href="{{ .Params.canonical | absURL }}">
+  {{- else }}
+  <link rel="canonical" href="{{ .Permalink }}" />
+  {{- end }}
+  <link rel="alternate" type="application/rss+xml" href="/blog/index.xml" title="Game On! Adventures with microservices" />
+</head>
 <body>
-{{ partial "header.html" . }}
+{{ block "header" . }}
+<header class="head">
+  <h1><a href="{{ .Site.BaseURL | absURL }}/">GAME<span class="on">ON</span></a></h1>
+  <div>Hands-on experiment building microservices and cloud native applications</div>
+  <a target="_blank" href="https://github.com/gameontext/" class="button"><small>View project on</small> GitHub</a>
+</header>
+{{ end }}
+<nav class="project">
+  <a target="_blank" href="https://gameontext.org" title="Play the game"><i class="fa fa-play" aria-hidden="true"></i><span> Play <span>the game</span></span></a>
+  <a href="/about/" title="Read the book"><i class="fa fa-book" aria-hidden="true"></i><span> Learn <span>more</span></span></a>
+  <a href="/blog/" title="Read the blog"><i class="fa fa-newspaper-o" aria-hidden="true"></i><span> Read <span>our blog</span></span></a>
+  <a target="_blank" href="https://gameontext.org/slackin/" title="Join our slack team"><i class="fa fa-slack" aria-hidden="true"></i><span><span> Join us on</span> Slack</span></a>
+  <a target="_blank" class="github" href="https://github.com/gameontext" title="View project on GitHub"><i class="fa fa-github" aria-hidden="true"></i><span> Github</span></a>
+</nav>
+
 {{ block "main" . }}{{ end }}
-{{ partial "footer.html" . }}
+
+<footer class="foot">
+  <div id="copyrights">&#169; 2016-{{ now.Format "2006"}} under terms of the Apache License 2.0.</div>
+
+  <div>Follow us:
+  <a target="_blank" href="https://twitter.com/gameontext" title="Follow @gameontext"><i class="fa fa-twitter" aria-hidden="true"></i></a>
+  </div>
+</footer>
+{{ template "_internal/google_analytics_async.html" . }}
 </body>
 </html>
