@@ -1,7 +1,9 @@
 ---
-title: Advanced Adventure for Game On Room Items.
-weight: 6
+title: Enhancing a room with items
+weight: 10
 type: book
+aliases:
+- "/walkthroughs/addItemsToYourRoom.html"
 ---
 
 :icons: font
@@ -10,13 +12,13 @@ type: book
 :toc-placement: preamble
 :toclevels: 2
 :sampleroom: https://github.com/gameontext/sample-room-java
-:protocol: https://book.gameontext.org/microservices/WebSocketProtocol.html
-:location: https://book.gameontext.org/microservices/WebSocketProtocol.html#_room_mediator_client_location_message
+:protocol: link:/architecture/websocket-protocol.html
+:location: link:/architecture/websocket-protocol.html#_room_mediator_client_location_message
 :roomDescription: https://github.com/gameontext/sample-room-java/blob/master/src/main/java/org/gameontext/sample/RoomDescription.java
 :roomImplementation: https://github.com/gameontext/sample-room-java/blob/master/src/main/java/org/gameontext/sample/RoomImplementation.java
 :message: https://github.com/gameontext/sample-room-java/blob/master/src/main/java/org/gameontext/sample/protocol/Message.java
-:jsr107: link:jsr107caching.html
-:jaxrs: link:mapviarest.html
+:jsr107: link:jsr107-caching.html
+:jaxrs: link:jaxrs-rest.html
 
 Where we learn about how to add items to your room.
 

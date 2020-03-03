@@ -16,7 +16,7 @@ for building resilient distributed systems. We have some walkthroughs to get
 you started:
 
 {{< dl >}}
-{{< dt >}}[Create a new room]({{< relref "createRoom.md" >}}){{< /dl >}}
+{{< dt >}}[Create a new room]({{< relref "create-room.md" >}}){{< /dl >}}
 {{< dd >}}Create and deploy your own services! Containers or build packs, kubernetes or cloud foundry. 
 What about Heroku? Whatever you're curious about, this is a perfect way to play.{{< /dd >}}
 

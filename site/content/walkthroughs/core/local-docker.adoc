@@ -9,14 +9,13 @@ type: book
 :toc-title:
 :toc-placement: manual
 :toclevels: 2
-:sociallogin: link:adding_your_own_sso_apps_for_local_testing.adoc
-:wdt-eclipse: link:eclipse_and_wdt.adoc
-:12-factor: link:/about/twelve-factors.html
+:sociallogin: link:/walkthroughs/advanced/test-sso-login.html
+:wdt-eclipse: link:/walkthroughs/eclipse-and-wdt.html
 :docker: https://docs.docker.com/engine/installation/
-:git: link:git.adoc
+:git: link:git.html
 :vagrant: https://www.vagrantup.com/downloads.html
 :root: https://github.com/gameontext/gameon
-:adventures: link:createMore.adoc
+:adventures: link:/walkthroughs/advanced/
 :contribute: https://github.com/gameontext/gameon/blob/master/CONTRIBUTING.md
 :compose: https://docs.docker.com/compose/install/
 :releases: https://github.com/docker/compose/releases

@@ -1,7 +1,9 @@
 ---
-title: Advanced Adventure for JSR-107 Caching
-weight: 6
+title: JSR-107 Caching
+weight: 40
 type: book
+aliases:
+- "/walkthroughs/jsr107caching.html"
 ---
 
 :icons: font
@@ -34,8 +36,8 @@ type: book
 :cacheresolverfactory: http://static.javadoc.io/javax.cache/cache-api/1.0.0/javax/cache/annotation/CacheResolverFactory.html
 :cachevalue: http://static.javadoc.io/javax.cache/cache-api/1.0.0/javax/cache/annotation/CacheValue.html
 :cache: http://static.javadoc.io/javax.cache/cache-api/1.0.0/javax/cache/Cache.html
-:jsr107part2: link:jsr107caching2.html
-:roomitems: link:addItemsToYourRoom.html
+:jsr107part2: link:jsr107-caching-2.html
+:roomitems: link:room-items.html
 
 
 Where we learn about Caching, the standards-based way.

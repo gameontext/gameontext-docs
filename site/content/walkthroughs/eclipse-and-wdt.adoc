@@ -2,6 +2,8 @@
 title: Eclipse and WDT
 weight: 6
 type: book
+aliases:
+- "/walkthroughs/eclipse_and_wdt.html"
 ---
 
 :icons: font

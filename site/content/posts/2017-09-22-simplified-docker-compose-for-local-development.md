@@ -28,8 +28,8 @@ to work from (rather than always using whatever the most recent / experimental d
 
 More:
 
-* [Game Overview](https://book.gameontext.org/)
-* [Creating a room](https://book.gameontext.org/walkthroughs/createRoom.html)
-* [Local Development](https://book.gameontext.org/walkthroughs/local-build.html) -- new stuff here. ;)
+* [Game Overview](/about/)
+* [Creating a room](/walkthroughs/create-room.html)
+* [Local Development](/walkthroughs/core/local-build.html) -- new stuff here. ;)
 
 Stay tuned! Enjoy! Go play!

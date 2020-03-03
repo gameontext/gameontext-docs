@@ -5,8 +5,8 @@ type: book
 ---
 
 :icons: font
-:signedHeaders: link:/architecture/ApplicationSecurity.html
-:WebSocketProtocol: link:/architecture/WebSocketProtocol.html
+:signedHeaders: link:/architecture/application-security.html
+:WebSocketProtocol: link:/architecture/websocket-protocol.html
 :game-on: https://gameontext.org/
 :amalgam8: http://amalgam8.io
 

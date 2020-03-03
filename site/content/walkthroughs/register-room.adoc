@@ -2,6 +2,8 @@
 title: Register your Room
 weight: 6
 type: book
+aliases:
+- "/walkthroughs/registerRoom.html"
 ---
 
 :icons: font
@@ -13,13 +15,11 @@ type: book
 :java: https://github.com/gameontext/sample-room-java#introduction
 :go: https://github.com/gameontext/sample-room-go#introduction
 :samples: https://github.com/gameontext?utf8=✓&q=sample-room
-:cf: link:bluemix-cf.adoc
-:docker: link:bluemix-ics.adoc
-:more: link:createMore.adoc
+:more: link:advanced/
 :first-room: https://gameontext.org/#/play
 :swagger: https://gameontext.org/swagger/
-:sweep: link:/architecture/TheSweep.html
-:WebSocket: link:/architecture/WebSocketProtocol.html
+:sweep: link:/architecture/the-sweep.html
+:WebSocket: link:/architecture/websocket-protocol.html
 
 Game On! is relies on a variant of a WebHook to allow the core game to find your
 service. Part of registering a room is providing a publicly reachable endpoint

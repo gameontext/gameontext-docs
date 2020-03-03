@@ -124,9 +124,9 @@ This should feel pretty familiar if you've read any of the Java Room examples. L
           break;
     }
 
-Our first bit of real Game On! response handling has snuck in there. When a socket connects to us, we'll send back an "ack,{"version":[1]}" response. That's enough to meet the game's handshake requirements, so we get proper room events coming through as type WStype_TEXT in future. If you run this sketch as is, and [register your websocket address with Game On!](https://book.gameontext.org/walkthroughs/registerRoom.html) then you'll see all the room packets go past after you enter your room.  Don't forget you need to use port forwarding, or something similar to route an internet facing address & port back to the witty on port 9999, or Game On! will not be able to reach you!
+Our first bit of real Game On! response handling has snuck in there. When a socket connects to us, we'll send back an "ack,{"version":[1]}" response. That's enough to meet the game's handshake requirements, so we get proper room events coming through as type WStype_TEXT in future. If you run this sketch as is, and [register your websocket address with Game On!](/walkthroughs/register-room.html) then you'll see all the room packets go past after you enter your room.  Don't forget you need to use port forwarding, or something similar to route an internet facing address & port back to the witty on port 9999, or Game On! will not be able to reach you!
 
-So now we're recieving proper [Game On! websocket protocol packets](https://gameontext.gitbooks.io/gameon-gitbook/content/microservices/WebSocketProtocol.html) (documented in our [book](https://book.gameontext.org/)):
+So now we're recieving proper [Game On! websocket protocol packets](/architecture/websocket-protocol.html):
 
 >  The protocol used by Game On! is text (rather than binary), and uses a simple comma-delimited header followed by a JSON payload. `Just,like,{"this": "ok?"}`
 

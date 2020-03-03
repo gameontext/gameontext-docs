@@ -1,7 +1,9 @@
 ---
-title: Advanced Adventure for room creation from scratch
-weight: 6
+title: Create a room from scratch
+weight: 150
 type: book
+aliases:
+- "/walkthroughs/creatingYourOwnRoom.html"
 ---
 
 :icons: font
@@ -9,12 +11,12 @@ type: book
 :toc-title:
 :toc-placement: preamble
 :toclevels: 2
-:protocol: https://book.gameontext.org/microservices/WebSocketProtocol.html
+:protocol: link:/architecture/websocket-protocol.html
 :swagger: https://gameontext.org/swagger/
 :interactivemap: https://gameontext.org/interactivemap
 :regutil: https://github.com/gameontext/regutil
-:registerroom: https://book.gameontext.org/walkthroughs/registerRoom.html
-:sequencediagram: https://book.gameontext.org/microservices/WebSocketProtocol.html#_sequence_diagram
+:registerroom: link:/walkthroughs/register-room.html
+:sequencediagram: link:/architecture/websocket-protocol.html#_sequence_diagram
 :javaroom: https://github.com/gameontext/sample-room-java
 :esproom: https://github.com/gameontext/esp8266-room
 :goroom: https://github.com/gameontext/sample-room-go

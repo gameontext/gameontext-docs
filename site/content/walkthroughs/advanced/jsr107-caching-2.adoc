@@ -1,7 +1,9 @@
 ---
-title: Advanced Adventure for JSR-107 Caching (Part Two!)
-weight: 6
+title: JSR-107 Caching (Part Two!)
+weight: 41
 type: book
+aliases:
+- "/walkthroughs/jsr107caching2.html"
 ---
 
 :icons: font
@@ -9,16 +11,16 @@ type: book
 :toc-title:
 :toc-placement: preamble
 :toclevels: 2
-:partOne: link:jsr107caching.html
-:prereqs: link:jsr107caching.html#_prerequisites
-:deps: link:jsr107caching.html#_adding_the_dependencies
-:mgr: link:jsr107caching.html#_creating_the_default_cache_manager_provider
+:partOne: link:jsr107-caching.html
+:prereqs: link:jsr107-caching.html#_prerequisites
+:deps: link:jsr107-caching.html#_adding_the_dependencies
+:mgr: link:jsr107-caching.html#_creating_the_default_cache_manager_provider
 :bdJSR-107room: https://github.com/BarDweller/gameon-jsr107-room
 :api: http://static.javadoc.io/javax.cache/cache-api/1.0.0/javax/cache/package-summary.html
 :listener: http://static.javadoc.io/javax.cache/cache-api/1.0.0/javax/cache/event/package-summary.html
 :loader: http://static.javadoc.io/javax.cache/cache-api/1.0.0/javax/cache/integration/CacheLoader.html
 :writer: http://static.javadoc.io/javax.cache/cache-api/1.0.0/javax/cache/integration/CacheWriter.html
-:roomitems: link:addItemsToYourRoom.html
+:roomitems: link:room-items.html
 
 
 Where we learn that JSR-107 isn't just about annotations.

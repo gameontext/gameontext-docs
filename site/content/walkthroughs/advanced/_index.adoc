@@ -3,6 +3,8 @@ title: Advanced Adventures
 url: "/walkthroughs/advanced/"
 type: book
 weight: 6
+aliases:
+- "/walkthroughs/createMore.html"
 ---
 
 :icons: font
@@ -10,17 +12,17 @@ weight: 6
 :toc-title: Contents
 :toc-placement: macro
 :toclevels: 2
-:creatingYourOwnRoom: link:creatingYourOwnRoom.adoc
-:elkStack: link:elkStack.adoc
+:creatingYourOwnRoom: link:room-from-scratch.html
+:elkStack: link:elk-stack.html
 :local-k8s-build: https://github.com/gameontext/gameon/tree/master/kubernetes
 :local-dc-build: https://github.com/gameontext/gameon/tree/master/docker
-:jsr107a: link:jsr107caching.adoc
-:jsr107b: link:jsr107caching2.adoc
-:jaxrs: link:mapviarest.adoc
-:addingItems: link:addItemsToYourRoom.adoc
-:cloudant: link:cloudant.adoc
-:slack: http://gameontext.slack.com/
-:watson: link:addWatsonConversation.adoc
+:jsr107a: link:jsr107-caching.html
+:jsr107b: link:jsr107-caching-2.html
+:jaxrs: link:jaxrs-rest.html
+:addingItems: link:room-items.html
+:cloudant: link:cloudant.html
+:slack: https://gameontext.org/slackin/
+:watson: link:watson-conversation.html
 
 Beyond the cave of grues, fantastic adventures await.
 

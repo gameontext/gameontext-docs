@@ -1,7 +1,9 @@
 ---
-title: Advanced Adventure for REST & JAX-RS
-weight: 6
+title: Communication with REST & JAX-RS
+weight: 15
 type: book
+aliases:
+- "/walkthroughs/mapviarest.html"
 ---
 
 :icons: font
@@ -13,15 +15,15 @@ type: book
 :rest: https://en.wikipedia.org/wiki/Representational_state_transfer
 :jaxrs: https://en.wikipedia.org/wiki/Java_API_for_RESTful_Web_Services
 :jaxrsclient: https://docs.oracle.com/javaee/7/api/javax/ws/rs/client/package-summary.html
-:mapservice: link:/architecture/Map.html
+:mapservice: link:/architecture/map.html
 :sample-room-with-mapclient: https://github.com/gameontext/sample-room-java/tree/c888aad87b5ebac2a2fe740b1b39d3194d95b60b/src/main/java/org/gameontext/sample/map/client
 :sample-room: https://github.com/gameontext/sample-room-java
-:sample-room-walkthrough: link:createRoom.adoc
+:sample-room-walkthrough: link:/walkthroughs/create-room.html
 :liberty-jaxrs-config: https://www.ibm.com/support/knowledgecenter/SS7K4U_8.5.5/com.ibm.websphere.wlp.zseries.doc/ae/twlp_jaxrs2.0_clientconfig.html
 :map-swagger-get-room: https://gameontext.org/swagger/#!/map/getRoom
 :circuit-breaker: http://www.javaworld.com/article/2824163/application-performance/stability-patterns-applied-in-a-restful-architecture.html?page=2
 :failsafe: https://github.com/jhalterman/failsafe
-:jsr107: link:jsr107caching.html
+:jsr107: link:jsr107-caching.html
 
 Where we learn how to talk to Map via REST & JAX-RS
 

@@ -10,9 +10,9 @@ type: book
 :toclevels: 2
 :services:  link:/architecture/
 :swagger: https://gameontext.org/swagger/
-:security: link:/architecture/ApplicationSecurity.html
+:security: link:/architecture/application-security.html
 :registerRoom: link:/walkthroughs/registerRoom.html
-:mapService: link:/architecture/Map.html
+:mapService: link:/architecture/map.html
 :mapClient: https://github.com/gameontext/regutil
 :charm: https://en.wikibooks.org/wiki/Muggles%27_Guide_to_Harry_Potter/Magic/Permanent_Sticking_Charm
 

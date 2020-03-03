@@ -2,6 +2,8 @@
 title: WebSocket Protocol
 weight: 13
 type: book
+aliases:
+- "/microservices/WebSocketProtocol.html"
 ---
 
 :icons: font
@@ -10,7 +12,7 @@ type: book
 :toc-placement: preamble
 :toclevels: 3
 :swagger: https://gameontext.org/swagger/
-:security: link:ApplicationSecurty.adoc
+:security: link:application-security.html
 
 WebSockets are currently used for two-way asynchronous communication between the Client
 (the player's web browser) and the Mediator, and between the Mediator and a Room.

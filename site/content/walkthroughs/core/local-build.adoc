@@ -10,17 +10,17 @@ type: book
 :toc-placement: preamble
 :toclevels: 2
 :12-factor: link:/about/twelve-factors.html
-:adventures: link:createMore.adoc
+:adventures: link:/walkthroughs/advanced/
 :contribute: https://github.com/gameontext/gameon/blob/master/CONTRIBUTING.md
 :docker: https://docs.docker.com/engine/installation/
 :dockerhub: https://hub.docker.com/u/gameontext/
-:git: link:git.adoc
+:git: link:git.html
 :root: https://github.com/gameontext/gameon
-:sociallogin: link:adding_your_own_sso_apps_for_local_testing.adoc
-:using-compose:  link:local-docker.adoc
-:using-kubernetes:  link:local-kubernetes.adoc
+:sociallogin: link:/walkthroughs/advanced/test-sso-login.html
+:using-compose:  link:local-docker.html
+:using-kubernetes:  link:local-kubernetes.html
 :vagrant: https://www.vagrantup.com/downloads.html
-:wdt-eclipse: link:eclipse_and_wdt.adoc
+:wdt-eclipse: link:/walkthroughs/eclipse_and_wdt.html
 
 Developing and testing your room locally in a production-like environment is an
 important aspect of {12-factor}[Twelve factor applications], as it reduces the

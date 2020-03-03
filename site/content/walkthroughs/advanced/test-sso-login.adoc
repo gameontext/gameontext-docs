@@ -1,7 +1,9 @@
 ---
-title: Adding your own Social Login apps for local testing
-weight: 6
+title: Testing Social Login apps
+weight: 85
 type: book
+aliases:
+- "/walkthroughs/adding_your_own_sso_apps_for_local_testing.html"
 ---
 
 :icons: font

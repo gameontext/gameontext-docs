@@ -1,0 +1,164 @@
+---
+title: "The Twelve-Factor Application"
+weight: 1
+type: book
+---
+
+:icons: font
+:toc:
+:toc-title:
+:toc-placement: preamble
+:toclevels: 2
+:imagesdir: /images
+:chronicles: link:/chronicles/
+:monorepo: http://danluu.com/monorepo/
+:wasliberty: http://wasdev.net/
+
+{toc}
+
+== Overview
+
+Are there best practices for creating microservices?
+
+The twelve-factor application methodology is one frequently referenced approach. It defines twelve factors that services should follow to build portable, resilient applications for cloud environments (SaaS). To quote, twelve-factor applications:
+
+[quote, The Twelve-Factor App, 'http://12factor.net' ]
+____
+* Use *declarative* formats for setup automation, to minimize time and cost for new developers joining the project;
+* Have a *clean contract* with the underlying operating system, offering *maximum portability* between execution environments;
+* Are suitable for *deployment* on modern cloud platforms, obviating the need for servers and systems administration;
+* *Minimize divergence* between development and production, enabling *continuous deployment* for maximum agility;
+* And can *scale up* without significant changes to tooling, architecture, or development practices.
+____
+
+
+In the following sections, we'll discuss each of the twelve factors, relating them to decisions we made about how to build and organize the services that comprise the Game On! application.
+
+
+== Factor 1 – Codebase
+
+“One codebase tracked in revision control, many deploys”
+
+It should be obvious, right? The code for your applications needs to be in source control, especially if they are applications used by your business.
+All of the services that make up Game On! are stored in a git repository on GitHub, but we did dither about how our services should exist there. Does this factor mean each service should be in its own repository? Are shared repositories ok?
+
+When we started, we hedged. If you look in the {chronicles}[Chronicles], you'll see that our first pass had two services (the RecRoom and Concierge) in the same repository. These two services were, in fact, sharing code, which is a no-no according to this factor. As soon as we stopped changing our minds about how we wanted the two services to talk to each other, they were properly split into separate repositories, and the code sharing stopped.
+
+On the other hand, some people that advocate for a {monorepo}[Monolithic Repository]. This goes against the letter of the first factor, which argues that if two services need to share code, the shared code should be built as a versioned library that is retrieved as a dependency.
+
+We would summarize by saying: it is important that the automated build and deployment of each independent service be self-contained and independent. The rollout of changes should not need to be coordinated between services, and you shouldn't have to look across different repositories to understand why something works differently in test than it does in production.
+
+If you set up your repository or repositories and build/deployment pipelines to satisfy those requirements, you're probably fine with regard to this factor.
+
+
+== Factor 2 – Dependencies
+
+“Explicitly declare and isolate dependencies”
+
+All of the services that comprise Game On! have dependencies:
+
+* The Java-based services use {wasliberty}[WebSphere Liberty], and several require a unique subset of additional features to perform their functions.
+* The front-end JavaScript application has its set of dependencies, from build-time things like npm and grunt, to runtime things like Angular.
+
+For this factor, it is about making sure that these dependencies are explicit rather than implicit, right down to the Operating System.
+
+
+Rebelling from what often happened in traditional environments, where an app would be developed, and then run in another environment managed separately that wouldn't have the right version of perl, or the ,..
+
+
+In our sample application we have dependencies on certain Liberty features, more specifically servlet-3.1, jsonp-1.0 and jaxrs-2.0. Our application must pull down all of the dependencies it requires during the build process. To build this sample we have provided two options: Maven and Gradle. In both cases you declare the dependencies in the build file (pom.xml for Maven or build.gradle for Gradle) and the required packages are downloaded from Maven Central Repository at build time to compile the code. The packaging step uses the Maven or Gradle Liberty plug-ins to pull down a Liberty runtime from the Liberty Repository and produces a packaged Liberty server containing the server configuration and a WAR file with the compiled application code. As a result the application does not have any dependencies that it assumes will already exist on the system.
+
+== Factor 3 – Config
+
+“Store config in the environment”
+
+In simple terms this means that we shouldn’t put any environment-specific configuration in the application. The application shouldn’t care what environment it is running in and we shouldn’t need to change the app to run it in a different environment. For our specific application, we need the configuration details for the Cloudant database. We are using the same Cloudant database in both the local and Bluemix environments, and accessing it via the REST API provided by Cloudant. We need the URL to access Cloudant, and to abide by the 12 factors we have chosen to store this information in environment variables. When pushing applications to Bluemix you can provide a manifest.yml file to specify environment variables.
+
+
+
+== Factor 4 – Backing Services
+
+“Treat backing services as attached resources”
+
+As mentioned in Factor 3 we can access the Cloudant database through a REST API. We can use the jaxrsClient-2.0 Liberty feature (enabled by the jaxrs-2.0 feature) to build HTTP requests to send to the API. For example here is a GET request:
+
+
+
+== Factor 5 – Build, release, run
+
+“Strictly separate build and run stages”
+
+Factor 5 focuses on getting a clearly defined process with no cycles. The build stage should build everything you need; there should be no additional build steps when packaging a build with configuration to form a release artifact nor when running the application.
+
+For our sample, the build stage is clearly defined by the Maven/Gradle tools; the output of a build is a packaged server containing all of the environment agnostic config required to run the application. For the release stage we push a manifest.yml file and the packaged server to Bluemix. The manifest.yml is used to specify the environment variables we want in Bluemix, which in this case is the Cloudant configuration:
+
+
+$ cf push <application-name> -p /path/to/12FactorApp.zip -f /path/to/manifest.yml
+Once Bluemix has finished deploying your application it will start it up for you, this is the run stage. You can start and stop your application from the dashboard in Bluemix or from the Servers tab in Eclipse if you add the Bluemix Eclipse plug-in.
+
+When running locally the release stage is unzipping the packaged server into a runtime, or other suitable location and defining the environmental variables you require, e.g. Cloudant config and a WLP_USER_DIR. Then to run the application you simply navigate to the bin directory of your Liberty runtime and start the server:
+
+$server run 12FactorAppServer
+
+== Factor 6 – Processes
+
+“Execute the app as one or more stateless processes”
+
+This is a very useful factor as it means that if one instance of your application goes down you don’t lose the current state. It also simplifies workload balancing as your application doesn’t have an affinity to any particular instance of a service. In our sample application, persistent state is stored in the database. Any information required to process a request is either included in the request (as any proper invocation of a REST API would do), or is retrieved from the database.
+
+The application does not rely on an established session to satisfy new requests. In fact if your application is deployed onto Bluemix then this factor is almost achieved by default because Bluemix starts and stops process instances for you, and those instances are transient. This means that if your application needs to store state, it has to use a persistent datastore to do so.
+
+== Factor 7 – Port binding
+
+“Export services via port binding”
+
+The key for this factor is that the host and port used to access the service should be provided by the environment, not baked into the application, and that you aren’t relying on pre-existing or separately configured services for that endpoint. As mentioned in earlier factors, the release artifact (the packaged server in our sample) contains what is needed to configure and run your application. In Bluemix deployment we could get away with simply pushing a WAR file rather than a packaged server (since Bluemix has its own copy of Liberty) but in all cases, instance-specific attributes like host and port can (and should) be provided by the environment.
+
+If your application is running on a local Liberty server the application would be accessed by visiting http://localhost:9082/12-factor-application/. This points to a specific host and port where your application can be found and the default context root for a Liberty application (the name of the application). In a 12-factor application it makes much more sense to use Bluemix since it creates and manages routes to instances of your application when it is deployed (usually .mybluemix.net). When you want to access your application you simply visit the root context for the route.
+
+== Factor 8 – Concurrency
+
+“Scale out via the process model”
+
+This one is an easy factor to fulfill if you deploy to Bluemix. Bluemix comes ready made with both vertical and horizontal scaling. This can be done using the Cloud Foundry Command Line Interface:
+
+$ cf scale APP -i INSTANCES
+Alternatively you can do it in the Bluemix dashboard. Bluemix also provides an Autoscaling Service that, when bound to your application, will manage all of the scaling for you.
+
+== Factor 9 – Disposability
+
+“Maximize robustness with fast startup and graceful shutdown”
+
+One of the most shouted-about features of Liberty is how quick server startup and shutdown is. Of course since you can make updates to both your app and your server without having to do a restart this is not something that is used often but it does fit nicely with this factor. Since Bluemix’s Java application server of choice is Liberty, you get the benefits on the cloud as well. Bluemix does not require specific cleanup or extra setup between restarts so between the two we can easily create apps with disposability.
+
+Applications also have to ensure they are disposable. Our application does not perform extra configuration steps during startup and does not require any clean up operations to be performed during shutdown. As a result we have an application that starts quickly and can be easily restarted if something goes wrong.
+
+== Factor 10 – Dev/prod parity
+
+“Keep development, staging, and production as similar possible”
+
+Since you can do development, staging, and production on Bluemix the simple (and perhaps cheeky) answer here is to do development, staging, and production on Bluemix!
+
+That said, development and preliminary testing can be performed locally, The popularity of Docker images makes standing up test instances of Cloudant or other datastores fairly painless. As the location and credentials for accessing the service are provided by environment variables, it is easy to put together a production-like environment for local testing. If you use the WebSphere Devloper Tools (WDT) to do local development you also get the benefit of incremental publish, which allows you to make live changes to your application without having to go through packaging and release steps at development time.
+
+It is also interesting to note that running a server locally is a good method for testing. Since the server is so quick to startup, rather than having to build a mocking server to run unit tests with, you can actually just run them on a Liberty server without having to have a test suite that takes hours to run.
+
+== Factor 11 – Logs
+
+“Treat logs as event streams”
+
+When your application is deployed in Bluemix using the Liberty buildpack (which is the default and what our sample does), anything you write toSystem.out will be included in the messages.log that can be found in the Files and Logs tab on Bluemix.
+
+If you deploy your application to a different environment without the Liberty buildpack (e.g. using a docker image with the IBM Container Service), it may be more appropriate to send all logging and trace from Liberty and your application to standard out. This is more consistent with this factor, which recommends that everything should be sent to the system streams so the containing/hosting environment can deal with it. This can be easily achieved by adding a bootstrap.properties file containing com.ibm.ws.logging.trace.file.name=stdout to your server folder (at the same level as server.xml).
+
+If you take the Bluemix approach and are looking for more detailed information you can also make use of the Monitoring and Analytics service on Bluemix. This is a handy way to keep track of all of your applications and view in depth analytics of your applications at all stages; development, test and production.
+
+== Factor 12 – Admin processes
+
+“Run admin/management tasks as one-off processes”
+
+It took a while to decide on a realistic admin process for us to run on our simple application. Examples given on 12factor.net include migrating databases and running one-time scripts to do cleanup – things a small getting-started sample doesn’t usually need to do! We finally settled on gathering statistics about our application.
+
+The monitor-1.0 Liberty feature provides a servlet MXBean that reports runtime and access statistics, such as the application name, servlet name, and request count. This information is normally accessed using a JMX client, but by also enabling the restConnector-1.0 feature we can access the JMX clients using REST requests. Other MBeans are also available, you can view the full list by visiting the /IBMJMXConnectorREST/mbeans/ context root and entering the username and password of the quickStartSecurity element in the server.xml.
+
+In the sample app we have created a servlet which can be accessed using the context root /12-factor-application/admin/stats which collects the request count details from the JMX connector, parses it, and displays the data. This servlet is deployed as part of the application but is only invoked as a one-off admin process.

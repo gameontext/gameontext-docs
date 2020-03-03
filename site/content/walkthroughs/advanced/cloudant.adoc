@@ -1,7 +1,9 @@
 ---
-title: Advanced Adventure for Cloudant
-weight: 6
+title: NoSQL persistance with Cloudant
+weight: 20
 type: book
+aliases:
+- "/walkthroughs/cloudant.html"
 ---
 
 :icons: font
@@ -17,9 +19,9 @@ type: book
 :cloudantstarter: https://console.ng.bluemix.net/docs/services/Cloudant/index.html#getting-started-with-cloudant
 :sample-room-java: https://github.com/gameontext/sample-room-java
 :cloudantfields: https://wiki.apache.org/couchdb/HTTP_Document_API#Special_Fields
-:jsr107aa: link:jsr107caching.adoc
-:map: link:/architecture/Map.html
-:addingItems: link:addItemsToYourRoom.adoc
+:jsr107aa: link:jsr107-caching.html
+:map: link:/architecture/map.html
+:addingItems: link:room-items.html
 :playerloc: https://gameontext.org/swagger/#!/players/getPlayerLocation
 :samplerepo: https://github.com/gameontext/sample-room-java/tree/cloudant-advanced-adventure-sample
 

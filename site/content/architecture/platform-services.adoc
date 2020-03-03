@@ -5,15 +5,15 @@ type: book
 ---
 
 :chronicles: link:/chronicles/
-:map: link:Map.adoc
+:map: link:map.html
 :goroom: https://github.com/gameontext/sample-room-go
 :maproom: https://gameontext.org/swagger/
 :nodejsroom: https://github.com/gameontext/sample-room-nodejs
 :recroom: https://github.com/gameontext/gameon-room
-:security: link:ApplicationSecurty.adoc
+:security: link:application-security.html
 :simpleroom: https://github.com/gameontext/sample-room-java
 :swagger: https://gameontext.org/swagger/
-:WebSocket: link:WebSocketProtocol.adoc
+:WebSocket: link:websocket-protocol.html
 :walkthroughs: link:/walkthroughs/
 
 image:../images/PlatformServices.jpeg["Platform services",align="center"]

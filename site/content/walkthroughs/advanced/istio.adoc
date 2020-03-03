@@ -1,7 +1,9 @@
 ---
-title: Using Istio with Kubernetes
-weight: 6
+title: Istio and Kubernetes
+weight: 80
 type: book
+aliases:
+- "/walkthroughs/local-k8s-istio.html"
 ---
 
 :icons: font
@@ -9,14 +11,12 @@ type: book
 :toc-title:
 :toc-placement: manual
 :toclevels: 2
-:12-factor: link:/about/twelve-factors.html
-:git: link:git.adoc
+:git: link:/walkthroughs/core/git.html
 :root: https://github.com/gameontext/gameon
-:adventures: link:createMore.adoc
+:adventures: link:/walkthroughs/advanced/
 :cluster: https://github.com/gameontext/gameon/tree/master/kubernetes#set-up-a-kubernetes-cluster
 :istio-install: https://istio.io/docs/setup/kubernetes/quick-start.html
 :istio-sidecar: https://istio.io/docs/setup/kubernetes/sidecar-injection.html#automatic-sidecar-injection
-:istio-fault:  link:local-k8s-istio-fault.adoc
 
 In this adventure, we'll add Istio to the Kubernetes cluster running our core
 game services, to see what it does and how it works. So we don't make a mess of

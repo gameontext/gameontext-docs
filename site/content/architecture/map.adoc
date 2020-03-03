@@ -2,6 +2,8 @@
 title: The Map
 weight: 15
 type: book
+aliases:
+- "/microservices/Map.html"
 ---
 
 :icons: font
@@ -9,7 +11,8 @@ type: book
 :toc-title:
 :toc-placement: preamble
 :toclevels: 2
-:security: link:ApplicationSecurty.adoc
+:12-factor: link:/about/twelve-factors.html
+:security: link:application-security.html
 :swagger: https://gameontext.org/swagger/
 :repo: https://github.com/gameontext/gameon-map
 

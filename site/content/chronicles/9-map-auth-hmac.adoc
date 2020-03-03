@@ -5,9 +5,9 @@ type: book
 ---
 
 :icons: font
-:signedHeaders: link:/architecture/ApplicationSecurity.html
+:signedHeaders: link:/architecture/application-security.html
 :sharedLibrary: https://github.com/gameontext/signed
-:WebSocketProtocol: link:/architecture/WebSocketProtocol.html
+:WebSocketProtocol: link:/architecture/websocket-protocol.html
 :game-on: https://gameontext.org/
 
 image:../images/Progression.009.jpeg[Progression, width=95%]

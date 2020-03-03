@@ -2,6 +2,8 @@
 title: Create a Room service
 weight: 6
 type: book
+aliases:
+- "/walkthroughs/createRoom.html"
 ---
 
 :icons: font
@@ -9,15 +11,14 @@ type: book
 :toc-title:
 :toc-placement: manual
 :toclevels: 2
-:WebSocket: link:/architecture/WebSocketProtocol.html
-:sweep: link:/architecture/TheSweep.html
+:WebSocket: link:/architecture/websocket-protocol.html
+:sweep: link:/architecture/the-sweep.html
 :javascript: https://github.com/gameontext/sample-room-nodejs#introduction
 :java: https://github.com/gameontext/sample-room-java#introduction
 :swift: https://github.com/gameontext/sample-room-swift#introduction
 :go: https://github.com/gameontext/sample-room-go#introduction
 :samples: https://github.com/gameontext?utf8=✓&q=sample-room
-:deployRoom: link:deployRoom.adoc
-:registerRoom: link:registerRoom.adoc
+:registerRoom: link:register-room.html
 
 This game was built to give you reasons to try things, to make it easier (or
 more interesting) for you to learn the hard way.
@@ -60,6 +61,6 @@ Your deployment options may vary depending on the language you choose.
 * {swift}[Create a Game On! Room in Swift]
 * {samples}[... browse for sample rooms in other languages]
 
-Once you have a sample room created and {deployRoom}[deployed], you'll
+Once you have a sample room created and deployed, you'll
 {registerRoom}[register] the room's WebSocket endpoint with the game
 (essentially a webhook).

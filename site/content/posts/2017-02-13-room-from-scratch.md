@@ -7,6 +7,6 @@ tags: [adventure, room]
 
 Curious how to write your own room from scratch without a fork/clone? We've got your back, intrepid explorer, behold this adventure written just for you:
 
-* [Advanced Adventure for room creation from scratch](https://book.gameontext.org/walkthroughs/creatingYourOwnRoom.html)
+* [Advanced Adventure for room creation from scratch](/walkthroughs/advanced/room-from-scratch.html)
 
 Go play!

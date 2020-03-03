@@ -10,7 +10,7 @@ What follows is the stream-of-conciousness and research that lead up to our newe
 
 ## tl;dr
 
-- [advanced adventures](https://book.gameontext.org/walkthroughs/creatingYourOwnRoom.html).
+- [advanced adventures](/walkthroughs/advanced/room-from-scratch.html).
 - [sample-room-scala](https://github.com/gameontext/sample-room-scala)
 - [the room up and running](http://134.168.52.95:9000/)
 

@@ -1,7 +1,9 @@
 ---
 title: Logging using the ELK stack
-weight: 6
+weight: 60
 type: book
+aliases:
+- "/walkthroughs/elkStack.html"
 ---
 
 :icons: font
@@ -9,16 +11,15 @@ type: book
 :toc-title:
 :toc-placement: preamble
 :toclevels: 2
-:12-factor: link:../about/12-factor.adoc
-:api-key: link:/architecture/ApplicationSecurity.html
+:api-key: link:/architecture/application-security.html
 :cf-javascript: https://github.com/gameontext/gameon-room-nodejs#introduction
 :cf-java: https://github.com/gameontext/gameon-room-java#introduction
 :docker-go: https://github.com/gameontext/gameon-room-go#introduction
 :docker-java: https://github.com/gameontext/gameon-room-java#deploy-using-docker
 :first-room: https://gameontext.org/#/play
 :swagger: https://gameontext.org/swagger/
-:sweep: link:/architecture/TheSweep.html
-:WebSocket: link:/architecture/WebSocketProtocol.html
+:sweep: link:/architecture/the-sweep.html
+:WebSocket: link:/architecture/websocket-protocol.html
 
 Once you've created a room, the next thing you'll want to do is figure out how
 to send the room's logs somewhere so that when your room is stopped (and its
