@@ -1,0 +1,94 @@
+<!doctype html><html lang=en><head><meta charset=utf-8><meta http-equiv=x-ua-compatible content="chrome=1"><meta name=viewport content="width=device-width,initial-scale=1,maximum-scale=1"><link rel=stylesheet href=https://use.fontawesome.com/e3112f1bdf.css><link rel=stylesheet href=/css/flex.min.62d46290de4e8cb4b407a0a4c54711bb69af2f268ce654c5af64efa38732d394.css><link rel="shortcut icon" href=/favicon.ico type=image/x-icon><title>GO: Advanced KubecCtl</title><link rel=canonical href=/2018/10/02/kubernetes-status.html><link rel=alternate type=application/rss+xml href=/blog/index.xml title="Game On! Adventures with microservices"></head><body><header class=head-single><h1><a href=/>GAME<span class=on>ON</span></a></h1><div>Hands-on experiment building microservices and cloud native applications</div></header><nav class=project><a target=_blank href=https://gameontext.org title="Play the game"><i class="fa fa-play" aria-hidden=true></i><span>Play <span>the game</span></span></a>
+<a href=/about/ title="Read the book"><i class="fa fa-book" aria-hidden=true></i><span>Learn <span>more</span></span></a>
+<a href=/blog/ title="Read the blog"><i class="fa fa-newspaper-o" aria-hidden=true></i><span>Read <span>our blog</span></span></a>
+<a target=_blank href=https://gameontext.org/slackin/ title="Join our slack team"><i class="fa fa-slack" aria-hidden=true></i><span><span>Join us on</span> Slack</span></a>
+<a target=_blank class=github href=https://github.com/gameontext title="View project on GitHub"><i class="fa fa-github" aria-hidden=true></i><span>Github</span></a></nav><article class=post><header><h1>Advanced KubecCtl</h1><div class=byline><div><time class=post_date>02 October 2018</time> by<address class=author><a rel=author target=_blank href=https://github.com/BarDweller>ozzy</a></address></div><div class=tags>tags:<ul><li><a href=/tags/kubernetes>kubernetes</a></li><li><a href=/tags/local>local</a></li></ul></div></div></header><section class=content><p>We've been heads down figuring out how to take the work we did for Game On! on Kubernetes, and make it even simpler for users to get started.</p><p>So our resident techno-wizards have come up with a pile of scripts to help orchestrate the deploy onto K8S, and do some of the config
+and setup and boring backgroundy stuff that's required to get a polyglot microservice app up and running in your cluster. (Apparently the
+&lsquo;techno-wizards&rsquo; prefer other titles like &ldquo;Software Engineer&rdquo;, but that doesn't sound anywhere near as much fun! so.. Techno-Wizards they shall be!)</p><p>Anyway, one of them came wandering over and started describing ancient incantations he'd recently learned that allowed him to check the
+status on a bunch of pods. I had him write down some notes to share with the wider world, because we all know that sharing ancient magics
+never leads to the ressurection of sand gods bent on destroying the modern world, but instead leads to enlightenment and happiness.</p><p>The tale here starts with a simple requirement&mldr;</p><ul><li>&ldquo;Find out when Game On! has finished launching in the cluster, and is ready to accept requests&rdquo;</li></ul><p>The simplest approach here is <code>kubectl get pods</code>, and read the output, and wait until the appropriate pods are ready. Of course,
+Game On! deploys to it's own namespace, so the command becomes <code>kubectl get pods -n gameon-system</code>.</p><p>As you can see from the output, we can easily see which pods are ready by just looking at the READY column,
+and looking for the <code>1/1</code> entries :</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-bash data-lang=bash>kubectl get pods -n gameon-system
+NAME                      READY     STATUS    RESTARTS   AGE
+auth-1816639685-xejyk     1/1       Running   <span class=m>0</span>          26m
+webapp-1816639685-xejyk   1/1       Running   <span class=m>0</span>          26m
+mediator-1816639685-xejyk 1/1       Running   <span class=m>0</span>          26m
+...
+</code></pre></td></tr></table></div></div><p>We can read the output with <code>grep</code>, and just look for <code>0/</code> to know when a pod isn't ready yet.</p><p>It's a tad crude, but it works, or rather, worked. Right up until we added istio.</p><p>Once istio was part of the application, each pod now has <em>two</em> containers. One as the app itself, and another as the istio sidecar.
+Unfortunately, this means our trick for checking <code>0/</code> fails, because <code>1/2</code> doesn't start with <code>0/</code> so we believe the pod is started.
+And since the istio sidecar starts blazingly fast, and our Game On! service needs to boot a JVM, it'll stay in <code>1/2</code> for quite a while
+before the app is actually working.</p><p>So, we could improve our <code>grep</code>..</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-bash data-lang=bash>kubectl get pods -n gameon-system <span class=p>|</span> tail -n +2 <span class=p>|</span> awk <span class=s1>&#39;{print $2;}&#39;</span> <span class=p>|</span> awk -F <span class=s2>&#34;/&#34;</span> <span class=s1>&#39;{if($1==$2){print &#34;OK&#34;;}else{print &#34;BAD&#34;}}&#39;</span> <span class=p>|</span> grep BAD <span class=p>|</span> wc -l
+</code></pre></td></tr></table></div></div><p>As a first pass, this seems almost sane ;)</p><ul><li>get the pod list</li><li>lose the headers</li><li>grab the &lsquo;ready&rsquo; column only</li><li>test if the values each side of the &lsquo;/&rsquo; char are equal</li><li>check if any lines had values that didn't match</li></ul><p>You could improve it a little if you know about <code>--no-headers</code>, but the concept is the same, it just uses awk to process the output
+to create something we can use <code>grep</code> with.</p><p><em>If only there was a better way&mldr;</em></p><p>Kubectl supports &ldquo;jsonpath&rdquo; a neat little option that on the surface, allows you to retrieve metadata fields even if they are not
+supported by kubectl's <code>--field-selector</code> argument. eg. <code>kubectl get pod auth -n gameon-system -o jsonpath='{.metadata.name}'</code> will
+return just the name of the pod</p><p>You can use it with lists of items too, eg <code>kubectl get pods -n gameon-system -o jsonpath='{.items..metadata.name}'</code> will output
+the names of all the Game On! pods. Jsonpath is used by a bunch of stuff, and even has some awesome online jsponpath evaluators where you
+can test out syntax. Jsonpath includes filters, that allow you to reduce lists to only items matching a filter.</p><p>&ldquo;Great!&rdquo; went the Techno-Wizard, I will use that to get the list of all Game On! pods, but filter it to only the Pods that are not ready.</p><p>Sadly, there are some minor differences between the implementations, and one of those ends up being quite the drawback for K8S.</p><p>The issue is that the status we want to query is inside a list inside the pod declaration. And the pods themselves are in the list we
+are trying to filter. If we wanted to express this in jsonpath, it would end up a little like this&mldr;</p><p><code>{.items[?(@.status.containerStatuses[?(@.ready==false)])].metadata.name}</code></p><p>Here we are saying take the list of items, where the list of containerStatuses contains an instance of ready being false. Except that
+involves processing a nested array, which the K8S JSONPath can't handle.</p><p>So instead, we'll use the <code>{range}</code> support in kubectls jsonpath support.</p><p><code>kubectl get pods -n gameon-system -o jsonpath='{range .items[*]}{" "}{.metadata.name}{"="}{range .status.containerStatuses[?(@.ready==false)]}{""}{.ready}{end}{end}</code></p><p>This will use <code>range</code> to iterate over the pods (in the <code>items</code> array), outputting the name of each pod, then using a nested range to
+iterate over the statuses, selecting only those where ready is false.</p><p>For pods that are ready, we'll see output like <code>auth=</code> and for not ready pods we'll see <code>web=false</code> or possibly <code>web=falsefalse</code> (because
+false will be output for each time a container stbut atus is false, and with istio-sidecar & the app, there are two possibilities). The
+output will all be on a single line, but with a little work we can fix that.</p><p>If we throw in a liberal sprinkling of <code>tr</code> commands, and a little grep magic, and a dash of sed.. tada..</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span><span class=lnt>8
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-bash data-lang=bash>kubectl get pods <span class=se>\
+</span><span class=se></span>   -n gameon-system <span class=se>\
+</span><span class=se></span>   -o <span class=nv>jsonpath</span><span class=o>=</span><span class=s1>&#39;{range .items[*]}{&#34; &#34;}{.metadata.name}{&#34;=&#34;}{range .status.containerStatuses[?(@.ready==false)]}{&#34;&#34;}{.ready}{end}{end}&#39;</span> <span class=se>\
+</span><span class=se></span> <span class=p>|</span> tr <span class=s1>&#39; &#39;</span> <span class=s1>&#39;\n&#39;</span> <span class=se>\
+</span><span class=se></span> <span class=p>|</span> grep <span class=s2>&#34;=false&#34;</span> <span class=se>\
+</span><span class=se></span> <span class=p>|</span> sed -e <span class=s1>&#39;s/^\([^-]*\).*=false.*/\1/g&#39;</span> <span class=se>\
+</span><span class=se></span> <span class=p>|</span> tr <span class=s1>&#39;\n&#39;</span> <span class=s1>&#39; &#39;</span>
+
+</code></pre></td></tr></table></div></div><p>Here we take the space separated string, swap the spaces for linefeeds, then use grep to filter to only the &ldquo;not ready&rdquo; pods, then use
+sed to convert the container names back to their gameon short service names (eg. auth-deploy-c54875487-fhre9s becomes auth), before finally using tr to swap the linefeeds back into spaces!</p><p>But why?</p><p>Because that gives us a command that everytime we run it will give us back the names of the services that are not ready yet.</p><p>And when we wrap that into a script that calls it at regular intervals, we can meet our initial goal with a little style, by
+listing the services we are still waiting for.</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-sh data-lang=sh><span class=cp>#!/bin/bash
+</span><span class=cp></span>
+<span class=nv>DOTS</span><span class=o>=</span><span class=s2>&#34;&#34;</span>
+<span class=k>while</span> <span class=o>[</span> <span class=nb>true</span> <span class=o>]</span><span class=p>;</span> <span class=k>do</span>
+  <span class=nv>NOTREADY</span><span class=o>=</span><span class=k>$(</span>kubectl get pods <span class=se>\
+</span><span class=se></span>  -n gameon-system <span class=se>\
+</span><span class=se></span>  -o <span class=nv>jsonpath</span><span class=o>=</span><span class=s1>&#39;{range .items[*]}{&#34; &#34;}{.metadata.name}{&#34;=&#34;}{range .status.containerStatuses[?(@.ready==false)]}{&#34;&#34;}{.ready}{end}{end}&#39;</span> <span class=se>\
+</span><span class=se></span>  <span class=p>|</span> tr <span class=s1>&#39; &#39;</span> <span class=s1>&#39;\n&#39;</span> <span class=se>\
+</span><span class=se></span>  <span class=p>|</span> grep <span class=s2>&#34;=false&#34;</span> <span class=se>\
+</span><span class=se></span>  <span class=p>|</span> sed -e <span class=s1>&#39;s/^\([^-]*\).*=false.*/\1/g&#39;</span> <span class=se>\
+</span><span class=se></span>  <span class=p>|</span> tr <span class=s1>&#39;\n&#39;</span> <span class=s1>&#39; &#39;</span><span class=k>)</span>
+  <span class=nv>DOTS</span><span class=o>=</span><span class=s2>&#34;</span><span class=nv>$DOTS</span><span class=s2>.</span><span class=s2>&#34;</span>
+  <span class=k>if</span> <span class=o>[</span> -z <span class=nv>$NOTREADY</span> <span class=o>]</span><span class=p>;</span> <span class=k>then</span>
+    <span class=nb>break</span>
+  <span class=k>fi</span>
+  <span class=nb>echo</span> -en <span class=s2>&#34;</span><span class=s2>\rWaiting for [ </span><span class=nv>$NOTREADY</span><span class=s2>]</span><span class=nv>$DOTS</span><span class=s2>&#34;</span>
+  sleep <span class=m>5</span>
+<span class=k>done</span>
+</code></pre></td></tr></table></div></div><p>(Extra points if you can spot what's wrong with the DOTS handling ;) )</p><p>And that concludes our tale, as the Techno-Wizard returns once more from whence he came, mumbling about PodSecurityPolicies and
+allowedCapabilities, but that will have to be a tale for another time.</p></section></article><nav class=prev-next><div class=nav-left><a href=/2018/01/11/gameon-kubernetes.html title="Previous: Moving GameOn to Kubernetes">Previous</a></div><div class=nav-center><a href=/blog/>Blog</a> | <a href=/archive/>Archive</a></div><div class=nav-right></div></nav><footer class=foot><div id=copyrights>&#169; 2016-2020 under terms of the Apache License 2.0.</div><div>Follow us:
+<a target=_blank href=https://twitter.com/gameontext title="Follow @gameontext"><i class="fa fa-twitter" aria-hidden=true></i></a></div></footer><script type=application/javascript>var doNotTrack=false;if(!doNotTrack){window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;ga('create','UA-90113653-2','auto');ga('send','pageview');}</script><script async src=https://www.google-analytics.com/analytics.js></script></body></html>
