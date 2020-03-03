@@ -1,0 +1,111 @@
+<!doctype html><html lang=en><head><meta charset=utf-8><meta http-equiv=x-ua-compatible content="chrome=1"><meta name=viewport content="width=device-width,initial-scale=1,maximum-scale=1"><link rel=stylesheet href=https://use.fontawesome.com/e3112f1bdf.css><link rel=stylesheet href=/css/flex.min.62d46290de4e8cb4b407a0a4c54711bb69af2f268ce654c5af64efa38732d394.css><link rel="shortcut icon" href=/favicon.ico type=image/x-icon><title>GO: Room on a chip</title><link rel=canonical href=/2017/07/18/room-on-a-chip.html><link rel=alternate type=application/rss+xml href=/blog/index.xml title="Game On! Adventures with microservices"></head><body><header class=head-single><h1><a href=/>GAME<span class=on>ON</span></a></h1><div>Hands-on experiment building microservices and cloud native applications</div></header><nav class=project><a target=_blank href=https://gameontext.org title="Play the game"><i class="fa fa-play" aria-hidden=true></i><span>Play <span>the game</span></span></a>
+<a href=/about/ title="Read the book"><i class="fa fa-book" aria-hidden=true></i><span>Learn <span>more</span></span></a>
+<a href=/blog/ title="Read the blog"><i class="fa fa-newspaper-o" aria-hidden=true></i><span>Read <span>our blog</span></span></a>
+<a target=_blank href=https://gameontext.org/slackin/ title="Join our slack team"><i class="fa fa-slack" aria-hidden=true></i><span><span>Join us on</span> Slack</span></a>
+<a target=_blank class=github href=https://github.com/gameontext title="View project on GitHub"><i class="fa fa-github" aria-hidden=true></i><span>Github</span></a></nav><article class=post><header><h1>Room on a chip</h1><div class=byline><div><time class=post_date>18 July 2017</time> by<address class=author><a rel=author target=_blank href=https://github.com/BarDweller>ozzy</a></address></div><div class=tags>tags:<ul><li><a href=/tags/eps8266>eps8266</a></li><li><a href=/tags/iot>iot</a></li><li><a href=/tags/websockets>websockets</a></li><li><a href=/tags/arduino>arduino</a></li><li><a href=/tags/microservices>microservices</a></li></ul></div></div></header><section class=content><p><a href=https://gameontext.org/>Game On!</a> is a fun little text adventure written using a Microservice architecture. It's also extensible, allowing users to write their own &lsquo;Rooms&rsquo; (locations within the text adventure world), that run as Microservices, in the cloud, on their own systems, etc.</p><p>I've played with Arduino's and Raspberry Pi's, and similar for quite some time. I tried having an Arduino read data from a Floppy Drive, which was fun, and ultimately led to <a href=http://hackaday.com/2012/03/31/floppy-autoloader-takes-the-pain-out-of-archiving-5000-amiga-disks/>a crazy floppy disk autoloader</a>. From there, I ended up moving on from Arduino to the Maple, then from there to a Teensy 3.0, and most recently, a rather fun little collection of boards based around a Chip known as the <a href=https://en.wikipedia.org/wiki/ESP8266>ESP8266</a></p><p><img src=http://bit.ly/2tAIOE8 alt="esp8266 board"></p><p>There are some nice things about one of the ESP8266 boards I had (<a href=http://bit.ly/2u3bsQg>Witty Cloud / GizWits</a>):</p><ul><li>you program it using the Arduino API,</li><li>it has built in WiFi, 4MB of flash to store your code, 64k of instruction ram, and 96k of data ram to play with.</li><li>it runs at 80mhz or so</li><li>it has an LED light that can change color</li><li>it has a light sensor</li></ul><p>That's pretty impressive for something that costs around 5$ shipped.</p><p>When you know there are Arduino JSON libraries, and Arduino WebSocket libraries that can run on it, you start wondering: is it possible to host a Room for Game On on an ESP8266 ?</p><p>I had a spare moment at a weekend, so decided to find out! =)</p><p>I figured I'd create a room that allowed players in the room to alter the color of the light, and read the light sensors value.</p><p>Starting with a recent version of the Arduino IDE, I added support for the ESP8266 via the <a href=https://github.com/esp8266/Arduino#installing-with-boards-manager>board manager</a> , and then downloaded the ArduinoJson and Websockets libraries via the Library Manager.</p><p>That much will automatically add the #includes for the libraries we plan to use.</p><p>Arduino projects have 2 methods that you work out from, &ldquo;setup&rdquo; that's called exactly once when the device starts, or reboots, and then &ldquo;loop&rdquo; which is effectively called from a while(true) loop.</p><p>We use setup to configure initial state for the device, things like configuring the GPIO lines to be input, or output, and setting their initial states.. and in the case of the esp8266, we'll also use it to connect to the wifi, and launch our websocket server.</p><p>Setting up the GPIO is fairly simple..</p><pre><code>//setup the gpio..
+pinMode(15, OUTPUT);
+pinMode(12, OUTPUT);
+pinMode(13, OUTPUT);
+pinMode(4,INPUT);
+pinMode(A0,INPUT);
+</code></pre><p>Connecting to the WiFi is similarly not too complicated..</p><pre><code>//connect to the wifi..
+WiFiMulti.addAP(&quot;MYSSID&quot;, &quot;MYWIFIPASSWORD&quot;);
+while(WiFiMulti.run() != WL_CONNECTED) {
+    delay(100);
+}
+Serial.printf(&quot;[SETUP] COMPLETE.\n&quot;);
+Serial.printf(&quot;[SETUP] IP address: &quot;);
+Serial.println(WiFi.localIP());
+</code></pre><p>Lastly, we need to handle the WebSocket.. the WebSocket library requires you to declare the WebSocket, initialize it during setup, then call the websockets loop function in your loop.</p><p>So outside the setup function we add..</p><pre><code>WebSocketsServer webSocket = WebSocketsServer(9999);
+</code></pre><p>And inside our setup function we add..</p><pre><code>webSocket.begin();
+</code></pre><p>And inside the loop function we add..</p><pre><code>webSocket.loop();
+</code></pre><p>Great, if we ran that now, it'd start up, connect to the wifi, and open the worlds most pointless websocket on port 9999. We need to tell the websocket what to do when someone sends messages to it. We do this by adding a new method like this&mldr;</p><pre><code>void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length) {
+}
+</code></pre><p>and then telling the websocket to call that when it gets a message by adding the following line to setup, after websocket.begin();</p><pre><code>webSocket.onEvent(webSocketEvent);
+</code></pre><p>Now we're really cooking =) we can add a switch statement to that webSocketEvent method, to process the different types of event that occur..</p><pre><code>switch(type) {
+  case WStype_DISCONNECTED:
+      break;
+  case WStype_CONNECTED:
+      break;
+  case WStype_TEXT:
+      break;
+  case WStype_BIN:
+      break;
+}
+</code></pre><p>This should feel pretty familiar if you've read any of the Java Room examples. Let's add some simple debug to the case statements so we can see them being invoked over the serial link.</p><pre><code>switch(type) {
+  case WStype_DISCONNECTED:
+      Serial.printf(&quot;[%u] Disconnected!\n&quot;, num);
+      break;
+  case WStype_CONNECTED:
+      {
+          IPAddress ip = webSocket.remoteIP(num);
+          Serial.printf(&quot;[%u] Connected from %d.%d.%d.%d url: %s\n&quot;, num, ip[0], ip[1], ip[2], ip[3], payload);
+        // send ack to game on.
+        webSocket.sendTXT(num, &quot;ack,{\&quot;version\&quot;:[1]}&quot;);
+      }
+      break;
+  case WStype_TEXT:
+      Serial.printf(&quot;[%u] get Text: (len:%d) %s\n&quot;, num, length, payload);
+
+      break;
+  case WStype_BIN:
+      //game-on doesn't use binary payloads, but let's log any we find.
+      Serial.printf(&quot;[%u] get binary length: %u\n&quot;, num, length);
+      hexdump(payload, length);
+      break;
+}
+</code></pre><p>Our first bit of real Game On! response handling has snuck in there. When a socket connects to us, we'll send back an &ldquo;ack,{&ldquo;version&rdquo;:[1]}&rdquo; response. That's enough to meet the game's handshake requirements, so we get proper room events coming through as type WStype_TEXT in future. If you run this sketch as is, and <a href=/walkthroughs/register-room.html>register your websocket address with Game On!</a> then you'll see all the room packets go past after you enter your room. Don't forget you need to use port forwarding, or something similar to route an internet facing address & port back to the witty on port 9999, or Game On! will not be able to reach you!</p><p>So now we're recieving proper <a href=/architecture/websocket-protocol.html>Game On! websocket protocol packets</a>:</p><blockquote><p>The protocol used by Game On! is text (rather than binary), and uses a simple comma-delimited header followed by a JSON payload. <code>Just,like,{"this": "ok?"}</code></p></blockquote><p>The first thing we need to do is split that initial packet up to extract the routing information away from the payload. We'll add a utility method that takes in the string, and initialises an array of pointers to the different parts. Because we're running on a small device, we make some attempt to save memory: instead of creating new strings for each of the parts, we'll write null terminating zeros into the string where the commas were, thus creating 3 strings indexed by the array passed in.</p><pre><code>//breaks up a routed message into an array of char*
+//note we only process up to 3 segments ever.
+void splitRouting(char *message, int len, char *split[]){
+  //the first segment will always start at the front of the buffer.
+  split[0] = message;
+  int i=0;
+  int j=1;
+  while(i&lt;len &amp;&amp; j&lt;3){
+    if(message[i] == '{'){
+      break;
+    }
+    if(message[i] == ',' &amp;&amp; i&lt;(len-1)){
+      //store the index for the 'next' segment,
+      split[j++] = &amp;message[i+1];
+      //write a null terminator into the buffer to terminate the last segment.
+      message[i] = '\0';
+    }
+    i++;
+  }
+}
+</code></pre><p>That allows us to write something looking a little like this, within the <code>WStype_TEXT</code> case statement..</p><pre><code>if(payload!=NULL){
+    char *parts[3];
+    splitRouting((char*)payload,length,parts);
+    //parts[0] is the routing type
+    //parts[1] is the site id for the room (in case the one socket is managing multiple rooms)
+    //parts[2] is the json payload for the message.
+    String gameonType = String(parts[0]);
+    if(gameonType==&quot;roomHello&quot;){
+      addPlayer(parts[2],num);
+    }else if(gameonType==&quot;room&quot;){
+      processCommand(parts[2],num);
+    }else if(gameonType==&quot;roomGoodbye&quot;){
+      removePlayer(parts[2],num);
+    }else{
+      Serial.println(&quot;ERROR, badly formatted gameon websocket packet&quot;);
+      Serial.println((char *)payload);
+    }
+}else{
+  Serial.println(&quot;ERROR, empty websocket packet.&quot;);
+}
+</code></pre><p>Which as you can see is now calling a bunch of new functions: <code>addPlayer</code>, <code>processCommand</code>, and <code>removePlayer</code>.</p><p><code>addPlayer</code> handles sending the player the initial room description, which also carries information about the room inventory etc back to Game On. It also handles sending a message to everyone saying the Player has entered the room.</p><p><code>removePlayer</code> just sends the message to everyone saying the player has left..</p><p>It's kind of crude to treat the <code>roomHello</code> and <code>roomGoodbye</code> in this manner, but it's enough to give the impression the room knows what it's doing, even though it's not making any attempt to see if the <code>roomHello</code> is for a player already in the room, or if the <code>roomGoodbye</code> is for a player still in the room via another connection.</p><p>That leaves <code>processCommand</code>, which basically takes the input from the user, uses the Arduino String library to lowercase it, and compares it against a fixed set of expected commands, like <code>/look</code> or <code>/go</code> and then sends the appropriate response back.</p><p>Yes, the source code snippets have kind of stopped here ;-p You can view the full project <a href=https://github.com/gameontext/esp8266-room/>on GitHub</a>, but it's worth covering a few more of the important methods before we're done here.</p><p>Most messages are chat type messages, or text destined for the player, or other players in the room. For those we use a utility method called <code>sendMessageToRoom</code>. It performs a little string manipulation, then uses ArduinoJson to build up the JSON object expected by the game protocol. The object is serialized out into a buffer, which is then sent to the websocket of the user, or broadcast to all websockets, depending on if the message is just for the user, or for everyone. See <code>sendMessageToRoom</code> for more.</p><p>Actual chat messages are even simpler, and are handled by the function <code>sendChatMessage</code>, they are always broadcast, and cannot have different messages for different players in the room.</p><p>The initial location response, also sent if the player issues <code>/look</code>, is handled by the <code>sendLocation</code> function, you'll notice it's adding a bunch of entries to the &lsquo;objects&rsquo; field in the JSON&mldr;</p><pre><code>JsonArray&amp; objects = root.createNestedArray(&quot;objects&quot;);
+objects.add(&quot;RGBLed&quot;);
+objects.add(&quot;LDR&quot;);
+objects.add(&quot;Button&quot;);
+</code></pre><p>which creates a list of objects in the Game On UI that the user is able to interact with. Well, at least it tells the user the objects are there. The interaction is handled entirely by what you do within the <code>processCommand</code> function, where I have blocks of code like:</p><pre><code>if(contentLower==&quot;/examine button&quot;){
+  String allMessage = username+&quot; investigates the button&quot;;
+  int buttonValue = digitalRead(4);
+  //another 'be careful not to append String to &quot;&quot; constant' example
+  String userMessage = &quot;It appears to be a momentary contact switch, attached to GPIO4, it currently has the state &quot;;
+  userMessage += buttonValue;
+  userMessage += &quot;. Sadly unless the room owner sits there holding the button down, that value is unlikely to change.&quot;;
+  sendMessageToRoom(allMessage,userMessage,userid,num);
+}
+</code></pre><p>That handle sending an appropriate response to the room & to the player when <code>/examine</code> button is sent.</p><p>Lastly there's a utility method that handles when a player uses <code>/go</code> to exit the room, this function builds a Game On JSON object with a type of <code>exit</code> with the <code>exitId</code> set to the direction the player has requested via <code>/go</code>.</p><p>It's quite fun playing with getting a Room running on a little device like this. It can really serve to remind you just how easy some things are in Java, or just when running on a machine that measures RAM in Gigabytes, rather than Kilobytes. Plus it's a great visual aid to demonstrate how Microservices can really be Micro, the entire device comes in around the same size as a large postage stamp.</p></section></article><nav class=prev-next><div class=nav-left><a href=/2017/04/24/swift-and-watson.html title="Previous: Swift and Watson Conversation Service">Previous</a></div><div class=nav-center><a href=/blog/>Blog</a> | <a href=/archive/>Archive</a></div><div class=nav-right><a href=/2017/08/06/sample-scala-room.html title="Next: We have a Scala Room!">Next</a></div></nav><footer class=foot><div id=copyrights>&#169; 2016-2020 under terms of the Apache License 2.0.</div><div>Follow us:
+<a target=_blank href=https://twitter.com/gameontext title="Follow @gameontext"><i class="fa fa-twitter" aria-hidden=true></i></a></div></footer><script type=application/javascript>var doNotTrack=false;if(!doNotTrack){window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;ga('create','UA-90113653-2','auto');ga('send','pageview');}</script><script async src=https://www.google-analytics.com/analytics.js></script></body></html>

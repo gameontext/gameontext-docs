@@ -1,0 +1,78 @@
+<!doctype html><html lang=en><head><meta charset=utf-8><meta http-equiv=x-ua-compatible content="chrome=1"><meta name=viewport content="width=device-width,initial-scale=1,maximum-scale=1"><link rel=stylesheet href=https://use.fontawesome.com/e3112f1bdf.css><link rel=stylesheet href=/css/flex.min.62d46290de4e8cb4b407a0a4c54711bb69af2f268ce654c5af64efa38732d394.css><link rel="shortcut icon" href=/favicon.ico type=image/x-icon><title>GO: Istio and Kubernetes</title><link rel=canonical href=/walkthroughs/advanced/istio.html><link rel=alternate type=application/rss+xml href=/blog/index.xml title="Game On! Adventures with microservices"></head><body><header class=head-single><h1><a href=/>GAME<span class=on>ON</span></a></h1><div>Hands-on experiment building microservices and cloud native applications</div></header><nav class=project><a target=_blank href=https://gameontext.org title="Play the game"><i class="fa fa-play" aria-hidden=true></i><span>Play <span>the game</span></span></a>
+<a href=/about/ title="Read the book"><i class="fa fa-book" aria-hidden=true></i><span>Learn <span>more</span></span></a>
+<a href=/blog/ title="Read the blog"><i class="fa fa-newspaper-o" aria-hidden=true></i><span>Read <span>our blog</span></span></a>
+<a target=_blank href=https://gameontext.org/slackin/ title="Join our slack team"><i class="fa fa-slack" aria-hidden=true></i><span><span>Join us on</span> Slack</span></a>
+<a target=_blank class=github href=https://github.com/gameontext title="View project on GitHub"><i class="fa fa-github" aria-hidden=true></i><span>Github</span></a></nav><main class="book page"><article><header><h1>Istio and Kubernetes</h1></header><nav id=toc class=toc role=doc-toc><h2 id=toc-title></h2><ol class="toc-list level-1"><li><a href=#_requirements>Requirements</a></li><li><a href=#_download_and_install_the_latest_istio_release>Download and install the latest Istio release</a></li><li><a href=#_add_istio_to_the_kubernetes_cluster>Add Istio to the Kubernetes cluster</a></li><li><a href=#_bring_up_game_on_with_injected_sidecars>Bring up Game On! with injected sidecars</a></li></ol></nav><p>In this adventure, we&#8217;ll add Istio to the Kubernetes cluster running our core
+game services, to see what it does and how it works. So we don&#8217;t make a mess of
+our configration with, and without, Istio, we&#8217;ll be using <a href=https://istio.io/docs/setup/kubernetes/sidecar-injection.html#automatic-sidecar-injection>automatic sidecar
+injection</a>.</p><section class="doc-section level-1"><h2 id=_requirements>Requirements</h2><div class=ulist><ul><li><p>A cluster configured and working with GO!, per <a href=/walkthroughs/core/local-kubernetes.html>Running with Kubernetes</a></p><div class=listing-block><pre>$ eval $(./go-admin.sh env)  # set script aliases</pre></div></li><li>A kubernetes cluster that supports <a href=https://istio.io/docs/setup/kubernetes/sidecar-injection.html#automatic-sidecar-injection>Automatic sidecar injection</a>.<ul><li><p>For <code>minikube</code> that means version v0.25.0 or later, and a few more parameters at startup:</p><div class=listing-block><pre>minikube start \
+  --extra-config=controller-manager.ClusterSigningCertFile="/var/lib/localkube/certs/ca.crt" \
+  --extra-config=controller-manager.ClusterSigningKeyFile="/var/lib/localkube/certs/ca.key" \
+  --extra-config=apiserver.Admission.PluginNames=NamespaceLifecycle,LimitRanger,ServiceAccount,PersistentVolumeLabel,DefaultStorageClass,DefaultTolerationSeconds,MutatingAdmissionWebhook,ValidatingAdmissionWebhook,ResourceQuota \
+  --kubernetes-version=v1.9.0 \
+  --memory 8192</pre></div></li></ul></li></ul></div></section><section class="doc-section level-1"><h2 id=_download_and_install_the_latest_istio_release>Download and install the latest Istio release</h2><p>Please follow the instructions, <a href=https://istio.io/docs/setup/kubernetes/quick-start.html>Istio Quick Start</a>, to get Istio
+mesh installed on Kubernetes.</p><p>The TL;DR version of installing the latest Istio release:</p><div class=listing-block><pre>$ curl -L https://git.io/getLatestIstio | sh -
+$ cd istio-0.5.1              # Adjust as needed
+$ export PATH=$PWD/bin:$PATH  # add istioctl to path</pre></div></section><section class="doc-section level-1"><h2 id=_add_istio_to_the_kubernetes_cluster>Add Istio to the Kubernetes cluster</h2><p>The following commands assume you&#8217;re in the directory created when you
+installed istio (e.g. <code>istio-0.0.1</code> as shown above).</p><div class="olist arabic"><ol class=arabic><li><p>Make sure our services are stopped:</p><div class=listing-block><pre>$ go-run down</pre></div></li><li><p>Install Istio&#8217;s core components to the cluster</p><div class=listing-block><pre>$ kubectl apply -f install/kubernetes/istio.yaml</pre></div><p>Note: We are not enabling mutual TLS authentication between sidecars in this walkthrough.</p><p>If you are using <code>minikube</code> and encounter errors like the following, wait a few moments, and try the
+above command again.</p><div class=listing-block><pre>unable to recognize ".../install/kubernetes/istio.yaml": no matches for config.istio.io/, Kind=attributemanifest
+unable to recognize ".../install/kubernetes/istio.yaml": no matches for config.istio.io/, Kind=stdio
+unable to recognize ".../install/kubernetes/istio.yaml": no matches for config.istio.io/, Kind=logentry
+unable to recognize ".../install/kubernetes/istio.yaml": no matches for config.istio.io/, Kind=rule
+unable to recognize ".../install/kubernetes/istio.yaml": no matches for config.istio.io/, Kind=metric</pre></div></li><li><p>The Webhooks used for automatic sidecar injection require a signed cert/key pair.
+For istio versions 0.5.0 and 0.5.1, we have to download the scripts first.</p><div class=listing-block><pre># Only necessary for istio versions 0.5.0 and 0.5.1
+$ curl https://raw.githubusercontent.com/istio/istio/master/install/kubernetes/webhook-create-signed-cert.sh &gt; install/kubernetes/webhook-create-signed-cert.sh
+$ curl https://raw.githubusercontent.com/istio/istio/master/install/kubernetes/webhook-patch-ca-bundle.sh &gt; install/kubernetes/webhook-patch-ca-bundle.sh
+$ chmod +x install/kubernetes/webhook-*.sh</pre></div><ol class=loweralpha type=a><li><p>Generate a cert/key pair signed by the Kubernetes’ CA. The resulting cert/key
+file is stored as a Kubernetes secret.</p><div class=listing-block><pre>$ ./install/kubernetes/webhook-create-signed-cert.sh \
+    --service istio-sidecar-injector \
+    --namespace istio-system \
+    --secret sidecar-injector-certs</pre></div></li><li><p>Install the sidecar injection configmap</p><div class=listing-block><pre>$ kubectl apply -f install/kubernetes/istio-sidecar-injector-configmap-release.yaml</pre></div></li><li><p>Set the caBundle in the webhook install YAML that the Kubernetes api-server uses to invoke the webhook.</p><div class=listing-block><pre>$ cat install/kubernetes/istio-sidecar-injector.yaml | \
+     ./install/kubernetes/webhook-patch-ca-bundle.sh &gt; \
+     install/kubernetes/istio-sidecar-injector-with-ca-bundle.yaml</pre></div></li><li><p>Install the sidecar injector webhook.</p><div class=listing-block><pre>$ kubectl apply -f install/kubernetes/istio-sidecar-injector-with-ca-bundle.yaml</pre></div></li><li><p>The sidecar injector webhook should now be running. Let&#8217;s check.</p><div class=listing-block><pre>$ kubectl -n istio-system get deployment -listio=sidecar-injector</pre></div><p>We should see something like:</p><div class=listing-block><pre>NAME                     DESIRED   CURRENT   UP-TO-DATE   AVAILABLE   AGE
+istio-sidecar-injector   1         1         1            1           1d</pre></div></li></ol></li><li><p>Ensure the following Kubernetes services are deployed:
+<code>istio-pilot</code>, <code>istio-mixer</code>, <code>istio-ingress</code>.</p><div class=listing-block><pre>$ kubectl get svc -n istio-system</pre></div><p>You should see something like the following:</p><div class=listing-block><pre>NAME            CLUSTER-IP      EXTERNAL-IP       PORT(S)                       AGE
+istio-ingress   10.83.245.171   35.184.245.62     80:32730/TCP,443:30574/TCP    5h
+istio-pilot     10.83.251.173   &lt;none&gt;            8080/TCP,8081/TCP             5h
+istio-mixer     10.83.244.253   &lt;none&gt;            9091/TCP,9094/TCP,42422/TCP   5h</pre></div><aside class="admonition-block note" role=note><h6 class="block-title label-only"><span class=title-label>Note:</span></h6><p>If your cluster is running in an environment that does not support an external
+load balancer (e.g., minikube), the EXTERNAL-IP of istio-ingress says &lt;pending>.</p></aside></li><li><p>Ensure the corresponding Kubernetes pods are deployed and all containers are up and running:
+<code>istio-pilot-<strong></code>, <code>istio-mixer-</strong></code>, <code>istio-ingress-<strong></code>, <code>istio-ca-</strong></code>, and <code>istio-sidecar-injector-*</code>.</p><div class=listing-block><pre>$ kubectl get pods -n istio-system</pre></div><p>You should see something like the following:</p><div class=listing-block><pre>istio-ca-3657790228-j21b9                1/1       Running   0          5h
+istio-ingress-1842462111-j3vcs           1/1       Running   0          5h
+istio-sidecar-injector-184129454-zdgf5   1/1       Running   0          5h
+istio-pilot-2275554717-93c43             1/1       Running   0          5h
+istio-mixer-2104784889-20rm8             2/2       Running   0          5h</pre></div></li></ol></div></section><section class="doc-section level-1"><h2 id=_bring_up_game_on_with_injected_sidecars>Bring up Game On! with injected sidecars</h2><div class="olist arabic"><ol class=arabic><li><p>Install Game On! into the cluster. The namespace we create has a specific
+label: <code>istio-injection=enabled</code>. (If you look around line 80 in <code>k8s-functions</code>,
+you can verify this will be true).</p><div class=listing-block><pre>$ go-run setup
+$ go-run up</pre></div></li><li><p>Verify the <code>gameon-system</code> namespace is istio enabled</p><div class=listing-block><pre>$ kubectl get namespace -L istio-injection</pre></div><p>You should see something like the following:</p><div class=listing-block><pre>NAME            STATUS    AGE       ISTIO-INJECTION
+default         Active    2h
+gameon-system   Active    25s       enabled
+istio-system    Active    2h
+kube-public     Active    2h
+kube-system     Active    2h</pre></div></li><li><p>Every running pod will now have an Envoy sidecar alongside</p><div class=listing-block><pre>$ kubectl -n gameon-system get pod</pre></div><p>You should see something like the following:</p><div class=listing-block><pre>NAME                        READY     STATUS    RESTARTS   AGE
+auth-6ff7cb5d64-5gqnz       2/2       Running   0          5m
+couchdb-5bff8bbf86-vq4qs    2/2       Running   0          5m
+kafka-75f85f7b8b-nx7q4      2/2       Running   0          5m
+map-76f67598c8-2fmbh        2/2       Running   0          5m
+mediator-55d99f4f99-s52dz   2/2       Running   0          5m
+player-6cf9f569f8-k2mlt     2/2       Running   0          5m
+room-5785cb49c-lbq59        2/2       Running   0          5m
+swagger-5f55bbb7b-4xhk2     2/2       Running   0          5m
+webapp-7457645659-j2tkl     2/2       Running   0          5m</pre></div></li><li>Turn it off and back on again: Sidecar injection occurs at pod creation time.<ol class=loweralpha type=a><li><p>Let&#8217;s kill the running pod and verify a new pod is created <em>without</em> the injected
+sidecar.</p><div class=listing-block><pre>$ kubectl label namespace gameon-system istio-injection-
+$ kubectl -n gameon-system delete pod &lt;choose from list of pods&gt;
+$ kubectl -n gameon-system get pod</pre></div></li><li><p>Within a few seconds, you should see something like the following (I chose
+webapp-7457645659-j2tkl from my previous list of pods)</p><div class=listing-block><pre>NAME                        READY     STATUS    RESTARTS   AGE
+auth-6ff7cb5d64-5gqnz       2/2       Running   0          16m
+couchdb-5bff8bbf86-vq4qs    2/2       Running   0          16m
+kafka-75f85f7b8b-nx7q4      2/2       Running   0          16m
+map-76f67598c8-2fmbh        2/2       Running   0          16m
+mediator-55d99f4f99-s52dz   2/2       Running   0          16m
+player-6cf9f569f8-k2mlt     2/2       Running   0          16m
+room-5785cb49c-lbq59        2/2       Running   0          16m
+swagger-5f55bbb7b-4xhk2     2/2       Running   0          16m
+webapp-7457645659-h7mb5     1/1       Running   0          1m</pre></div><p>Notice that when webapp restarted, it was not restarted with a sidecar, hence
+its <code>1/1</code> READY status.</p></li><li><p>Re-enable Istio sidecar injection</p><div class=listing-block><pre>$ kubectl label namespace gameon-system istio-injection=enabled
+$ kubectl -n gameon-system delete pod &lt;pod without sidecar&gt;
+$ kubectl -n gameon-system get pod</pre></div><p>Once all pods are back to 2/2 READY state, it&#8217;s time to move on to the [next
+adventure with Istio].</p></li></ol></li></ol></div></section></article><nav class=prev-next><div class=nav-left><div class=long><a href=/walkthroughs/advanced/elk-stack.html title="Previous: Logging using the ELK stack">Logging using the ELK stack</a></div><div class=short><a href=/walkthroughs/advanced/elk-stack.html title="Previous: Logging using the ELK stack">Previous</a></div></div><div class=nav-center><div class=long>Up: <a href=/walkthroughs/advanced/>Advanced Adventures</a></div><div class=short><a href=/walkthroughs/advanced/>Up</a></div></div><div class=nav-right><div class=long><a href=/walkthroughs/advanced/test-sso-login.html title="Next: Testing Social Login apps">Testing Social Login apps</a></div><div class=short><a href=/walkthroughs/advanced/test-sso-login.html title="Next: Testing Social Login apps">Next</a></div></div></nav></main><footer class=foot><div id=copyrights>&#169; 2016-2020 under terms of the Apache License 2.0.</div><div>Follow us:
+<a target=_blank href=https://twitter.com/gameontext title="Follow @gameontext"><i class="fa fa-twitter" aria-hidden=true></i></a></div></footer><script type=application/javascript>var doNotTrack=false;if(!doNotTrack){window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;ga('create','UA-90113653-2','auto');ga('send','pageview');}</script><script async src=https://www.google-analytics.com/analytics.js></script></body></html>

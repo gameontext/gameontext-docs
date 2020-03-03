@@ -1,0 +1,324 @@
+<!doctype html><html lang=en><head><meta charset=utf-8><meta http-equiv=x-ua-compatible content="chrome=1"><meta name=viewport content="width=device-width,initial-scale=1,maximum-scale=1"><link rel=stylesheet href=https://use.fontawesome.com/e3112f1bdf.css><link rel=stylesheet href=/css/flex.min.62d46290de4e8cb4b407a0a4c54711bb69af2f268ce654c5af64efa38732d394.css><link rel="shortcut icon" href=/favicon.ico type=image/x-icon><title>GO: JSR-107 Caching</title><link rel=canonical href=/walkthroughs/advanced/jsr107-caching.html><link rel=alternate type=application/rss+xml href=/blog/index.xml title="Game On! Adventures with microservices"></head><body><header class=head-single><h1><a href=/>GAME<span class=on>ON</span></a></h1><div>Hands-on experiment building microservices and cloud native applications</div></header><nav class=project><a target=_blank href=https://gameontext.org title="Play the game"><i class="fa fa-play" aria-hidden=true></i><span>Play <span>the game</span></span></a>
+<a href=/about/ title="Read the book"><i class="fa fa-book" aria-hidden=true></i><span>Learn <span>more</span></span></a>
+<a href=/blog/ title="Read the blog"><i class="fa fa-newspaper-o" aria-hidden=true></i><span>Read <span>our blog</span></span></a>
+<a target=_blank href=https://gameontext.org/slackin/ title="Join our slack team"><i class="fa fa-slack" aria-hidden=true></i><span><span>Join us on</span> Slack</span></a>
+<a target=_blank class=github href=https://github.com/gameontext title="View project on GitHub"><i class="fa fa-github" aria-hidden=true></i><span>Github</span></a></nav><main class="book page"><article><header><h1>JSR-107 Caching</h1></header><p>Where we learn about Caching, the standards-based way.</p><section class="doc-section level-1"><h2 id=_overview>Overview</h2><p>In this adventure, we&#8217;ll learn about Caching, and will walk through adding Caching
+support via JSR-107 annotations to a Java-based Game On room.</p><p>By the end, we hope you&#8217;ll have an understanding of the value and use that Caching
+technologies bring to Cloud Native applications and microservices. We&#8217;ll leave you
+with some suggestions for further improvements to your room, so you can continue
+to explore the concepts.</p></section><section class="doc-section level-1"><h2 id=_why_caching_why_jsr_107>Why Caching? Why JSR-107?</h2><p>Caching is one of those awkward bits of function you can totally avoid adding
+when first creating a bit of code. Everything will work just fine during your
+initial testing, but you worry about what will happen as the usage begins to
+scale up.</p><p>Maybe you are trying to avoid invoking a remote service too frequently, maybe
+you just want to avoid incurring the cost of redoing a calculation.</p><p>At least for me, the chain of thoughts usually runs something like this;</p><div class=quote-block><blockquote><p><em>"I should add a Cache, right here! I can just use some variant of a Map,</em>
+<em>but I&#8217;ll need to consider how items will ever leave the Cache.</em>
+<em>And what about concurrency ? performance ? testing ?"</em>.</p></blockquote></div><p>It&#8217;s usually somewhere around there it that it dawns on me that I should probably look
+at how other people have solved this, as there&#8217;s probably a library I could use.</p><p>There are <a href=https://java-source.net/open-source/cache-solutions>many</a> Caching libraries for Java, ranging from simple in memory thread
+safe caches, to distributed transactional remote based services. And they&#8217;ve been
+around long enough that there&#8217;s been an effort to try to standardise an approach for
+them since way back in 2001. JSR-107, (or 'JCache') has been working toward providing
+a standard for Caching for almost 2 decades, and there are <a href=https://jcp.org/aboutJava/communityprocess/implementations/jsr107/index.html>quite a few</a>
+libraries out there that implement it.</p><p>For this walkthrough, we&#8217;ll be using <a href=https://redisson.org/>Redisson</a>, a library that
+provides a JSR-107 interface to a <a href=https://redis.io/>Redis</a> server. Although Redisson provides
+a very capable API to talk to Redis, in this walkthrough we&#8217;ll be limiting ourselves
+to just the JSR-107 aspects, and showing how they can be used within a Game On room.</p><p>Hopefully we&#8217;ll be able to revist the Redisson API in a future walkthrough.</p></section><section class="doc-section level-1"><h2 id=_prerequisites>Prerequisites</h2><p>This walkthrough will start with the default <a href=https://github.com/gameontext/sample-room-java>Java Sample Room</a>.
+It assumes you have the Java Sample Room up and running as a cf app in Bluemix.</p><p>You will need to create a Redis instance in Bluemix, and associate it to your
+Java Sample Room app.</p><div class="olist arabic"><ol class=arabic><li>Start by heading to the <a href="https://console.ng.bluemix.net/catalog/?taxonomyNavigation=services">Bluemix Catalog</a>, and find the <a href=https://console.ng.bluemix.net/catalog/services/redis-cloud/>Redis Cloud</a> Service (under <code>Data & Analytics</code>)</li><li>Scroll down through the Pricing Plans for Redis Cloud, and select the "30MB 1 Dedicated database" - "Free" option.</li><li>In the <code>Connect to:</code> drop down on the left of the page, select entry for your Java Sample Room.</li><li>Hit the <code>Create</code> button at the bottom right of the page.</li></ol></div><aside class="admonition-block note" role=note><h6 class="block-title label-only"><span class=title-label>Note:</span></h6><p>You are only allowed a single free Redis Cloud per space, if you have already
+created one for another walkthrough, or for another project, you could consider
+opting to use your existing Redis Cloud instance for this tutorial. <strong>Only do so</strong>
+if you understand the consequences to any data being held within your existing
+Redis instance</p></aside></section><section class="doc-section level-1"><h2 id=_walkthrough>Walkthrough</h2><section class="doc-section level-2"><h3 id=_adding_jsr_107_to_your_room>Adding JSR-107 to your room.</h3><p>We want to use <a href=https://dzone.com/articles/jcache-api-jsr-107-implementation-for-redis>Redisson</a> to provide our JSR-107 support, but that won&#8217;t
+get us the <a href=http://gregluck.com/blog/archives/2014/04/how-to-use-jsr107-caching-annotations/>annotations</a> (which are kinda cool). The annotation
+support is expected to come from the runtime, in our case that would be the
+<a href=http://www.ibm.com/support/knowledgecenter/SS7K4U_liberty/com.ibm.websphere.wlp.zseries.doc/ae/twlp_cdi_config.html>Liberty CDI</a> support, except that doesn&#8217;t have JSR-107 support today
+because JSR-107 isn&#8217;t part of the level of JEE it supports.</p><p>In the interim, the JSR-107 RI ships a <a href=https://github.com/jsr107/RI/tree/master/cache-annotations-ri>a set of modules</a> that
+can enable use of the annotations within CDI (and Spring, and Guice).</p><p>We could use those modules as-is, and with the <a href=https://github.com/redisson/redisson/wiki/14.-Integration-with-frameworks#143-jcache-api-jsr-107-implementation>right config file</a>
+Redisson would know how to access our Redis, and we&#8217;d be just fine.</p><p>But, we&#8217;d rather not have to create that config file, as our Redis configuration
+information is sitting in the <code>VCAP_SERVICES</code> environment variable, and we&#8217;d
+like to use that.</p><p>To make things a little easier, we&#8217;ve prepared <a href=https://github.com/BarDweller/JSR107-RI-CDI-Custom-CacheManager>a fork of the CDI module</a>,
+which allows the CacheManager used by the annotations to be supplied by the application code.</p><section class="doc-section level-3"><h4 id=_adding_the_dependencies>Adding the dependencies.</h4><p>We&#8217;ll start by adding this special CDI module to our Java Sample Room as a library.</p><p>Firstly, edit the <code>pom.xml</code> in your room project and find the <code>&lt;dependencies>&#8230;&#8203;&lt;/dependencies></code> block.
+Add these dependencies after the existing ones, just before the <code>&lt;/dependencies></code>
+tag.</p><div class=listing-block><pre class=highlight><code class=language-xml data-lang=xml>&lt;dependency&gt;
+    &lt;groupId&gt;org.redisson&lt;/groupId&gt;
+    &lt;artifactId&gt;redisson&lt;/artifactId&gt;
+    &lt;version&gt;3.2.3&lt;/version&gt;
+&lt;/dependency&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;javax.cache&lt;/groupId&gt;
+    &lt;artifactId&gt;cache-api&lt;/artifactId&gt;
+    &lt;version&gt;1.0.0&lt;/version&gt;
+&lt;/dependency&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;com.github.BarDweller&lt;/groupId&gt;
+    &lt;artifactId&gt;JSR107-RI-CDI-Custom-CacheManager&lt;/artifactId&gt;
+    &lt;version&gt;v1.0.9-STILETTO&lt;/version&gt;
+&lt;/dependency&gt;</code></pre></div><p>The first is the Redisson client, that will provide the implementation of the API
+for our room, the second provides the API interfaces, and the last is the CDI
+Module to enable the JSR-107 annotations.</p></section><section class="doc-section level-3"><h4 id=_creating_the_default_cache_manager_provider>Creating the default cache manager provider</h4><p>The CDI Module allows us to configure the CacheManager the JSR-107 annotations
+should use. It provides this capability by using a <a href=https://docs.oracle.com/javase/tutorial/ext/basics/spi.html>Java Service</a>,
+our room needs to include an implementation of the <code>DefaultCacheManagerProvider</code>
+interface, which looks like this:</p><div class=listing-block><pre class=highlight><code class=language-java data-lang=java>public interface DefaultCacheManagerProvider {
+  public CacheManager getDefaultCacheManager();
+}</code></pre></div><p>As this walk-through is based off of a CF app, we&#8217;ll create an implementation of
+this interface that parses VCAP_SERVICES. If you get adventurous and deploy your
+room elsewhere, you should be able to follow a similar pattern for retrieving the
+configuration of your endpoint from the environment.</p><p>So, to configure and create a CacheManager based on VCAP_SERVICES environment
+settings, we&#8217;ll do the following:</p><div class="olist arabic"><ol class=arabic><li><p><strong>Parse <code>VCAP_SERVICES</code> to obtain the host & credentials for Redis.</strong></p><p>Create an implementation of this interface that will parse <code>VCAP_SERVICES</code>,
+and configure a CacheManager for use by the annotations layer.</p><p>Create a class in your room project that implements
+<code>org.JSR-107.ri.annotations.DefaultCacheResolverFactory.DefaultCacheManagerProvider</code></p><p>In the newly created class, add a private method <code>parseVcapServices</code> and have the implementation
+use JsonReader to read the JSON from the environment variable into a JsonObject,
+finally digging down through the JSON to get to the <code>port</code>,<code>hostname</code> and <code>password</code>
+fields stored within the <code>rediscloud</code> instance.</p><p>The <code>VCAP_SERVICES</code> should look a little like:</p><div class=listing-block><pre class=highlight><code class=language-json data-lang=json>{
+  "someotherservice": "[...]",
+  "rediscloud": [
+    {
+      "name": "rediscloud-23",
+      "label": "rediscloud",
+      "plan": "30mb",
+      "credentials": {
+        "port": "6379",
+        "hostname": "your.redis.server.hostname.com",
+        "password": "your_redis_password"
+      }
+    }
+  ]
+}</code></pre></div></li><li><p><strong>Create the RedissonClient</strong></p><p>With the retrieved server details, you can create a
+<code>ReddisonClient</code> instance using code as follows:</p><div class=listing-block><pre class=highlight><code class=language-java data-lang=java>Config redissonConfig = new Config();
+redissonConfig.useSingleServer().setAddress(host+":"+port).setPassword(pwd);
+RedissonClient redisson = Redisson.create(redissonConfig);</code></pre></div></li><li><p><strong>Create the CacheManager</strong></p><p>Finally you use the <code>ReddisonClient</code>, to create a <code>CacheManager</code> to satisfy the interface.</p><div class=listing-block><pre class=highlight><code class=language-java data-lang=java>CacheManager manager = new JCacheManager((Redisson)redisson,
+                                         JCacheManager.class.getClassLoader(),
+                                         null, null, null);</code></pre></div><aside class="admonition-block note" role=note><h6 class="block-title label-only"><span class=title-label>Note:</span></h6><p>This was written against Redisson 3.2.3, which didn&#8217;t yet have good support
+for creating CacheManagers programmatically. <a href=https://github.com/redisson/redisson/blob/master/CHANGELOG.md>Redisson 3.2.4</a> will
+be adding that, so there may be a cleaner way to do this already!</p></aside></li></ol></div><p>You are almost done, and the code would work as-is, but you need to be aware of a few issues.</p><div class=ulist><ul><li>Your implementation of DefaultCacheManagerProvider will be called each time a JSR-107 annotation is found.</li><li>Each time you do <code>Redisson.create(&#8230;&#8203;)`</code> you create an additional set of network connections to your Redis service instance</li><li>You only have a limited number of connections on the "free" tier of rediscloud.</li></ul></div><p>So, if you plan to use more than a single annotated method, you will need to cache
+the <code>RedissonClient</code> and reuse it each time you are asked for a new CacheManager.</p><p>Here&#8217;s <a href=https://github.com/gameontext/sample-room-java/blob/JSR107Redis/src/main/java/org/gameontext/sample/jsr107defaultprovider/RedissonCacheManagerProvider.java>a full example</a> implementation of a <code>DefaultCacheManagerProvider</code>
+that may be handy for you to reference. It parses <code>VCAP_SERVICES</code> and caches the <code>RedissonClient</code>
+instance as suggested.</p></section><section class="doc-section level-3"><h4 id=_adding_the_meta_infservices_entry>Adding the META-INF/services entry</h4><p>As mentioned earlier, the fork we are using of the JSR-107 CDI Module allows us to
+create the CacheManager for use by the annotations by supplying an implementation
+of a <a href=https://docs.oracle.com/javase/tutorial/ext/basics/spi.html>Java Service</a>. We&#8217;ve created the implementation, and now we create
+the metadata that allows the implementation to be located at runtime.</p><p>Create a file in your Room project at <code>src/main/webapp/META-INF/services</code>
+and call it <code>org.JSR-107.ri.annotations.DefaultCacheResolverFactory$DefaultCacheManagerProvider</code></p><p>Inside the file, place the full name for your DefaultCacheManagerProvider class,
+eg the <a href=https://github.com/gameontext/sample-room-java/blob/JSR107Redis/src/main/webapp/META-INF/services/org.jsr107.ri.annotations.DefaultCacheResolverFactory%24DefaultCacheManagerProvider>example</a> has the line saying&#8230;&#8203;</p><div class=listing-block><pre class=highlight><code class=language-text data-lang=text>org.gameontext.sample.JSR-107defaultprovider.RedissonCacheManagerProvider</code></pre></div><p>Congratulations! Your room is now able to use JSR-107 annotations, backed by
+your Redis service instance. Let&#8217;s look at a few ways we can use that in a room.</p></section></section><section class="doc-section level-2"><h3 id=_secret_store>Secret Store</h3><p>Using JSR-107 annotations, we will create a simple class that will allow players
+in the room to cache a "secret" that they can retrieve later.</p><p>The basic concept is simple; we&#8217;ll use a cache like a hashmap, and have it associate
+the players uniqueid, with the secret they will supply via a new Game On command <code>/secret</code>.</p><section class="doc-section level-3"><h4 id=_creating_the_store>Creating the Store</h4><p>The code for the secret store is deceptively simple;</p><div class=listing-block><pre class=highlight><code class=language-java data-lang=java>@CacheDefaults(cacheName="secrets")
+public class SecretDataBean {
+    @CachePut
+    public void setSecretForUser(@CacheKey String userid, @CacheValue String secret){
+        //no-op
+    }
+    @CacheResult
+    public String getSecretForUser(String userid){
+        return null;
+    }
+}</code></pre></div><p>The <a href=http://static.javadoc.io/javax.cache/cache-api/1.0.0/javax/cache/annotation/CacheDefaults.html><code>@CacheDefaults</code></a> annotation sets up the class to use the cache called <code>secrets</code>.
+Using this annotation means we don&#8217;t need to specify the cache name on our other
+annotated methods.</p><p>The <a href=http://static.javadoc.io/javax.cache/cache-api/1.0.0/javax/cache/annotation/CachePut.html><code>@CachePut</code></a> annotated method will always update the cache. In this instance, we&#8217;re using
+the <a href=http://static.javadoc.io/javax.cache/cache-api/1.0.0/javax/cache/annotation/CacheKey.html><code>@CacheKey</code></a> and <a href=http://static.javadoc.io/javax.cache/cache-api/1.0.0/javax/cache/annotation/CacheValue.html><code>@CacheValue</code></a> annotations to have the cache values be identified
+straight from the method arguments themselves. Which means we don&#8217;t need a method body
+at all.</p><p>The <a href=http://static.javadoc.io/javax.cache/cache-api/1.0.0/javax/cache/annotation/CacheResult.html><code>@CacheResult</code></a> annotation would normally be used to cache the result of invoking
+a method. It&#8217;s normal effect is to wrap the method invocation, and check the cache
+for a value with the key derived from the method arguments. If the cache has a value
+the method invocation is skipped entirely, otherwise the method is invoked, and the
+result of the method is set as the cached value, and returned to the caller.</p><p>In this example, we&#8217;re relying on the <a href=http://static.javadoc.io/javax.cache/cache-api/1.0.0/javax/cache/annotation/CachePut.html><code>@CachePut</code></a> to have updated the cache with the value
+we want to retrieve, so the <em>only</em> time the <code>getSecretForUser</code> method will actually execute is
+when there has been no value placed into the cache for the user via the put method.
+Effectively, this means the <code>getSecretForUser</code> method returns the "default" secret
+for when the user has not set one yet.
+Here we&#8217;re returning <code>null</code> which we&#8217;ll use in our command to identify there is no
+secret set for the user. But we could have chosen to do a database lookup, and retrieve
+a persisted key for the user.</p><p>Overall, this call conceptually acts a little bit like a Map, except the Map content
+is shared between all users of the Cache, which in this case could be multiple instances
+of our Room as it scales up under load. It can feel a bit strange to think of this
+as a Map, as it has no apparent storage within the class for the Keys & Values, because they are
+all managed by the Cache.</p></section><section class="doc-section level-3"><h4 id=_adding_a_command_to_drive_the_store>Adding a command to drive the Store</h4><p>To test our Secret cache, lets add the new <code>/secret</code> command to our room to invoke it.</p><p>First, inject the <code>SecretDataBean</code> into the <code>RoomImplementation</code> class,
+add the annotated declaration near the top where other class variables are declared.</p><div class=listing-block><pre class=highlight><code class=language-java data-lang=java>@Inject
+protected SecretDataBean secret;</code></pre></div><p>Then find the switch statement in the <code>processCommand</code> method, and add another
+case to the statement.</p><div class=listing-block><pre class=highlight><code class=language-java data-lang=java>case "/secret":
+    if (remainder == null) {
+        String userSecret = secret.getSecretForUser(userId);
+        if (userSecret == null) {
+            endpoint.sendMessage(session,
+                                 Message.createSpecificEvent(userId,
+                                 "You apparently don't have a secret at the moment."+
+                                 "Maybe you should set one with /secret ilikepie"));
+        } else {
+            endpoint.sendMessage(session,
+                                 Message.createSpecificEvent(userId,
+                                 "Your secret is currently '"+userSecret+"'"));
+        }
+    } else {
+        secret.setSecretForUser(userId, remainder);
+        endpoint.sendMessage(session,
+                             Message.createSpecificEvent(userId,
+                             "Your secret has been set to '"+remainder+"'"));
+    }
+    break;</code></pre></div><p>Here when the command <code>/secret</code> is invoked with no arguments, we ask the secret
+store if it has a secret for the user, and output an appropriate message.</p><p>When invoked with arguments, we store that as the secret for the user.</p></section><section class="doc-section level-3"><h4 id=_cache_expiry>Cache expiry</h4><p>With our current Secret Store, we&#8217;ll hold onto the secret for the user until our
+Redis instance is restarted. This might not be quite what we want, if we had a
+large number of users who only try the Store once, we should clean up the Cache
+to remove old entries.</p><aside class="admonition-block tip" role=doc-tip><h6 class="block-title label-only"><span class=title-label>Tip:</span></h6><p>Cache content shares a lifecycle with your Redis instance, not with your app.</p></aside><p>JSR-107 supports this concept by way of setting a CacheExpiry when the Cache is
+created. Unfortunately, when using the JSR-107 annotations, there is no handy
+'expiry' annotation or attribute we can make use of. If we want to configure a
+cache used by the annotations, we are given a single option; the <a href=http://static.javadoc.io/javax.cache/cache-api/1.0.0/javax/cache/annotation/CacheResolverFactory.html><code>CacheResolverFactory</code></a>.</p><p>A CacheResolverFactory can be set as an attribute for the various method annotations,
+and can also be set via the <code>@CacheDefaults</code> annotation. It has the responsibility
+of giving back a CacheResolver (which in turn gives back a <a href=http://static.javadoc.io/javax.cache/cache-api/1.0.0/javax/cache/Cache.html>Cache</a>) for a given annotated
+method.</p><p>Here&#8217;s a simple CacheResolverFactory that will use the <code>DefaultCacheManagerProvider</code>
+we created earlier, to obtain a Redisson configured Cache with a 5 minute expiry.
+The Cache is then used to create a CacheResolver to return.</p><div class=listing-block><pre class=highlight><code class=language-java data-lang=java>public class MyCacheResolverFactory implements CacheResolverFactory{
+
+  CacheManager cacheManager = (new RedissonCacheManagerProvider())
+                                 .getDefaultCacheManager();
+
+  private Cache&lt;?,?&gt; getCache(String name){
+    Cache&lt;?, ?&gt; cache = cacheManager.getCache(name);
+    if (cache == null) {
+      MutableConfiguration&lt;Object, Object&gt; config = getConfig();
+      cacheManager.createCache(name, config);
+      cache = cacheManager.getCache(name);
+    }
+  }
+
+  private MutableConfiguration&lt;Object,Object&gt; getConfig(){
+    MutableConfiguration&lt;Object,Object&gt; config = new MutableConfiguration&lt;Object,Object&gt;();
+    config.setExpiryPolicyFactory(CreatedExpiryPolicy.factoryOf(Duration.FIVE_MINUTES));
+    return config;
+  }
+
+
+  @Override
+  public CacheResolver getCacheResolver(
+         CacheMethodDetails&lt;? extends Annotation&gt; cacheMethodDetails) {
+
+      Cache&lt;?, ?&gt; cache = getCache(cacheMethodDetails.getCacheName();)
+      return new DefaultCacheResolver(cache);
+  }
+
+  @Override
+  public CacheResolver getExceptionCacheResolver(
+         CacheMethodDetails&lt;CacheResult&gt; cacheMethodDetails) {
+
+      final CacheResult cacheResultAnnotation = cacheMethodDetails.getCacheAnnotation();
+      Cache&lt;?, ?&gt; cache = getCache(cacheResultAnnotation.exceptionCacheName(););
+      return new DefaultCacheResolver(cache);
+  }
+}</code></pre></div><p>The code is pretty simple, the <code>getCacheResolver</code> and <code>getExceptionCacheResolver</code>
+methods obtain the cache name from the annotated method information, and then
+use the CacheManager from our <code>DefaultCacheManagerProvider</code> to lookup that cache.
+If the cache doesn&#8217;t exist, it&#8217;s created, and then it&#8217;s returned wrapped in a
+<code>DefaultCacheResolver</code> that will return the Cache when requested.</p><p>If we return to our <code>SecretDataBean</code> class and update it&#8217;s <code>@CacheDefaults</code> annotation
+to look like;</p><div class=listing-block><pre class=highlight><code class=language-java data-lang=java>@CacheDefaults( cacheName="secrets" , cacheResolverFactory=MyCacheResolverFactory.class)</code></pre></div><p>Then JSR-107 will now use our factory to obtain the cache used. Resulting in
+a 5 minute expiry time (from creation) for the Secrets in the Store.</p><aside class="admonition-block tip" role=doc-tip><h6 class="block-title label-only"><span class=title-label>Tip:</span></h6><p>The config only applies when the cache is created, not when it is obtained,
+so if you ran the example before adding the Cache Resolver, your cache will not
+magically update to gain an expiry time. The simplest way to see expiry behavior
+would be to change the cacheName from <code>secrets</code> to <code>expiringsecrets</code>, which will
+create a new cache with the expiry behavior. You could also write code to delete
+the old cache via the CacheManager, or flush the entire Redis Memory via the Redis console.</p></aside><p>To test it out, set a secret with the <code>/secret</code> command, then wait 6 minutes
+and ask for your secret.</p><p>Although we&#8217;ve used the cache here as a Secret Store, consider that the cache could
+be used to manage any sort of information we&#8217;d want to share between instances of
+our Service. You might use it to track Players in your room, or to assign virtual
+attributes to Players in your room, like health, or score. Or you might use it to
+track Room Inventory, or Inventory per Player. Or you might use it to manage state
+of items in your room, eg. If a light bulb in the room is on, or off.</p></section></section><section class="doc-section level-2"><h3 id=_cache_based_lock>Cache Based Lock</h3><p>Because the Redis backed cache is common to each instance of the service using it,
+we can use it to implement a lock, so that only once instance of the service can
+manipulate some resource at the same time.</p><p>This would be especially handy for non atomic operations that span multiple remote
+cache states. Eg, transferring an object from Room Inventory to Player Inventory
+may involve removing the item from one cache and adding it to another. It&#8217;s important
+that the combined operation is performed by one instance, if two Players were to
+try to take the item at the same time, one should fail, rather than the object
+magically appearing in both Inventories.</p><div class=listing-block><pre class=highlight><code class=language-java data-lang=java>@ApplicationScoped
+@CacheDefaults( cacheName="locks" )
+public class CacheBasedLockDataBean {
+    //need to differentiate 'this jvm's locks from anyone-elses.
+    private String uuid = UUID.randomUUID().toString();
+    public String getUniqueId(){
+        return uuid;
+    }
+    @CacheResult
+    public String getReferenceLockForUserId(@CacheKey String item, String userid){
+        //if the cache doesn't have an answer for this key, then it's not locked
+        //at the mo, so we can return the requested user, which will be cached,
+        //and returned if anyone else asks about it.
+        return userid+getUniqueId();
+    }
+    @CacheRemove
+    public void clearLockForRef(String item){
+        //NO:OP, all the work done by the annotation.
+    }
+}</code></pre></div><p>This creates a conceptual Map of "ItemId &#8594; (UserId + JVM_UUID)". If there is an
+entry for the ItemId, it means the item is considered locked by the UserID, with
+the lock held by the JVM with the corresponding UUID.</p><p>It works because if the ItemId is already locked by another player, or jvm,
+then the <code>getReferenceLockForUserId</code> method will return their userId+uuid. Only
+if the ItemId is currently not locked, will the method return a result indicating
+the lock was obtained successfully.</p><p>The lock release method <code>clearLockForRef</code> only has one task to do, and the <code>@CacheRemove</code>
+annotation takes care of it, removing the entry in the cache for the item id.</p><p>Obviously, this doesn&#8217;t make for a very intuitive API on our Lock, so you may
+wonder why we didn&#8217;t make these methods internal to the implementation, and expose
+a much nicer lock type API to callers. The answer is simple, the JSR-107 annotated methods
+must be public, only function if called from another Bean, not from within the same
+class.</p><aside class="admonition-block tip" role=doc-tip><h6 class="block-title label-only"><span class=title-label>Tip:</span></h6><p>Always keep your cache related function in its own Bean, it helps keep a
+separation between business logic, and cache related function.</p></aside><p>To address the API issue, we&#8217;ll wrapper our Lock bean in another Bean that will
+offer a nicer interface to the other code.</p><div class=listing-block><pre class=highlight><code class=language-java data-lang=java>@ApplicationScoped
+public class CacheBasedLock {
+
+    @Inject
+    CacheBasedLockDataBean lockBean;
+
+    /** Data store to track locks held by this JVM, in case we need to release them all */
+    private Map&lt;String,String&gt; locksHeldByThisJVM = new ConcurrentHashMap&lt;String,String&gt;();
+
+    /** Get lock for reference key, for requested userid */
+    synchronized public boolean getLock(String reference, String userid){
+        String currentLockedBy = lockBean.getReferenceLockForUserId(reference,userid);
+        boolean success = currentLockedBy.equals(userid+lockBean.getUniqueId());
+        if(success){
+            locksHeldByThisJVM.put(reference, userid+lockBean.getUniqueId());
+        }
+        return success;
+    }
+
+    /** Release lock held by this JVM for reference key */
+    synchronized public void releaseLock(String reference){
+        lockBean.clearLockForRef(reference);
+        locksHeldByThisJVM.remove(reference);
+    }
+
+    /** Utility method to release all locks we've acquired. */
+    synchronized public void releaseAllLocksHeld(){
+        for(String reference : locksHeldByThisJVM.keySet()){
+            releaseLock(reference);
+        }
+    }
+}</code></pre></div><p>This simple wrapper injects itself with the Lock Bean, and offers a much simpler
+<code>getLock</code> method that can be used to attempt to acquire, or test if a lock is granted.</p><p>Additionally, it provides a little logic to allow us to clean up all locks held
+by the current instance of the app.</p><p>We can use our new Lock as follows;</p><div class=listing-block><pre class=highlight><code class=language-java data-lang=java>@Inject
+CacheBasedLock lock;
+
+public testLock(String itemName, String userId){
+  boolean gotLock = lock.getLock(itemName,userId);
+  if(gotLock){
+    try{
+      //do something that needed lock.
+    }finally{
+      lock.releaseLock(itemName);
+    }
+  }
+
+}</code></pre></div><p>The Cache usage is totally hidden, but the effect is still present. Although
+this example doesn&#8217;t show how you can wait on the lock, it <em>is</em> possible to
+register CacheListeners that are invoked when the CacheContent changes, so you
+could add a Listener that would wait for a change signifying when the requested
+lock has been removed, and have it attempt to reacquire the lock.</p><p>We&#8217;ll show CacheListener usage over in the follow on JSR-107 API adventure =)</p></section><section class="doc-section level-2"><h3 id=_working_example_repo>Working example repo.</h3><p>For complete versions of the code discussed so far, check out my
+<a href=https://github.com/BarDweller/gameon-jsr107-room>Sample JSR-107 Room</a>. It does everything described here, and more,
+showing usage of both JSR-107 annotations, and direct API usage.</p></section></section><section class="doc-section level-1"><h2 id=_suggested_extensions>Suggested extensions</h2><div class=ulist><ul><li>Implement room inventory / player inventory using a cache.</li><li>Implement item state using a cache.</li><li>Add a Game On command <code>/lock</code> to test the lock function.</li></ul></div></section><section class="doc-section level-1"><h2 id=_conclusion>Conclusion</h2><p>Using Redis (via Redisson) as your JSR-107 implementation goes a long way to helping
+your service meet the 'stateless processes' goal for being a 12 factor app. Your
+app state, although feeling local, is actually managed by an instance of a stateful
+backing service (Redis).</p><p>JSR-107&#8217;s annotations help you to easily add
+caching type behavior to your service. Although they may seem a little restrictive
+at first, once you get to grips with them they quickly become a very powerful tool
+for managing information across multiple instances of a service. This approach
+is very effective for handling data that previously may have been stored within
+session storage.</p></section><section class="doc-section level-1"><h2 id=_suggested_further_adventures>Suggested further adventures.</h2><p>You may want to take a look at the follow-on adventure <a href=jsr107-caching-2.html>"JSR-107 via API"</a> which covers
+how to use JSR-107 without the annotations. (Keep an eye out for the "Redis via Redisson" adventure which will
+show a different spin on using Redis), or maybe the <a href=room-items.html>"Adding Items to a Room"</a>
+adventure, that will give you additional ways to expose your Cache understanding
+within a Room.</p></section></article><nav class=prev-next><div class=nav-left><div class=long><a href=/walkthroughs/advanced/cloudant.html title="Previous: NoSQL persistance with Cloudant">NoSQL persistance with Cloudant</a></div><div class=short><a href=/walkthroughs/advanced/cloudant.html title="Previous: NoSQL persistance with Cloudant">Previous</a></div></div><div class=nav-center><div class=long>Up: <a href=/walkthroughs/advanced/>Advanced Adventures</a></div><div class=short><a href=/walkthroughs/advanced/>Up</a></div></div><div class=nav-right><div class=long><a href=/walkthroughs/advanced/jsr107-caching-2.html title="Next: JSR-107 Caching (Part Two!)">JSR-107 Caching (Part Two!)</a></div><div class=short><a href=/walkthroughs/advanced/jsr107-caching-2.html title="Next: JSR-107 Caching (Part Two!)">Next</a></div></div></nav></main><footer class=foot><div id=copyrights>&#169; 2016-2020 under terms of the Apache License 2.0.</div><div>Follow us:
+<a target=_blank href=https://twitter.com/gameontext title="Follow @gameontext"><i class="fa fa-twitter" aria-hidden=true></i></a></div></footer><script type=application/javascript>var doNotTrack=false;if(!doNotTrack){window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;ga('create','UA-90113653-2','auto');ga('send','pageview');}</script><script async src=https://www.google-analytics.com/analytics.js></script></body></html>

@@ -1,0 +1,132 @@
+<!doctype html><html lang=en><head><meta charset=utf-8><meta http-equiv=x-ua-compatible content="chrome=1"><meta name=viewport content="width=device-width,initial-scale=1,maximum-scale=1"><link rel=stylesheet href=https://use.fontawesome.com/e3112f1bdf.css><link rel=stylesheet href=/css/flex.min.62d46290de4e8cb4b407a0a4c54711bb69af2f268ce654c5af64efa38732d394.css><link rel="shortcut icon" href=/favicon.ico type=image/x-icon><title>GO: The Map</title><link rel=canonical href=/architecture/map.html><link rel=alternate type=application/rss+xml href=/blog/index.xml title="Game On! Adventures with microservices"></head><body><header class=head-single><h1><a href=/>GAME<span class=on>ON</span></a></h1><div>Hands-on experiment building microservices and cloud native applications</div></header><nav class=project><a target=_blank href=https://gameontext.org title="Play the game"><i class="fa fa-play" aria-hidden=true></i><span>Play <span>the game</span></span></a>
+<a href=/about/ title="Read the book"><i class="fa fa-book" aria-hidden=true></i><span>Learn <span>more</span></span></a>
+<a href=/blog/ title="Read the blog"><i class="fa fa-newspaper-o" aria-hidden=true></i><span>Read <span>our blog</span></span></a>
+<a target=_blank href=https://gameontext.org/slackin/ title="Join our slack team"><i class="fa fa-slack" aria-hidden=true></i><span><span>Join us on</span> Slack</span></a>
+<a target=_blank class=github href=https://github.com/gameontext title="View project on GitHub"><i class="fa fa-github" aria-hidden=true></i><span>Github</span></a></nav><main class="book page"><article><header><h1>The Map</h1></header><p>The Map is one of the game&#8217;s core services. It is implemented in Java using
+WebSphere Liberty. The source is <a href=https://github.com/gameontext/gameon-map>available on GitHub</a>. The public REST API
+is <a href=https://gameontext.org/swagger/>browsable with Swagger</a>. What follows is a very
+description of how the internals of the map service work.</p><section class="doc-section level-1"><h2 id=_api_language_and_runtime>API, Language, and Runtime</h2><p>The Map is a Java-based service. It uses Java 8, and relies on Java EE 7
+technologies like JAX-RS 2.0.</p><p>We built the Map using WebSphere Liberty, in a Swagger-first manner using
+Liberty&#8217;s <code>apiDiscovery-1.0</code> feature. Swagger annotations were added to
+JAX-RS resources and POJOs, with the set being refined until the API was
+consistent. The annotated POJOs are then shared between API requests and
+DB interactions.</p></section><section class="doc-section level-1"><h2 id=_nosql_datastore>NoSQL DataStore</h2><p>The Map uses couchdb when running locally in docker containers, and Cloudant
+when running in Bluemix.</p><p>The ektorp library is used to interact with either backend, consistent with
+the replaceable-services aspect of <a href=/about/twelve-factors.html>twelve factor applications</a>.</p></section><section class="doc-section level-1"><h2 id=_maintaining_the_grid>Maintaining the grid</h2><p>The Map uses a 2-dimensional grid containing all known (both registered and
+empty) rooms. It ensures that registered rooms have neighbors to the North,
+South, East and West. It ignores Up and Down.</p><p>First Room has type <code>room</code>, but is primordial. It is always at (0,0).</p></section><section class="doc-section level-1"><h2 id=_map_documents>Map documents</h2><p><code>Site</code> documents are used to represent a position in the grid.</p><figure class=listing-block><figcaption>Site (abridged) as a NoSQL JSON Document</figcaption><pre>Site {
+  id: &lt;generated&gt;
+  type: room | empty
+  coord: { x: &lt;assigned&gt;, y: &lt;assigned&gt; }
+  owner: &lt;set when room assigned, unset for empty&gt;
+  info: &lt;room information, only present for assigned rooms&gt;
+}</pre></figure><p>There are two types of sites: <code>empty</code>, for unassigned sites, and <code>room</code>, for
+assigned sites.</p><p>When returned from Map operations, a <code>Site</code> contains additional generated data
+describing exits.</p><section class="doc-section level-2"><h3 id=_room_registration>Room Registration</h3><p>The room registration API expects a JSON structure describing the room
+as a parameter. This includes connection details and descriptions of the room&#8217;s
+doors.</p><figure class=listing-block><figcaption>JSON structure for room information, provided when a room is registered.</figcaption><pre>{
+  "name": "terseName",
+  "connectionDetails": {
+    "type": "websocket",
+    "target": "wss://reachable.host:9080/barn/ws",
+    "token": "optional-token-for-identification"
+  },
+  "fullName": "A descriptive name",
+  "description": "Describe your room. This is shown in full when the player enters.",
+  "doors": {
+    "n": "The outside of the room for a player traveling north",
+    "w": "The outside of the room for a player traveling west",
+    "s": "The outside of the room for a player traveling south",
+    "e": "The outside of the room for a player traveling east",
+    "u": "The outside of the room for a player traveling up",
+    "d": "The outside of the room for a player traveling down"
+  }
+}</pre></figure></section></section><section class="doc-section level-1"><h2 id=_the_nature_of_doors>The Nature of Doors</h2><p>A door is a description, as seen from the outside of the room. The east door
+(e) description should describe how a player traveling east will approach your
+room.</p><section class=paragraph><h6 class=block-title>Describe the doors for your room (in green) from the point of view of the navigating player.</h6><p><img src=../images/roomRegistration.png alt=roomRegistration width=400 title="Describing doors from the outside">
+<img src=../images/roomRegistrationUpDown.png alt=roomRegistrationUpDown width=250 title="Describing doors from the outside"></p></section><p>The example below shows the descriptions of the doors for First Room, which
+avoids any mention of direction in its door descriptions, though they are all
+consistent in theme.</p><figure class=listing-block><figcaption>Site document for First Room</figcaption><pre>{
+  "_id": "firstroom",
+  "_rev": "3-67cf483ff7099f9c7721caf9563a350d",
+  "owner": "game-on.org",
+  "info": {
+    "name": "First Room",
+    "connectionDetails": null,
+    "fullName": "The First Room",
+    "description": "A helpful room with doors in every possible direction.",
+    "doors": {
+      "n": "A knobbly wooden door with a rough carving or a friendly face",
+      "w": "A fake wooden door with stickers of friendly faces plastered all over it",
+      "s": "A warped wooden door with a friendly face branded on the corner",
+      "e": "A polished wooden door with an inlaid friendly face",
+      "u": "A scuffed and scratched oaken trap door embossed with a friendly face",
+      "d": "A rough-cut particle board hatch with a friendly face scratched on it"
+    }
+  },
+  "coord": {
+    "x": 0,
+    "y": 0
+  },
+  "type": "room"
+}</pre></figure><p>In the game, if I <code>/go N</code> from First Room, and get the <code>/exits</code>, this
+is the result:</p><div class=listing-block><pre>Visible exits:
+(S)outh	 A knobbly wooden door with a rough carving or a friendly face
+(E)ast	 A shiny metal door, with a bright red handle
+(W)est	 An overgrown road, covered in brambles
+(N)orth	 A winding path</pre></div><p>Note that the south exit uses the north door description from First Room!</p><section class="doc-section level-2"><h3 id=_finding_neighbors>Finding Neighbors</h3><p>The map uses a view that shows a site&#8217;s neighbors in two ways:</p><div class=ulist><ul><li>To generate the list of exits when a Site is retrieved</li><li>To ensure that assigned sites have neighbors on all 4 sides to make
+navigating assigned rooms easier.</li></ul></div><p>Queries for neighbors are made using the site&#8217;s coordinates.</p><figure class=listing-block><figcaption>CouchDb / Cloudant view to identify neighbors</figcaption><pre class=highlight><code class=language-javascript data-lang=javascript>function(doc) {
+  if ( doc.coord ) {
+    emit([doc.coord.x, doc.coord.y, "0", doc.type], null);
+    emit([(doc.coord.x + 1), doc.coord.y, "W", doc.type], {"_id": doc._id});
+    emit([(doc.coord.x - 1), doc.coord.y, "E", doc.type], {"_id": doc._id});
+    emit([doc.coord.x, (doc.coord.y + 1), "S", doc.type], {"_id": doc._id});
+    emit([doc.coord.x, (doc.coord.y - 1), "N", doc.type], {"_id": doc._id});
+  }
+}</code></pre></figure><p>That there is crazy, right? But it does some magic. Every site adds itself at
+its own coordinate, and as a directional neighbor. So First Room, which lives
+at (0,0), shows up in the index 5 times: [0,0,"0", "room"], [0,1,"W", "room"],
+[0,-1,"E", "room"], [1,0,"S", "room"], and [-1,0,"N", "room"]. This allows
+First room to show up as a neighbor when we query using that neighbor&#8217;s
+coordinates.</p><p>To carry on with the example above, we can query for the room to the North of
+first room using its coordinates.</p><figure class=listing-block><figcaption>Query for the room North of First Room (0,1)</figcaption><pre>GET /map_repository/_design/site/_view/neighbors?startkey=[0,1,"A"]&amp;endkey=[0,1,"Z"]&amp;reduce=false</pre></figure><figure class=listing-block><figcaption>Results for the room to the North of first room (0,1)</figcaption><pre>{"total_rows":205,"offset":124,"rows":[
+{"id":"930e061600bcda3f8e6fab2e8e31821e","key":[0,1,"E","room"],"value":{"_id":"930e061600bcda3f8e6fab2e8e31821e"}},
+{"id":"3a105f914083ab6d37d043d22bb6380d","key":[0,1,"N","room"],"value":{"_id":"3a105f914083ab6d37d043d22bb6380d"}},
+{"id":"firstroom","key":[0,1,"S","room"],"value":{"_id":"firstroom"}},
+{"id":"e6902c3b11c1fe3b813f16e3a5875b94","key":[0,1,"W","room"],"value":{"_id":"e6902c3b11c1fe3b813f16e3a5875b94"}}
+]}</pre></figure><p>And there it is in the results, First Room is the southern neighbor.
+If we include the associated documents when we make this query (as we do),
+then we have all the information that we need to generate the exits for the
+room at (0,1).</p></section><section class="doc-section level-2"><h3 id=_empty_rooms>Empty Rooms</h3><p>One of the challenges of maintaining the map is keeping allocated sites centered
+around First Room (the origin of the map). We do this using a two step process.</p><p>The first step uses a view that specifically lists only empty sites.</p><figure class=listing-block><figcaption>CouchDb / Cloudant view of emtpy sites</figcaption><pre class=highlight><code class=language-javascript data-lang=javascript>function(doc) {
+  if ( doc.coord &amp;&amp; doc.type == "empty" ) {
+    var sort = Math.abs(doc.coord.x) + Math.abs(doc.coord.y);
+    emit([sort, doc.coord.x, doc.coord.y], doc);
+  }
+}</code></pre></figure><p>If the document is a site (it has a coord element), and it has an <code>empty</code> type,
+then the site is added to the view with a complex index that includes a sort
+order based on the absolute value of its individual coordinates.</p><figure class=listing-block><figcaption>Query for empty sites</figcaption><pre>GET /map_repository/_design/site/_view/empty_sites</pre></figure><figure class=listing-block><figcaption>Results for Empty sites</figcaption><pre>{"total_rows":16,"offset":0,"rows":[
+{"id":"dbeb1d6296737412f364ca0c5ba49ccc","key":[4,-4,0],"value":{...},
+{"id":"bd3e09897a3bcf2b534d6e40ccfa093f","key":[4,-3,-1],"value":{...},
+{"id":"3cec85500f8ebf3f55955e797f5e9302","key":[4,-3,1],"value":{...},
+{"id":"dfa78a600613d64ec36e80cf8aa1d7b6","key":[4,-2,-2],"value":{...},
+{"id":"fae73ea44348aea9e103da6cc2a14457","key":[4,-2,2],"value":{...},
+{"id":"e4cb83df886b71128645d754c69009f6","key":[4,-1,-3],"value":{...},
+{"id":"06c204c94e64fe220e294c7610993331","key":[4,-1,3],"value":{...},
+{"id":"53219a25027df1844302ebc2da06044a","key":[4,0,-4],"value":{...},
+{"id":"676a779e2573fc810bbf41ada4473e52","key":[4,0,4],"value":{...},
+{"id":"e2f62c8ca658d5121c95b75f123364b2","key":[4,1,-3],"value":{...},
+{"id":"a7f2f09afdd2d4fbeb43768c5c88e2cf","key":[4,1,3],"value":{...},
+{"id":"12561ebcf236e6597724139f72ea4957","key":[4,2,-2],"value":{...},
+{"id":"520bf03961248bd4052c97f7843eee84","key":[4,2,2],"value":{...},
+{"id":"f3fbe4bb6ffcae60d4f94e7eb4f404a1","key":[4,3,-1],"value":{...},
+{"id":"c4605b345ca28db0df0bea340ee697f3","key":[4,3,1],"value":{...},
+{"id":"37aeea2e031505096f4b3a4f878107ba","key":[4,4,0],"value":{...}
+]}</pre></figure><p>This is a snapshot of live data, but you can see that the list of available
+empty sites have a consistent sort value of 4. An empty site at (-5,0) would
+have a sort value of 5, and would be at the bottom of the list. If someone
+deleted an existing room, let&#8217;s say from (1,0), that site would have a sort
+value of 1, and would appear at the top.</p><p>When adding a new site, we query this view and use the first empty site
+in the result. This works us around the origin in a spiral, keeping the map
+densely packed around the origin. Nifty!</p></section></section></article><nav class=prev-next><div class=nav-left><div class=long><a href=/architecture/application-security.html title="Previous: Application Security">Application Security</a></div><div class=short><a href=/architecture/application-security.html title="Previous: Application Security">Previous</a></div></div><div class=nav-center><div class=long>Up: <a href=/architecture/>Application Architecture</a></div><div class=short><a href=/architecture/>Up</a></div></div><div class=nav-right><div class=long><a href=/architecture/the-sweep.html title="Next: The Sweep">The Sweep</a></div><div class=short><a href=/architecture/the-sweep.html title="Next: The Sweep">Next</a></div></div></nav></main><footer class=foot><div id=copyrights>&#169; 2016-2020 under terms of the Apache License 2.0.</div><div>Follow us:
+<a target=_blank href=https://twitter.com/gameontext title="Follow @gameontext"><i class="fa fa-twitter" aria-hidden=true></i></a></div></footer><script type=application/javascript>var doNotTrack=false;if(!doNotTrack){window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;ga('create','UA-90113653-2','auto');ga('send','pageview');}</script><script async src=https://www.google-analytics.com/analytics.js></script></body></html>

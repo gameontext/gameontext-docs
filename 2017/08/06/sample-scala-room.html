@@ -1,0 +1,75 @@
+<!doctype html><html lang=en><head><meta charset=utf-8><meta http-equiv=x-ua-compatible content="chrome=1"><meta name=viewport content="width=device-width,initial-scale=1,maximum-scale=1"><link rel=stylesheet href=https://use.fontawesome.com/e3112f1bdf.css><link rel=stylesheet href=/css/flex.min.62d46290de4e8cb4b407a0a4c54711bb69af2f268ce654c5af64efa38732d394.css><link rel="shortcut icon" href=/favicon.ico type=image/x-icon><title>GO: We have a Scala Room!</title><link rel=canonical href=/2017/08/06/sample-scala-room.html><link rel=alternate type=application/rss+xml href=/blog/index.xml title="Game On! Adventures with microservices"></head><body><header class=head-single><h1><a href=/>GAME<span class=on>ON</span></a></h1><div>Hands-on experiment building microservices and cloud native applications</div></header><nav class=project><a target=_blank href=https://gameontext.org title="Play the game"><i class="fa fa-play" aria-hidden=true></i><span>Play <span>the game</span></span></a>
+<a href=/about/ title="Read the book"><i class="fa fa-book" aria-hidden=true></i><span>Learn <span>more</span></span></a>
+<a href=/blog/ title="Read the blog"><i class="fa fa-newspaper-o" aria-hidden=true></i><span>Read <span>our blog</span></span></a>
+<a target=_blank href=https://gameontext.org/slackin/ title="Join our slack team"><i class="fa fa-slack" aria-hidden=true></i><span><span>Join us on</span> Slack</span></a>
+<a target=_blank class=github href=https://github.com/gameontext title="View project on GitHub"><i class="fa fa-github" aria-hidden=true></i><span>Github</span></a></nav><article class=post><header><h1>We have a Scala Room!</h1><div class=byline><div><time class=post_date>06 August 2017</time> by<address class=author><a rel=author target=_blank href=https://github.com/ilanpillemer>ilan</a></address></div><div class=tags>tags:<ul><li><a href=/tags/fun>fun</a></li><li><a href=/tags/profit>profit</a></li><li><a href=/tags/scala>scala</a></li><li><a href=/tags/play>play</a></li></ul></div></div></header><section class=content><p>What follows is the stream-of-conciousness and research that lead up to our newest sample room!</p><h2 id=tldr>tl;dr</h2><ul><li><a href=/walkthroughs/advanced/room-from-scratch.html>advanced adventures</a>.</li><li><a href=https://github.com/gameontext/sample-room-scala>sample-room-scala</a></li><li><a href=http://134.168.52.95:9000/>the room up and running</a></li></ul><h2 id=day-0>Day 0</h2><p>So for me 2017/18 is going to include adventures in polyglot.</p><blockquote><p>This will include but will not be only restricted to
+<code>Kotlin</code>,<code>Prolog</code>, <code>Erlang</code>, <code>Racket</code>, <code>Haskell</code>, <code>Closure</code>, <code>Scala</code></p></blockquote><h2 id=day-1>Day 1</h2><h3 id=decide-on-tooling>Decide on tooling.</h3><ul><li><a href=http://www.scala-lang.org>scala</a> is the language.</li><li><a href=http://www.scala-sbt.org/>sbt</a> is the build tool.</li><li><a href=http://www.foundweekends.org/giter8/>giter8</a> to set up starter directories.</li><li><a href=https://www.playframework.com/>play</a> is the Websocket Framework.</li><li><a href=http://ensime.org>ensime</a> is the plugin for emacs.<ul><li><code>play</code> has a <a href=https://www.playframework.com/documentation/2.6.x/ScalaWebSockets>web socket api</a></li><li><code>giter8</code> has a <a href=https://github.com/foundweekends/giter8/wiki/giter8-templates>starter template</a> for <code>play</code>.</li></ul></li><li><code>ensime</code> looks fun as a development environment.</li></ul><h3 id=learn-to-stop-hating-and-love-regexes>Learn to stop hating and love regexes</h3><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-scala data-lang=scala><span class=n>scala</span><span class=o>&gt;</span> <span class=n>sample</span>
+<span class=n>res69</span><span class=k>:</span> <span class=kt>String</span> <span class=o>=</span>
+<span class=n>roomHello</span><span class=o>,</span><span class=o>&lt;</span><span class=n>roomId</span><span class=o>&gt;</span><span class=o>,</span><span class=o>{</span>
+    <span class=s>&#34;username&#34;</span><span class=k>:</span> <span class=err>&#34;</span><span class=kt>username</span><span class=err>&#34;</span><span class=o>,</span>
+    <span class=s>&#34;userId&#34;</span><span class=k>:</span> <span class=err>&#34;</span><span class=kt>&lt;</span><span class=kt>userId</span><span class=kt>&gt;</span><span class=err>&#34;</span><span class=o>,</span>
+    <span class=s>&#34;version&#34;</span><span class=k>:</span> <span class=err>1</span><span class=kt>|</span><span class=err>2</span>
+<span class=o>}</span>
+
+<span class=n>scala</span><span class=o>&gt;</span> <span class=n>pattern</span>
+<span class=n>res70</span><span class=k>:</span> <span class=kt>scala</span><span class=kt>.</span><span class=kt>util</span><span class=kt>.</span><span class=kt>matching</span><span class=kt>.</span><span class=kt>Regex</span> <span class=o>=</span> <span class=o>(</span><span class=o>?</span><span class=n>s</span><span class=o>)</span><span class=o>(</span><span class=n>\w</span><span class=o>+</span><span class=o>)</span><span class=o>,</span><span class=o>(</span><span class=o>[</span><span class=kt>^</span>,<span class=o>]</span><span class=o>*</span><span class=o>)</span><span class=o>,</span><span class=o>(</span><span class=o>.</span><span class=o>*</span><span class=o>)</span>
+
+<span class=n>scala</span><span class=o>&gt;</span> <span class=k>val</span> <span class=n>pattern</span><span class=o>(</span><span class=n>target</span><span class=o>,</span><span class=n>id</span><span class=o>,</span><span class=n>payload</span><span class=o>)</span> <span class=k>=</span> <span class=n>sample</span>
+<span class=n>target</span><span class=k>:</span> <span class=kt>String</span> <span class=o>=</span> <span class=n>roomHello</span>
+<span class=n>id</span><span class=k>:</span> <span class=kt>String</span> <span class=o>=</span> <span class=o>&lt;</span><span class=n>roomId</span><span class=o>&gt;</span>
+<span class=n>payload</span><span class=k>:</span> <span class=kt>String</span> <span class=o>=</span>
+<span class=o>{</span>
+    <span class=s>&#34;username&#34;</span><span class=k>:</span> <span class=err>&#34;</span><span class=kt>username</span><span class=err>&#34;</span><span class=o>,</span>
+    <span class=s>&#34;userId&#34;</span><span class=k>:</span> <span class=err>&#34;</span><span class=kt>&lt;</span><span class=kt>userId</span><span class=kt>&gt;</span><span class=err>&#34;</span><span class=o>,</span>
+    <span class=s>&#34;version&#34;</span><span class=k>:</span> <span class=err>1</span><span class=kt>|</span><span class=err>2</span>
+<span class=o>}</span>
+</code></pre></td></tr></table></div></div><h2 id=day-2>Day 2</h2><ul><li>Learn about how the play framework works with <a href=https://www.playframework.com/documentation/2.6.x/ScalaJson>json</a></li><li>Add some code to parse the (roomHello|roomJoin) message and reply correctly.</li><li><a href=https://github.com/gameontext/sample-room-scala/commit/28102e83400d7f12a2c843bf5d48da7c34d7ab16>commit</a></li></ul><h2 id=day-3>Day 3</h2><ul><li>add websocket chat response</li><li><a href=https://github.com/gameontext/sample-room-scala/commit/6dcc22c1a82b09290995831f400ff45c960c3341>commit</a></li></ul><h2 id=day-4>Day 4</h2><ul><li>hack up some room replies when home late after midnight</li><li><a href=https://github.com/gameontext/sample-room-scala/commit/5e5fdf380f9c6f6e28395cb3902e5820e09f045a>commit</a></li></ul><h2 id=day-5>Day 5</h2><ul><li>tidy up a bit, make the code space a bit more cozy</li><li><a href=https://github.com/gameontext/sample-room-scala/commit/c132d41cf85b40dc79c38a16a08c5fe3b29e3a1f>commit</a></li><li><a href=https://github.com/gameontext/sample-room-scala/commit/1b065465a6c06e3049297061b2f4df4b54517877>commit</a></li><li>start working on &ldquo;room is running page&rdquo;, which leads to having to understand<ul><li>the <a href=https://www.playframework.com/documentation/2.6.x/SecurityHeaders>javascript security</a> settings for play</li><li>and also more specifically <a href=https://www.html5rocks.com/en/tutorials/security/content-security-policy/>content security policy</a></li><li>and <a href=https://www.playframework.com/documentation/2.6.x/resources/confs/filters-helpers/reference.conf>also</a></li></ul></li><li>realise that you need <a href=http://getbootstrap.com/getting-started/>bootstrap</a> to make it look decent</li><li>using bootstrap, make a <em>your room is running page</em> with test buttons, to test web socket calls.</li><li><a href=https://github.com/gameontext/sample-room-scala/commit/f8b6992d9a21c24bff191058514464ba2e02728f>commit</a></li></ul><h2 id=day-6>Day 6</h2><p>ooh, its getting addictive to play with the bootstrap</p><ul><li>make it possible to edit preformed test message, or send arbritary message in the tests provided on the page.</li><li><a href=https://github.com/gameontext/sample-room-scala/commit/e532f45faa6528d79a3f1d7e2b3ad9ff270de04b>commit</a></li></ul><p></p><ul><li>learn that in bootstratp 1 == 12 so that the room test screen flows responsively.</li></ul><h2 id=day-7>Day 7</h2><p>stay up until 3am refactoring code unrelated to this, but in Scala.
+So all the ensime skillz gained were useful, and got to use partial functions and currying. w00t!</p><h2 id=day-8>Day 8</h2><p>oops&mldr; fix repo name from <code>sample-scala-room</code> to <code>sample-room-scala</code></p><ul><li>enter the <a href=http://www.scala-sbt.org/sbt-native-packager/formats/docker.html>whale</a> which has its own native sbt plugin.</li><li>add a secret to conf, using well something from <a href=https://randomkeygen.com/>here</a>, not that secret if its in github though, is it?
+also allow the app to run on any host. also allow web socket calls on any host.</li><li>woohoo and we have docker for the room.. so simple, no docker files. Yay!</li><li>so room is now running locally, and test screen works.. almost ready to publish image to clouds and connect up to gameon!</li><li><a href=https://github.com/gameontext/sample-room-scala/commit/33cfa37416ea399331fd43814bd0b2da7fd2cf7a>commit</a></li></ul><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-bash data-lang=bash>sample-room-scala ilanpillemer$ sbt docker:publishLocal
+...
+<span class=o>[</span>info<span class=o>]</span> Successfully built 6738f15ebd2e
+<span class=o>[</span>info<span class=o>]</span> Built image sample-room-scala:1.0-SNAPSHOT
+...
+sample-room-scala ilanpillemer$ docker images <span class=p>|</span> grep sample
+...
+sample-room-scala               1.0-SNAPSHOT        6738f15ebd2e        <span class=m>4</span> seconds ago       817.7 MB
+sample-scala-room               1.0-SNAPSHOT        f3ffa05f0f4e        <span class=m>58</span> minutes ago      817.7 MB
+...
+sample-room-scala ilanpillemer$ docker run -p 9000:9000 6738f15ebd2e
+<span class=o>[</span>info<span class=o>]</span> play.api.Play - Application started <span class=o>(</span>Prod<span class=o>)</span>
+<span class=o>[</span>info<span class=o>]</span> p.c.s.AkkaHttpServer - Listening <span class=k>for</span> HTTP on /0:0:0:0:0:0:0:0:9000
+</code></pre></td></tr></table></div></div><h2 id=day-9>Day 9</h2><ul><li>add license</li><li>upload image to dockerhub : <a href=https://hub.docker.com/r/ilanpillemer/sample-room-scala/>ilanpillemer/sample-scala-room</a></li><li>install <a href=https://clis.ng.bluemix.net/ui/home.html>bluemix command line</a></li><li>copy image from docker hub to bluemix</li><li>still have one more ip address available on free tier at blue mix, so use that and start container<ul><li>though no more free ones left now&mldr; :(</li></ul></li><li>http://134.168.52.95:9000/ is up and running&mldr;</li><li>register room in gameon!</li><li>go to room and see it working. (roomid: 3a4fb6dee190696852882ba3e78921a4)</li><li>add the proforma stuff to the README</li><li>job done</li></ul><p></p></section></article><nav class=prev-next><div class=nav-left><a href=/2017/07/18/room-on-a-chip.html title="Previous: Room on a chip">Previous</a></div><div class=nav-center><a href=/blog/>Blog</a> | <a href=/archive/>Archive</a></div><div class=nav-right><a href=/2017/09/12/headed-to-javaone.html title="Next: Headed to JavaOne 2017!">Next</a></div></nav><footer class=foot><div id=copyrights>&#169; 2016-2020 under terms of the Apache License 2.0.</div><div>Follow us:
+<a target=_blank href=https://twitter.com/gameontext title="Follow @gameontext"><i class="fa fa-twitter" aria-hidden=true></i></a></div></footer><script type=application/javascript>var doNotTrack=false;if(!doNotTrack){window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;ga('create','UA-90113653-2','auto');ga('send','pageview');}</script><script async src=https://www.google-analytics.com/analytics.js></script></body></html>

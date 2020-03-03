@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>arduino on Game On! Adventures with microservices</title><link>/tags/arduino.html</link><description>Recent content in arduino on Game On! Adventures with microservices</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Tue, 18 Jul 2017 00:00:00 +0000</lastBuildDate><atom:link href="/tags/arduino/index.xml" rel="self" type="application/rss+xml"/><item><title>Room on a chip</title><link>/2017/07/18/room-on-a-chip.html</link><pubDate>Tue, 18 Jul 2017 00:00:00 +0000</pubDate><guid>/2017/07/18/room-on-a-chip.html</guid><description>&lt;p>&lt;a href="https://gameontext.org/">Game On!&lt;/a> is a fun little text adventure written using a Microservice architecture. It's also extensible, allowing users to write their own &amp;lsquo;Rooms&amp;rsquo; (locations within the text adventure world), that run as Microservices, in the cloud, on their own systems, etc.&lt;/p>
+&lt;p>I've played with Arduino's and Raspberry Pi's, and similar for quite some time. I tried having an Arduino read data from a Floppy Drive, which was fun, and ultimately led to &lt;a href="http://hackaday.com/2012/03/31/floppy-autoloader-takes-the-pain-out-of-archiving-5000-amiga-disks/">a crazy floppy disk autoloader&lt;/a>. From there, I ended up moving on from Arduino to the Maple, then from there to a Teensy 3.0, and most recently, a rather fun little collection of boards based around a Chip known as the &lt;a href="https://en.wikipedia.org/wiki/ESP8266">ESP8266&lt;/a>&lt;/p>
+&lt;p>&lt;img src="http://bit.ly/2tAIOE8" alt="esp8266 board">&lt;/p>
+&lt;!-- raw HTML omitted -->
+&lt;p>There are some nice things about one of the ESP8266 boards I had (&lt;a href="http://bit.ly/2u3bsQg">Witty Cloud / GizWits&lt;/a>):&lt;/p>
+&lt;!-- raw HTML omitted -->
+&lt;ul>
+&lt;li>you program it using the Arduino API,&lt;/li>
+&lt;li>it has built in WiFi, 4MB of flash to store your code, 64k of instruction ram, and 96k of data ram to play with.&lt;/li>
+&lt;li>it runs at 80mhz or so&lt;/li>
+&lt;li>it has an LED light that can change color&lt;/li>
+&lt;li>it has a light sensor&lt;/li>
+&lt;/ul>
+&lt;p>That's pretty impressive for something that costs around 5$ shipped.&lt;/p>
+&lt;p>When you know there are Arduino JSON libraries, and Arduino WebSocket libraries that can run on it, you start wondering: is it possible to host a Room for Game On on an ESP8266 ?&lt;/p>
+&lt;p>I had a spare moment at a weekend, so decided to find out! =)&lt;/p></description></item></channel></rss>

@@ -1,0 +1,111 @@
+<!doctype html><html lang=en><head><meta charset=utf-8><meta http-equiv=x-ua-compatible content="chrome=1"><meta name=viewport content="width=device-width,initial-scale=1,maximum-scale=1"><link rel=stylesheet href=https://use.fontawesome.com/e3112f1bdf.css><link rel=stylesheet href=/css/flex.min.62d46290de4e8cb4b407a0a4c54711bb69af2f268ce654c5af64efa38732d394.css><link rel="shortcut icon" href=/favicon.ico type=image/x-icon><title>GO: Watson Conversation Service</title><link rel=canonical href=/walkthroughs/advanced/watson-conversation.html><link rel=alternate type=application/rss+xml href=/blog/index.xml title="Game On! Adventures with microservices"></head><body><header class=head-single><h1><a href=/>GAME<span class=on>ON</span></a></h1><div>Hands-on experiment building microservices and cloud native applications</div></header><nav class=project><a target=_blank href=https://gameontext.org title="Play the game"><i class="fa fa-play" aria-hidden=true></i><span>Play <span>the game</span></span></a>
+<a href=/about/ title="Read the book"><i class="fa fa-book" aria-hidden=true></i><span>Learn <span>more</span></span></a>
+<a href=/blog/ title="Read the blog"><i class="fa fa-newspaper-o" aria-hidden=true></i><span>Read <span>our blog</span></span></a>
+<a target=_blank href=https://gameontext.org/slackin/ title="Join our slack team"><i class="fa fa-slack" aria-hidden=true></i><span><span>Join us on</span> Slack</span></a>
+<a target=_blank class=github href=https://github.com/gameontext title="View project on GitHub"><i class="fa fa-github" aria-hidden=true></i><span>Github</span></a></nav><main class="book page"><article><header><h1>Watson Conversation Service</h1></header><p>Where we learn how to integrate Watson Conversation service with a Swift chat room.</p><section class="doc-section level-1"><h2 id=_overview>Overview</h2><p>This adventure will teach you about integrating a Watson Conversation service into your Swift room by walking you through the process
+of creating your own Watson service in Bluemix and adding integration points to a GameOn room.
+You will come away having learned a little about using Watson services and there will be suggestions for how you can use this further
+within a room.</p></section><section class="doc-section level-1"><h2 id=_why_watson>Why Watson?</h2><p>More and more developers are demanding the use of cognitive features in their applications. That’s why IBM Watson is targeting the need
+by providing many services through Bluemix that can be easily integrated into applications through a REST API. There are many services
+available on Watson, and they can be divided into major categories such as “language”, “speech”, “vision”, and “data insights”. Some
+very popular services include Natural Language Understanding for recognizing the meaning behind natural language and Visual Recognition
+for classifying contents in images. This adventure focuses on Natural Language Understanding using Watson’s Conversation service.</p><p>Because interfacing with a REST endpoint using low-level networking calls quickly becomes inefficient, there are many Watson Developer
+Cloud SDK’s that have been created to simplify making requests, exposing natural functions and data structures for the language. What
+would have taken over 500 lines of code, takes now 10. The Watson Swift SDK, previously named the iOS SDK, is now the second most used
+Watson SDK (after the NodeJS SDK). It had its origins, obviously, for the iOS mobile use case, but since the Swift programming language
+now can be used on Linux, it has opened the SDK for usage for server-side programming as well. Now you can use the same SDK you have
+bundled in your client application, and easily move that functionality out to the server, giving you more control over the frequency at
+which calls to Watson are made, have a single point for credentials for making the calls, and also can create applications where the
+result of the request to Watson can be shared with multiple users.</p><p>In this adventure, we take an existing GameOn Swift room and integrate with a Watson Conversation service, so that the Watson bot can
+respond to chat messages from GameOn participants.</p></section><section class="doc-section level-1"><h2 id=_prerequisites>Prerequisites</h2><p>First, you’ll need to create and configure a new Watson Conversation service. Building out a new Conversation service should only take
+a few minutes once you have a Bluemix account (you can get a free test account too).</p><div class="olist arabic"><ol class=arabic><li><p>Create a new Watson Conversation service in <a href=https://console.ng.bluemix.net>Bluemix</a>.</p><p>You will need to sign up for a Bluemix account if you don’t have one already.</p><p>Navigate to “Catalog” and search for “Conversation”, select it from the results and create a free plan.</p></li><li><p>Get the credentials from your service.</p><p>After your conversation service has been created, you will be able to get the username and password for the service from the “Service
+credentials” tab &#8594; “View credentials” dropdown. Record these now, you will need it later when we start coding your application.</p></li></ol></div><div class=image-block><img src=/images/watson-get_creds.png alt="watson get creds"></div><div class="olist arabic"><ol class=arabic start=3><li><p>Create a new Workspace for your application.</p><p>A workspace is the way you can express a dialog. Your Watson Conversation service may contain many workspaces for all of your user flows.</p><p>Under the manage tab, select “Launch tool”. Create a workspace and name it “Sandwich shop.”</p></li></ol></div><div class=image-block><img src=/images/watson-workspaces.png alt="watson workspaces"></div><div class="olist arabic"><ol class=arabic start=4><li><p>Create intents.</p><p>Intents are the ways Watson understands the user’s intent. In other words, you can train the Watson Natural Language classifier with a
+bunch of examples of ways of expressing an intent like “ordering a sandwich”, and in the future, even though your users won’t necessarily
+write their requests exactly how you specified it, through training the language model Watson will select the intent if that request matched
+it within a certain threshold level.</p><p>So for our example, you can add a new intent called “#order” and the values can be:</p></li></ol></div><div class=image-block><img src=/images/watson-intents.png alt="watson intents"></div><div class="olist arabic"><ol class=arabic start=5><li><p>Create entities.</p><p>Entities are the specifics of information that can come in through the intents. Entities are most likely nouns that help you better service
+the request. For our example, we will be creating some entity types like, @toppings and @meats.</p><p>Try adding some @toppings now:</p></li></ol></div><div class=image-block><img src=/images/watson-entities.png alt="watson entities"></div><div class="olist arabic"><ol class=arabic start=6><li><p>Design the dialog.</p><p>You can now design your dialog with the intents and entities you created earlier. Your must create triggers that based on whether it is
+matched or not, will yield a response from Watson.</p></li></ol></div><div class=image-block><img src=/images/watson-dialog1.png alt="watson dialog1"></div><div class=image-block><img src=/images/watson-dialog2.png alt="watson dialog2"></div><div class="olist arabic"><ol class=arabic start=7><li><p>Test your conversation.</p><p>It’s probably a good idea at this point to test your conversation and make sure it’s working properly. You can press the dialog bubble icon
+on the top right to start a simulation of your conversation.</p></li></ol></div><div class=image-block><img src=/images/watson-test-conversation.png alt="watson test conversation"></div><div class="olist arabic"><ol class=arabic start=8><li><p>Get the workspace ID.</p><p>Before we start making modifications to your GameOn room, copy your workspace ID. Follow the menu option to workspace, select the “drawer”
+icon next to the workspace card and choose “view details” in order to see your workspace ID. You will need this ID later when you connect
+your code to this workspace.</p></li></ol></div><div class=image-block><img src=/images/watson-workspace-id.png alt="watson workspace id"></div></section><section class="doc-section level-1"><h2 id=_walkthrough>Walkthrough</h2><div class="olist arabic"><ol class=arabic><li><p><a href=https://help.github.com/articles/fork-a-repo/>Fork</a> and clone the sample-swift-room</p><div class=listing-block><pre class=highlight><code>$ git clone https://github.com/&lt;your-forked-repo&gt;/sample-room-swift.git</code></pre></div></li></ol></div><div class="olist arabic"><ol class=arabic start=2><li><p>Add the <a href=https://github.com/watson-developer-cloud/swift-sdk>Watson SDK</a> as a dependency in your project.</p><p>In your <a href=https://github.com/gameontext/sample-room-swift/blob/master/Package.swift>Package.swift</a> file, add to the bottom of the list of dependencies the following library:</p><div class=listing-block><pre class=highlight><code class=language-swift data-lang=swift>.Package(url: "https://github.com/watson-developer-cloud/swift-sdk", majorVersion: 0)</code></pre></div></li></ol></div><div class="olist arabic"><ol class=arabic start=3><li><p>In Source/SwiftRoom/RoomImplementation.swift, import the Conversation service module.</p><div class=listing-block><pre class=highlight><code class=language-swift data-lang=swift>import ConversationV1</code></pre></div></li></ol></div><div class="olist arabic"><ol class=arabic start=4><li><p>Set some of the settings for your service. If you recall from the <a href=#prerequisites>prerequisites</a> section above when setting up the
+Conversation service, you saved your credentials and workspace ID. You will need these values at this point.</p><div class=listing-block><pre class=highlight><code class=language-swift data-lang=swift>let username = "username-goes-here"
+let password = "password-goes-here"
+let version = "2017-04-19"  // use today's date for the most recent version
+let workspaceID = "workspace-id-goes-here"</code></pre></div></li></ol></div><div class="olist arabic"><ol class=arabic start=5><li><p>Add a Conversation service wrapper to your RoomImplementation class to connect to your Conversation workspace. The wrapper is an
+object you will use to send input to, and receive output from, the service.</p><div class=listing-block><pre class=highlight><code class=language-swift data-lang=swift>let conversation = Conversation(username: username,
+                                password: password,
+                                version: version)</code></pre></div></li></ol></div><div class="olist arabic"><ol class=arabic start=6><li><p>Add a Context for the conversation.</p><p>A context allows the conversation to hold state. For instance, when you are finished selecting the meat on your sandwich, Watson continues
+the conversation with asking about toppings. Since REST calls are stateless by nature, we can hold state by keeping a state ID that is
+updated whenever you get a new response back.</p><div class=listing-block><pre class=highlight><code class=language-swift data-lang=swift>var context: Context?</code></pre></div></li></ol></div><aside class="admonition-block note" role=note><h6 class="block-title label-only"><span class=title-label>Note:</span></h6><p>In the Swift language, a property can be initialized to <code>nil</code> by using optional chaining. This is done by placing a question mark
+(?) after the optional property. For more information on optional chaining, check out the <a href=https://developer.apple.com/library/content/documentation/Swift/Conceptual/Swift_Programming_Language/OptionalChaining.html>Swift Programming Language docs</a>.</p></aside><div class="olist arabic"><ol class=arabic start=7><li><p>Set the context of the conversation on application start.</p><div class=listing-block><pre class=highlight><code class=language-swift data-lang=swift>public init() {
+
+       conversation.message(withWorkspace: workspaceID,
+                            failure: failure) {
+              response in
+
+              self.context = response.context
+       }
+
+}</code></pre></div></li></ol></div><div class="olist arabic"><ol class=arabic start=8><li><p>RoomImplementation.swift will now look like this:</p><div class=listing-block><pre class=highlight><code class=language-swift data-lang=swift>import LoggerAPI
+import Foundation
+import KituraWebSocket
+import SwiftyJSON
+
+import ConversationV1
+
+let username = "username-goes-here"
+let password = "password-goes-here"
+let version = "2017-03-22"
+let workspaceID = "workspace-id-goes-here"
+let conversation = Conversation(username: username, password: password, version: version)
+
+let failure = { (error: Error) in print(error) }
+
+public class RoomImplementation {
+
+    var context: Context? // save context to continue conversation
+    let roomDescription = RoomDescription()
+
+    public init() {
+
+         conversation.message(withWorkspace: workspaceID, failure: failure) { response in
+                print(response.output.text)
+                self.context = response.context
+            }
+
+    }
+    …</code></pre></div></li></ol></div><div class="olist arabic"><ol class=arabic start=9><li><p>In the handleMessage method in RoomImplementation.swift, there is a switch block on the message target. In the case of target == “room”,
+the message is either a command or a chat. We want to send the chat messages to the Conversation service and then send Watson’s response
+back to the client.</p><p>Add the Watson code in the “else” block.</p><div class=listing-block><pre class=highlight><code class=language-swift data-lang=swift>         if messageIsCommand(content: content) {
+                try processCommand(message: message, content: content, endpoint: endpoint, connection: connection)
+         }
+         else {
+
+		try endpoint.sendMessage(connection: connection,
+                                         message: Message.createChatMessage(username: username, message: content))
+
+                let request = MessageRequest(text: content, context: context)
+                conversation.message(withWorkspace: workspaceID, request: request, failure: failure) {
+                    response in
+                    print(response.output.text)
+
+                    if response.output.text.count &gt; 0 {
+
+                        let text = response.output.text[0]
+                        try! endpoint.sendMessage(connection: connection,
+                                         message: Message.createChatMessage(username: "Watson", message: text ))
+
+                    }
+
+                    self.context = response.context
+                }
+
+            }</code></pre></div><p>That should be it! You can see a working sample [jkingoliver-github}[here].</p></li></ol></div><div class="olist arabic"><ol class=arabic start=10><li><p><code>cd</code> into your working directory and compile your project.</p><div class=listing-block><pre class=highlight><code>$ cd sample-room-swift
+$ npm install
+$ gulp</code></pre></div></li></ol></div><div class="olist arabic"><ol class=arabic start=11><li><p>Run and test your server locally.</p><div class=listing-block><pre class=highlight><code>$ .build/debug/GameOn</code></pre></div></li></ol></div><p>Then access <a class=bare href=http://localhost:8080/>http://localhost:8080/</a> in your browser. Visiting this page provides a small chat window you can use to test Watson in your
+service directly.</p><div class="olist arabic"><ol class=arabic start=12><li><p>Make your room public.</p><p>For Game On! to include your room, you need to tell it where the publicly reachable WebSocket endpoint is. This requires two steps:</p><ul><li>{deployroom}[deploy your room to Bluemix as a Cloud Foundry application], and then</li><li><a href=/walkthroughs/register-room.html>register your room with the game</a>.</li></ul></li></ol></div></section><section class="doc-section level-1"><h2 id=_suggested_extensions>Suggested extensions</h2><div class=ulist><ul><li>The more the Conversation service is developed, the more interesting this adventure will be. Use your imagination!</li><li>Connect additional <a href=https://github.com/watson-developer-cloud/swift-sdk>Watson</a> services to analyze user input, such as <a href=https://github.com/watson-developer-cloud/swift-sdk#tone-analyzer>Tone Analyzer</a> or <a href=https://github.com/watson-developer-cloud/swift-sdk#speech-to-text>Speech to Text</a>.</li></ul></div></section><section class="doc-section level-1"><h2 id=_conclusion>Conclusion</h2><p>You should now have a basic understanding of Watson’s Conversation service, how to set it up in Bluemix and how to integrate it with your
+Swift room. We hope you enjoyed this adventure and feel inspired to explore with Watson.</p></section><section class="doc-section level-1"><h2 id=_suggested_further_adventures>Suggested further adventures</h2><div class=ulist><ul><li><a href=cloudant.html>Persistence</a> - Learn about persistence via a Cloudant database. This particular adventure is based on a GameOn Java room, however
+you can start here to pick up the basics of persistence from a Microservice perspective and how you might use a Cloudant service instance within
+a room. Checkout <a href=https://github.com/IBM-Swift/TodoList-CouchDB>IBM Swift’s TodoList-CouchDB</a> sample application to see how to connect your room to a Cloudant service
+instance in the Swift programming language.</li></ul></div></section></article><nav class=prev-next><div class=nav-left><div class=long><a href=/walkthroughs/advanced/jsr107-caching-2.html title="Previous: JSR-107 Caching (Part Two!)">JSR-107 Caching (Part Two!)</a></div><div class=short><a href=/walkthroughs/advanced/jsr107-caching-2.html title="Previous: JSR-107 Caching (Part Two!)">Previous</a></div></div><div class=nav-center><div class=long>Up: <a href=/walkthroughs/advanced/>Advanced Adventures</a></div><div class=short><a href=/walkthroughs/advanced/>Up</a></div></div><div class=nav-right><div class=long><a href=/walkthroughs/advanced/elk-stack.html title="Next: Logging using the ELK stack">Logging using the ELK stack</a></div><div class=short><a href=/walkthroughs/advanced/elk-stack.html title="Next: Logging using the ELK stack">Next</a></div></div></nav></main><footer class=foot><div id=copyrights>&#169; 2016-2020 under terms of the Apache License 2.0.</div><div>Follow us:
+<a target=_blank href=https://twitter.com/gameontext title="Follow @gameontext"><i class="fa fa-twitter" aria-hidden=true></i></a></div></footer><script type=application/javascript>var doNotTrack=false;if(!doNotTrack){window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;ga('create','UA-90113653-2','auto');ga('send','pageview');}</script><script async src=https://www.google-analytics.com/analytics.js></script></body></html>

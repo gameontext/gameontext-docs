@@ -1,0 +1,106 @@
+<!doctype html><html lang=en><head><meta charset=utf-8><meta http-equiv=x-ua-compatible content="chrome=1"><meta name=viewport content="width=device-width,initial-scale=1,maximum-scale=1"><link rel=stylesheet href=https://use.fontawesome.com/e3112f1bdf.css><link rel=stylesheet href=/css/flex.min.62d46290de4e8cb4b407a0a4c54711bb69af2f268ce654c5af64efa38732d394.css><link rel="shortcut icon" href=/favicon.ico type=image/x-icon><title>GO: Application Security</title><link rel=canonical href=/architecture/application-security.html><link rel=alternate type=application/rss+xml href=/blog/index.xml title="Game On! Adventures with microservices"></head><body><header class=head-single><h1><a href=/>GAME<span class=on>ON</span></a></h1><div>Hands-on experiment building microservices and cloud native applications</div></header><nav class=project><a target=_blank href=https://gameontext.org title="Play the game"><i class="fa fa-play" aria-hidden=true></i><span>Play <span>the game</span></span></a>
+<a href=/about/ title="Read the book"><i class="fa fa-book" aria-hidden=true></i><span>Learn <span>more</span></span></a>
+<a href=/blog/ title="Read the blog"><i class="fa fa-newspaper-o" aria-hidden=true></i><span>Read <span>our blog</span></span></a>
+<a target=_blank href=https://gameontext.org/slackin/ title="Join our slack team"><i class="fa fa-slack" aria-hidden=true></i><span><span>Join us on</span> Slack</span></a>
+<a target=_blank class=github href=https://github.com/gameontext title="View project on GitHub"><i class="fa fa-github" aria-hidden=true></i><span>Github</span></a></nav><main class="book page"><article><header><h1>Application Security</h1></header><p>Game On! has the following general security requirements</p><div class="olist arabic"><ol class=arabic><li>Identify the user.</li><li>Prevent data alteration in transit.</li><li>Prevent replay attacks.</li></ol></div><p>We satisfy these requirements using a combination of OAuth protocols, JSON Web
+Tokens (JWTs) and API keys.</p><section class="doc-section level-1"><h2 id=_oauth_and_openid_connect_for_player_identification>OAuth and OpenID Connect for Player Identification</h2><p>While the game has a notion of a Player, we decided to opt-out of the password
+management business. Game On! relies on third-parties for user identification.
+When you play the game, you authenticate with an OAuth provider (Facebook,
+GitHub, Google, Twitter). After you have authenticated with the third party,
+we create a signed JWT that we then use to identify you.</p><p><img src=../images/oauth2.svg alt="OAuth2 Sequence diagram"></p></section><section class="doc-section level-1"><h2 id=_json_web_tokens_jwt>JSON Web Tokens (JWT)</h2><div class=quote-block><blockquote><p>JSON Web Token (JWT) is a compact, URL-safe means of representing
+claims to be transferred between two parties. The claims in a JWT
+are encoded as a JSON object that is used as the payload of a JSON
+Web Signature (JWS) structure or as the plaintext of a JSON Web
+Encryption (JWE) structure, enabling the claims to be digitally
+signed or integrity protected with a Message Authentication Code
+(MAC) and/or encrypted.</p><footer>&#8212; <cite>IETF RFC 7519, https://tools.ietf.org/html/rfc7519</cite></footer></blockquote></div><p>Phew! That was dense, but hopefully understandable.</p><p>Game On! typically uses JWTs to authorize actions on behalf of the user. The JWT
+standard contains headers for identifying the user and the actions they are
+entitled to perform e.g. delete a resource or register a new end point. The use
+of signed JWTs allows services to be sure that the token has not been modified
+as it is passed from service to service.</p><p>JWTs are created and signed according to the method described in the "Which is
+the JSON Web Token Structure" section of the <a href=http://jwt.io/introduction/>introduction to JWTs</a>
+at <a class=bare href=http://jwt.io>http://jwt.io</a>.</p><p>The claims used as those specified by <a href=https://tools.ietf.org/html/rfc7519#section-4.1>Section 4.1 of
+RFC 7519, Registered Claim Names</a>.</p><p>Note: Unless otherwise stated, Game On! uses <strong>RSA-256</strong> as the signature algorithm.</p><section class="doc-section level-2"><h3 id=_references>References</h3><div class=ulist><ul><li>Testing your JWT : <a class=bare href=http://jwt.io/#debugger-io>http://jwt.io/#debugger-io</a></li><li>Browser JS for working with JWT&#8217;s, <a href=http://kjur.github.io/jsrsasign/>http://kjur.github.io/jsrsasign/</a></li><li>Server side JTW processing with JJWT : <a href=https://github.com/jwtk/jjwt>https://github.com/jwtk/jjwt</a></li><li>JSON Web Token RFC : <a class=bare href=https://tools.ietf.org/html/rfc7519>https://tools.ietf.org/html/rfc7519</a></li></ul></div></section></section><section class="doc-section level-1"><h2 id=_signed_requests>Signed Requests</h2><p>Signed requests are used to validate and authorize service-to-service API
+invocation. Trust is achieved through the use of a shared secret to create a
+signature that can be used to verify that request data did not change in
+transit, as decribed in <a href=http://www.ietf.org/rfc/rfc2104>RFC 2014 - Keyed-Hashing for Message
+Authentication</a>.</p><p>We&#8217;ve created a <a href=https://github.com/gameontext/signed/releases>library</a> (currently only in Java), to
+help with managing signed requests. The <a href=https://github.com/gameontext/signed>README</a>
+explains how to make use of this library in your services.</p><section class="doc-section level-2"><h3 id=_http_elements_used_to_sign_a_request>HTTP Elements used to Sign a Request</h3><p>A signed request can be sent to Game On! using HTTP headers, as part of the
+query string or a combination of both. Duplicate entries will be treated as an
+invalid request. The following table lists the values that need to be supplied
+when signing your request.</p><aside class="admonition-block note" role=note><h6 class="block-title label-only"><span class=title-label>Note:</span></h6><p>Unless otherwise stated, Game On! uses the <strong>SHA-256</strong> algorithm to
+generate or validate hashes.</p></aside><div class=table-block><table class="frame-all grid-all spread"><col style=width:25%><col style=width:25%><col style=width:25%><col style=width:25%><tbody><tr><td class="halign-left valign-top">Name</td><td class="halign-left valign-top">Description</td><td class="halign-left valign-top">Required</td><td class="halign-left valign-top">Notes</td></tr><tr><td class="halign-left valign-top"><strong>gameon-id</strong></td><td class="halign-left valign-top">Your user id</td><td class="halign-left valign-top">Required</td><td class="halign-left valign-top">Your user id (different than your user name) is found on the
+<a href=/about/game_play.html#user-profile>user profile page</a>.</td></tr><tr><td class="halign-left valign-top"><strong>gameon-date</strong></td><td class="halign-left valign-top">Creation time and date</td><td class="halign-left valign-top">Required</td><td class="halign-left valign-top">This should be a UTC date/time in one of the accepted
+<a href=http://www.ietf.org/rfc/rfc2616>RFC 2616 formats</a></td></tr><tr><td class="halign-left valign-top"><strong>gameon-signature</strong></td><td class="halign-left valign-top">HMAC Signature to be validated</td><td class="halign-left valign-top">Required</td><td class="halign-left valign-top">The signature is a case-insensitive hex string generated using the
+<a href=#hmac-generation>steps outlined below</a></td></tr><tr><td class="halign-left valign-top"><strong>gameon-sig-headers</strong></td><td class="halign-left valign-top">A semi-colon delimited list of HTTP header names, followed by a hash of
+the values for the listed headers.</td><td class="halign-left valign-top">Varies per operation</td><td class="halign-left valign-top">See the API documentation for a list of headers to include in the signature.
+Do not include <strong>gameon-*</strong> headers.</td></tr><tr><td class="halign-left valign-top"><strong>gameon-sig-params</strong></td><td class="halign-left valign-top">A semi-colon delimited list of query parameter names, followed by a
+hash of the values for the listed parameters.</td><td class="halign-left valign-top">Varies per operation</td><td class="halign-left valign-top">See the API documentation for the list of query parameters to include in the
+signature. Do not include <strong>gameon-*</strong> parameters.</td></tr><tr><td class="halign-left valign-top"><strong>gameon-sig-body</strong></td><td class="halign-left valign-top">Hash of the contents of the request body.</td><td class="halign-left valign-top">Required for POST and PUT requests</td><td class="halign-left valign-top">Ensures that JSON sent to the server has not been modified in transit.</td></tr></table></div></section><section class="doc-section level-2"><h3 id=hmac-generation>Constructing a Signed Request</h3><p>These steps work against the set of headers being constructed for the
+request message:</p><div class="olist arabic"><ol class=arabic><li>Add the <strong>gameon-id</strong> header with your public API key as its value.</li><li>Add the <strong>gameon-date</strong> header with the the current time and date in UTC
+(RFC 1123 format) as its value.</li><li>If the <strong>gameon-sig-headers</strong> header is required, add it with a
+<a href=#multi-value-hash>hash generated using HTTP headers</a> as a value.</li><li>If the <strong>gameon-sig-params</strong> header is required, , add it with a
+<a href=#multi-value-hash>hash generated using query parameters</a> as a value.</li><li>If there is a request body, add the <strong>gameon-sig-body</strong> header with the
+hash of the request body as a value.</li><li>Add the <strong>gameon-signature</strong> header:<ol class=loweralpha type=a><li>Initialize a HMAC-SHA256 function using your shared secret.<ol class=lowerroman type=i><li>Update with the request method, e.g. GET, POST, etc.</li><li>Update with the requested URI, not including query parameters,
+e.g. /map/v1/sites</li><li>Update with the value of <strong>gameon-id</strong></li><li>Update with the value of <strong>gameon-date</strong></li><li>Update with the value of <strong>gameon-sig-headers</strong> (if present)</li><li>Update with the value of <strong>gameon-sig-params</strong> (if present)</li><li>Update with the value of <strong>gameon-sig-body</strong> (if present)</li></ol></li><li>Generate the HMAC and convert it to lowercase hex, and use the result as the
+value.</li></ol></li></ol></div><section class="doc-section level-3"><h4 id=multi-value-hash>Constructing a hash for elements with multiple values</h4><p>When constructing the value for <strong>gameon-sig-headers</strong> or <strong>gameon-sig-params</strong>,
+use the following steps:</p><div class="olist arabic"><ol class=arabic><li>Start with a semi-colon separated list of required element names,
+e.g. <code>A;B;C;</code></li><li>Append the a hash constructed from the values of named elements<ul><li>The hash should include the value of each required element in the order it
+appears in the list of element names</li><li>If there are multiple values for a header, concatenate them in the order
+they appear with no separator: <code>value1value2value3</code></li></ul></li></ol></div><p>Example value: <code>A;B;C;&lt;hash of values for A, B, C></code></p></section><section class="doc-section level-3"><h4 id=_examples_of_signed_requests>Examples of Signed Requests</h4><p>The following are examples only of how headers and query strings are combined
+to create signed requests. API Documentation will describe which operations
+must be signed, and how.</p><p>Assuming a shared secret of <code>fish</code>, you should be able to reproduce the
+signature in the following examples using the algorithm above.</p><p>1) A signed GET request, with no extra headers</p><div class=listing-block><pre>GET /map/v1/sites/aRoomId HTTP/1.1
+gameon-id: MyUserId
+gameon-date: Sat, 21 May 2016 19:14:54 GMT
+gameon-signature: mYsWeiZm9oyUmJXo1uCwq1AHoHSm5eLrblU9q35EjOU=</pre></div><p>2) A signed POST request which includes the JSON body content, but no other
+headers.</p><div class=listing-block><pre>POST /map/v1/sites HTTP/1.1
+gameon-id: MyUserId
+gameon-date: Sat, 21 May 2016 19:14:54 GMT
+gameon-sig-body: AWRN0wv343B7k7Ucp1sipeM2U9hZLVlMzPNA6uUiyug=
+gameon-signature: jblpGaN8bjd4SmhsK341EP1x7e2w8sZ3L1T64YB+mrQ=
+Content-Type: application/json
+Content-Length: 12
+
+{id: 'test'}</pre></div><p>3) A signed POST request that includes JSON body content and headers</p><div class=listing-block><pre>POST /map/v1/sites HTTP/1.1
+gameon-id: MyUserId
+gameon-date: Sat, 21 May 2016 19:14:54 GMT
+gameon-sig-headers: Content-Type;Content-Length;47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=
+gameon-sig-body: AWRN0wv343B7k7Ucp1sipeM2U9hZLVlMzPNA6uUiyug=
+gameon-signature: 3E3+YFH6qd30WlujaOellykNWxH0AOMecFvuHyYV42k=
+Content-Type: application/json
+Content-Length: 12
+
+{id: 'test'}</pre></div><p>4) A signed GET request with parameters</p><div class=listing-block><pre>GET /map/v1/sites?owner=MyUserId HTTP/1.1
+gameon-id: MyUserId
+gameon-date: Sat, 21 May 2016 19:14:54 GMT
+gameon-sig-params: owner;HkP19XXoI90rtg6yWMTACQ20rWZQhbGmgFDMjHSU2qg=
+gameon-signature: bb0otJw4jDitSf7DXNWMjQEwsoaZqjXlSrE8Wkvkf6s=</pre></div></section></section><section class="doc-section level-2"><h3 id=hmac-parsing>Parsing Signed Requests</h3><p>Signed requests should be validated as followed. A response with a 404 return
+code should be returned if any of the following checks fail.</p><div class="olist arabic"><ol class=arabic><li>Compare the <strong>gameon-signature</strong> value to those from recently seen requests
+to protect against replay attacks. Minimally, non-idempotent methods
+(e.g. POST) should be checked, but others can as well.</li><li>Examine the value of <strong>gameon-date</strong> and ensure it is less than 5 minutes old</li><li>Examine the value of <strong>gameon-id</strong> and ensure that it is valid and has
+not been revoked.</li><li>Examine the value of <strong>gameon-sig-headers</strong> (if present)<ol class=loweralpha type=a><li>Generate a
+<a href=#multi-value-hash>new hash from the specified HTTP header values</a></li><li>Verify that the new hash value matches the hash value in the header.</li></ol></li><li>Examine the value of <strong>gameon-sig-params</strong> (if present)<ol class=loweralpha type=a><li>Generate a
+<a href=#multi-value-hash>new hash from the specified query parameter values</a></li><li>Verify that the new hash value matches the hash value in the header.</li></ol></li><li>Examine the value <strong>gameon-sig-body</strong> (if present)<ol class=loweralpha type=a><li>Generate a new hash from the request body</li><li>Verify that the new hash value matches the value in the header.</li></ol></li><li>Examine the value of the <strong>gameon-signature</strong> header:<ol class=loweralpha type=a><li>Initialize a HMAC-SHA256 function using the shared secret associated with
+the <strong>gameon-id</strong>. The shared secret confirms the identity of the sender.<ol class=lowerroman type=i><li>Update with the request method, e.g. GET, POST, etc.</li><li>Update with the requested URI, not including query parameters,
+e.g. /map/v1/sites</li><li>Update with the value of <strong>gameon-id</strong></li><li>Update with the value of <strong>gameon-date</strong></li><li>Update with the value of <strong>gameon-sig-headers</strong> (if present)</li><li>Update with the value of <strong>gameon-sig-params</strong> (if present)</li><li>Update with the value of <strong>gameon-sig-body</strong> (if present)</li></ol></li><li>Generate the HMAC and convert it to lowercase hex, compare this value to
+the value of the <strong>gameon-signature</strong> header.</li></ol></li></ol></div></section><section class="doc-section level-2"><h3 id=_signing_websocket_requests_mediator_to_room>Signing WebSocket requests (Mediator to room)</h3><p>WebSockets are just upgraded HTTP connections, so we can use the same general mechanics
+as above to sign WebSocket requests.</p><p>A unique aspect of this application is that the central services of the game are
+calling out to your rooms: it is likely that you would want to make sure it is
+the game calling your room, and not an unknown party.</p><p>One of the things you can provide when registering your room is a token. If a
+token is present, we will create an hmac signature for the request using the
+following procedure:</p><div class="olist arabic"><ol class=arabic><li>Add the <strong>gameon-date</strong> header with the the current time and date in UTC
+(RFC 1123 format) as its value.</li><li>Add the <strong>gameon-signature</strong> header:<ol class=loweralpha type=a><li>Initialize a HMAC-SHA256 function using the shared token.<ol class=lowerroman type=i><li>Update with the requested URI, not including query parameters, e.g. /ws/room</li><li>Update with the value of <strong>gameon-date</strong></li></ol></li><li>Generate the HMAC and convert it to lowercase hex, and use the result as the
+value.</li></ol></li></ol></div><p>When your room receives the signed request to initiate the WebSocket connection,
+verify the signature. Then create a new signature in the response
+built from the signature in the request and a new date:</p><div class="olist arabic"><ol class=arabic><li>Add the <strong>gameon-date</strong> header to the response with the the current time and
+date in UTC (RFC 1123 format) as its value.</li><li>Add the <strong>gameon-signature</strong> header to the response:<ol class=loweralpha type=a><li>Initialize a HMAC-SHA256 function using the shared token.<ol class=lowerroman type=i><li>Update with the value of <strong>gameon-date</strong></li><li>Update with the value of <strong>gameon-signature</strong> from the request headers</li></ol></li><li>Generate the HMAC and convert it to lowercase hex, and use the result as the
+value.</li></ol></li></ol></div><p>The Mediator will verify that signature as part of the handshake to establish
+the connection.</p></section><section class="doc-section level-2"><h3 id=_references_2>References</h3><div class="olist arabic"><ol class=arabic><li>Keyed-Hashing for Message Authentication : <a class=bare href=http://www.ietf.org/rfc/rfc2104>http://www.ietf.org/rfc/rfc2104</a></li><li>Standard HTTP headers and well known non-standard ones : <a class=bare href=https://tools.ietf.org/html/rfc7235>https://tools.ietf.org/html/rfc7235</a></li><li><p>How to define custom HTTP headers : <a class=bare href=http://tools.ietf.org/html/rfc6648>http://tools.ietf.org/html/rfc6648</a></p><p>A quick note about custom HTTP headers. Originally it was recommended that custom
+headers start with x-, so this is why you see headers such as x-api-key and x-amz-date.
+However in the latest RFC, this has been changed to say that you should use
+something meaningful, and it no longer needs to be prefixed with x-. If you want
+to avoid potential name space clashes then try and use something unique to your
+application or organization (e.g. gameon-, in our case).</p></li></ol></div></section></section></article><nav class=prev-next><div class=nav-left><div class=long><a href=/architecture/websocket-protocol.html title="Previous: WebSocket Protocol">WebSocket Protocol</a></div><div class=short><a href=/architecture/websocket-protocol.html title="Previous: WebSocket Protocol">Previous</a></div></div><div class=nav-center><div class=long>Up: <a href=/architecture/>Application Architecture</a></div><div class=short><a href=/architecture/>Up</a></div></div><div class=nav-right><div class=long><a href=/architecture/map.html title="Next: The Map">The Map</a></div><div class=short><a href=/architecture/map.html title="Next: The Map">Next</a></div></div></nav></main><footer class=foot><div id=copyrights>&#169; 2016-2020 under terms of the Apache License 2.0.</div><div>Follow us:
+<a target=_blank href=https://twitter.com/gameontext title="Follow @gameontext"><i class="fa fa-twitter" aria-hidden=true></i></a></div></footer><script type=application/javascript>var doNotTrack=false;if(!doNotTrack){window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;ga('create','UA-90113653-2','auto');ga('send','pageview');}</script><script async src=https://www.google-analytics.com/analytics.js></script></body></html>

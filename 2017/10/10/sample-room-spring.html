@@ -1,0 +1,66 @@
+<!doctype html><html lang=en><head><meta charset=utf-8><meta http-equiv=x-ua-compatible content="chrome=1"><meta name=viewport content="width=device-width,initial-scale=1,maximum-scale=1"><link rel=stylesheet href=https://use.fontawesome.com/e3112f1bdf.css><link rel=stylesheet href=/css/flex.min.62d46290de4e8cb4b407a0a4c54711bb69af2f268ce654c5af64efa38732d394.css><link rel="shortcut icon" href=/favicon.ico type=image/x-icon><title>GO: Spring Room!</title><link rel=canonical href=/2017/10/10/sample-room-spring.html><link rel=alternate type=application/rss+xml href=/blog/index.xml title="Game On! Adventures with microservices"></head><body><header class=head-single><h1><a href=/>GAME<span class=on>ON</span></a></h1><div>Hands-on experiment building microservices and cloud native applications</div></header><nav class=project><a target=_blank href=https://gameontext.org title="Play the game"><i class="fa fa-play" aria-hidden=true></i><span>Play <span>the game</span></span></a>
+<a href=/about/ title="Read the book"><i class="fa fa-book" aria-hidden=true></i><span>Learn <span>more</span></span></a>
+<a href=/blog/ title="Read the blog"><i class="fa fa-newspaper-o" aria-hidden=true></i><span>Read <span>our blog</span></span></a>
+<a target=_blank href=https://gameontext.org/slackin/ title="Join our slack team"><i class="fa fa-slack" aria-hidden=true></i><span><span>Join us on</span> Slack</span></a>
+<a target=_blank class=github href=https://github.com/gameontext title="View project on GitHub"><i class="fa fa-github" aria-hidden=true></i><span>Github</span></a></nav><article class=post><header><h1>Spring Room!</h1><div class=byline><div><time class=post_date>10 October 2017</time> by<address class=author><a rel=author target=_blank href=https://github.com/quanvo87>quan</a></address></div><div class=tags>tags:<ul><li><a href=/tags/spring>spring</a></li><li><a href=/tags/java>java</a></li></ul></div></div></header><section class=content><p>We have a new sample room written in Java with the Spring framework:</p><ul><li><a href=https://github.com/gameontext/sample-room-spring>sample-room-spring</a></li><li><a href=http://sample-room-spring-962.mybluemix.net>the room up and running</a></li></ul><p>This post is a brief overview of the creation process.</p><h2 id=jumpstart-with-code-gen>Jumpstart with code gen</h2><p>Using this <a href=https://www.ibm.com/blogs/bluemix/2017/09/creating-running-deploying-spring-microservices-5-minutes/>guide</a>, we made a Spring microservice starter that could be deployed to Bluemix with just a few commands:</p><p>{% highlight shell_session %}
+$ bx dev create
+? Select a pattern:</p><ol><li>Web App</li><li>Mobile App</li><li>Backend for Frontend</li><li>Microservice</li><li>MFP
+Enter a number> 4</li></ol><p>? Select a starter:</p><ol><li>Basic
+Enter a number> 1</li></ol><p>? Select a language:</p><ol><li>Java - MicroProfile / Java EE</li><li>Node</li><li>Python</li><li>Java - Spring Framework
+Enter a number> 4</li></ol><p>? Enter a name for your project> springmsdemo<br>? Enter a hostname for your project> springmsdemo
+? Do you want to add services to your project? [y/n]> y</p><p>? Select a service:</p><ol><li>Cloudant NoSQL Database</li><li>Object Storage
+Enter a number> 1</li></ol><p>? Select a service plan:</p><ol><li>Lite</li><li>Standard</li><li>Dedicated Hardware
+Enter a number> 1</li></ol><p>Successfully added service to project.</p><p>? Do you want to add another service? [y/n]> n</p><p>The project, springmsdemo, has been successfully saved into the current directory.
+OK
+{% endhighlight %}</p><p>Time to fill in our own code!</p><h2 id=borrowing-from-the-java-room>Borrowing from the Java room</h2><p>The <a href=https://github.com/gameontext/sample-room-java>Java room</a> had a lot of code we could reuse, so that's what we did.</p><p>Notable differences:</p><ul><li>We needed a <a href=https://github.com/gameontext/sample-room-spring/blob/master/src/main/java/app/WebSocketConfig.java>WebSocketConfig</a> to map our <a href=https://github.com/gameontext/sample-room-spring/blob/master/src/main/java/app/SocketHandler.java>SocketHandler</a> to <code>/room</code> <a href=https://github.com/gameontext/sample-room-spring/blob/master/src/main/java/app/WebSocketConfig.java>WebSocketConfig</a> to map our <a href=https://github.com/gameontext/sample-room-spring/blob/master/src/main/java/app/SocketHandler.java>SocketHandler</a> to <code>/room</code></li></ul><p>{% highlight java linenos %}
+@Configuration
+@EnableWebSocket
+class WebSocketConfig implements WebSocketConfigurer {</p><pre><code>  @Inject
+  SocketHandler handler;
+
+  public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
+      registry.addHandler(handler, &quot;/room&quot;);
+  }
+</code></pre><p>}
+{% endhighlight %}</p><ul><li>We also needed to use a Spring WebSocket (<code>org.springframework.web.socket.WebSocketSession</code>) instead of the standard one (<code>javax.websocket.Session</code>). It looks roughly like this (simplified): (<code>org.springframework.web.socket.WebSocketSession</code>) instead of the standard one (<code>javax.websocket.Session</code>). It looks roughly like this (simplified):</li></ul><p>{% highlight java linenos %}
+@Component
+public class SocketHandler extends TextWebSocketHandler {</p><pre><code>  private final HashMap&lt;String, WebSocketSession&gt; sessions = new HashMap&lt;&gt;();
+  @Inject
+  private RoomImplementation roomImplementation;
+
+  @Override
+  public void afterConnectionEstablished(WebSocketSession session) throws Exception {
+      sessions.put(session.getId(), session);
+      session.sendMessage(new TextMessage(Message.ACK_MSG.toString()));
+  }
+
+  @Override
+  public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
+      sessions.remove(session.getId());
+      Log.log(Level.INFO, this, &quot;WebSocketSession with Id (&quot; + session.getId() + &quot;) closed with reason: &quot; + status.getReason());
+  }
+
+  @Override
+  public void handleMessage(WebSocketSession session, WebSocketMessage&lt;?&gt; message) throws Exception {
+      roomImplementation.handleMessage(new Message(message.getPayload().toString()), this);
+  }
+
+  public void sendMessage(Message message) {
+      for (WebSocketSession s : sessions.values()) {
+          sendMessageToSession(s, message);
+      }
+  }
+
+  private boolean sendMessageToSession(WebSocketSession session, Message message) {
+      try {
+          session.sendMessage(new TextMessage(message.toString()));
+          return true;
+      } catch (IOException e) {
+          ...
+      }
+  }
+  
+  ...
+</code></pre><p>}
+{% endhighlight %}</p><p>After porting some common code, we can run <code>mvn spring-boot:run</code> to see our Spring room running locally!</p><p></p><h2 id=deploying-to-bluemix>Deploying to Bluemix</h2><p>After adding <a href=https://github.com/gameontext/sample-room-spring/blob/master/.travis.yml>Travis</a>, <a href=https://github.com/gameontext/sample-room-spring/blob/master/pom.xml#L75>Docker</a>, and <a href=https://github.com/gameontext/sample-room-spring/blob/master/pom.xml#L83>JaCoCo</a>, we were ready to deploy to Bluemix:</p><p><code>bx dev build</code></p><p>then</p><p><code>bx dev deploy</code></p><p>and our room is deployed as a Cloud Foundry service with a reachable endpoint!</p><p></p><h2 id=registering-the-room-with-game-on>Registering the room with Game On!</h2><p></p><h2 id=done>Done!</h2><p><code>/teleport spring-sample</code></p><p></p></section></article><nav class=prev-next><div class=nav-left><a href=/2017/09/22/simplified-docker-compose-for-local-development.html title="Previous: Simplified Docker Compose for local development">Previous</a></div><div class=nav-center><a href=/blog/>Blog</a> | <a href=/archive/>Archive</a></div><div class=nav-right><a href=/2017/10/16/devops-days-in-raleigh.html title="Next: Devops Days in Raleigh">Next</a></div></nav><footer class=foot><div id=copyrights>&#169; 2016-2020 under terms of the Apache License 2.0.</div><div>Follow us:
+<a target=_blank href=https://twitter.com/gameontext title="Follow @gameontext"><i class="fa fa-twitter" aria-hidden=true></i></a></div></footer><script type=application/javascript>var doNotTrack=false;if(!doNotTrack){window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;ga('create','UA-90113653-2','auto');ga('send','pageview');}</script><script async src=https://www.google-analytics.com/analytics.js></script></body></html>

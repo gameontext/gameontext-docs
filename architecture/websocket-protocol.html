@@ -1,0 +1,142 @@
+<!doctype html><html lang=en><head><meta charset=utf-8><meta http-equiv=x-ua-compatible content="chrome=1"><meta name=viewport content="width=device-width,initial-scale=1,maximum-scale=1"><link rel=stylesheet href=https://use.fontawesome.com/e3112f1bdf.css><link rel=stylesheet href=/css/flex.min.62d46290de4e8cb4b407a0a4c54711bb69af2f268ce654c5af64efa38732d394.css><link rel="shortcut icon" href=/favicon.ico type=image/x-icon><title>GO: WebSocket Protocol</title><link rel=canonical href=/architecture/websocket-protocol.html><link rel=alternate type=application/rss+xml href=/blog/index.xml title="Game On! Adventures with microservices"></head><body><header class=head-single><h1><a href=/>GAME<span class=on>ON</span></a></h1><div>Hands-on experiment building microservices and cloud native applications</div></header><nav class=project><a target=_blank href=https://gameontext.org title="Play the game"><i class="fa fa-play" aria-hidden=true></i><span>Play <span>the game</span></span></a>
+<a href=/about/ title="Read the book"><i class="fa fa-book" aria-hidden=true></i><span>Learn <span>more</span></span></a>
+<a href=/blog/ title="Read the blog"><i class="fa fa-newspaper-o" aria-hidden=true></i><span>Read <span>our blog</span></span></a>
+<a target=_blank href=https://gameontext.org/slackin/ title="Join our slack team"><i class="fa fa-slack" aria-hidden=true></i><span><span>Join us on</span> Slack</span></a>
+<a target=_blank class=github href=https://github.com/gameontext title="View project on GitHub"><i class="fa fa-github" aria-hidden=true></i><span>Github</span></a></nav><main class="book page"><article><header><h1>WebSocket Protocol</h1></header><p>WebSockets are currently used for two-way asynchronous communication between the Client
+(the player&#8217;s web browser) and the Mediator, and between the Mediator and a Room.
+The Mediator is playing man-in-the-middle, and the goal is to allow as much message
+routing as possible to happen without requiring the Mediator to look at the JSON data.</p><p>The protocol used by Game On! is text (rather than binary), and uses a simple
+comma-delimited header followed by a JSON payload, <code>just,like,{"this": "ok?"}</code>.</p><div class=ulist><ul><li>The first section, e.g. <code>just</code> in the example above, indicates the target
+of the message.<ul><li><code>player</code> is used for messages destined for the player/client.</li><li><code>playerLocation</code> is interpreted by the Mediator and also sent to the
+player/client.</li><li><code>room*</code> is used for messages destined for the room.</li></ul></li><li>The middle section, e.g. <code>like</code> in the example above, indicates the recipient
+of the message. This element is not present in all messages.<ul><li>For player-directed messages, it is either the specific player&#8217;s ID, or <code>*</code>
+for messages intended for all players.</li><li>For room-directed messages, it is the specific room&#8217;s ID.</li></ul></li><li>The last section is a JSON payload, e.g. <code>{"this": "ok?"}</code>. The contents
+vary by message type.</li></ul></div><p>All message formats are documented below, grouped by the sender. Note that
+implementations of a client/front-end or a room need to understand both how to
+send required messages, but also how to receive and process messages of different
+types that will be sent in their direction. A sequence diagram follows to help
+explain the flow of messages.</p><p>WebSocket connections between the Mediator and the Room can also be
+(security)[signed].</p><section class="doc-section level-1"><h2 id=_messages_sent_by_the_client>Messages sent by the Client</h2><section class="doc-section level-2"><h3 id=_client_mediator_ready_message>Client &#8594; Mediator, ready message</h3><div class=listing-block><pre>ready,{
+    "roomId": "cached-room-id",
+    "bookmark": "id"
+}</pre></div><p>Note that the data in the ready message is what the client had cached. It is
+used to determine whether or not history replay applies.</p></section><section class="doc-section level-2"><h3 id=_client_mediator_sos_message>Client &#8594; Mediator, sos message</h3><div class=listing-block><pre>sos,*,{
+    "username": "username",
+    "userId": "&lt;userId&gt;",
+    "content": "&lt;message&gt;"
+}</pre></div><p>Help! The SOS message is sent to the mediator by the client on behalf of a
+player who is either stuck or bored and just wants a fast-path back to
+First Room.</p></section><section class="doc-section level-2"><h3 id=_client_mediator_room_chatcommand_message>Client &#8594; Mediator &#8594; Room, chat/command message</h3><div class=listing-block><pre>room,&lt;roomId&gt;,{
+    "username": "username",
+    "userId": "&lt;userId&gt;",
+    "content": "&lt;message&gt;"
+}</pre></div><p>The target room id is sent as part of the comma-delimited header so that the
+mediator can discard the message if it arrives after the player has switched rooms.</p><p>The content sent from the client is a single text line (just as the player
+entered it). If it begins with <code>/</code>, it is a command; if it doesn&#8217;t, it&#8217;s just
+chatter.</p><div role=doc-pagebreak style=page-break-after:always></div></section></section><section class="doc-section level-1"><h2 id=_messages_sent_by_the_mediator>Messages sent by the Mediator</h2><section class="doc-section level-2"><h3 id=_mediator_client_acknowledgement_ack_message>Mediator &#8594; Client, acknowledgement (ack) message</h3><div class=listing-block><pre>ack,{
+    "mediatorId": "assigned-id",
+    "roomId": "current-room-id",
+    "commands": {
+        "/help": "...",
+        ...
+    }
+  }</pre></div><p>Sent when the connection between the client and the mediator is first established,
+and again whenever the player&#8217;s location changes, as an assist for cache-refreshes.</p><p>The commands included in the <code>ack</code> are the common commands that are always supported.</p></section><section class="doc-section level-2"><h3 id=_mediator_client_status_messages>Mediator &#8594; Client, status messages</h3><div class=listing-block><pre>player,&lt;playerId&gt;,{
+    "type": "status",
+    "content": "text update"
+}</pre></div><p>These are short messages that the Mediator sends while managing room connections.</p></section><section class="doc-section level-2"><h3 id=_mediator_room_roomhello_message>Mediator &#8594; Room, roomHello message</h3><div class=listing-block><pre>roomHello,&lt;roomId&gt;,{
+    "username": "username",
+    "userId": "&lt;userId&gt;",
+    "version": 1|2
+}</pre></div><p>Sent when a player changes location to arrive in the room. The version field
+is the version of this WebSocket protocol selected by the mediator based on
+the ack sent by the room.</p><p>Supported versions: 1, 2</p></section><section class="doc-section level-2"><h3 id=_mediator_room_roomgoodbye_message>Mediator &#8594; Room, roomGoodbye message</h3><div class=listing-block><pre>roomGoodbye,&lt;roomId&gt;,{
+    "username": "username",
+    "userId": "&lt;userId&gt;"
+}</pre></div><p>Sent when a player leaves the room to go to another room, e.g. after a <code>/go *</code>
+or <code>/sos</code> command.</p></section><section class="doc-section level-2"><h3 id=_mediator_room_roomjoin_message_version_2>Mediator &#8594; Room, roomJoin message (version 2)</h3><div class=listing-block><pre>roomJoin,&lt;roomId&gt;,{
+    "username": "username",
+    "userId": "&lt;userId&gt;",
+    "version": 2
+}</pre></div><p>Sent when a player joins or reconnects to a room, e.g. they log back into the
+game, as their location is persisted. Think if this as the player becoming
+active after being away.</p><p>Used in version 2 of the protocol.</p></section><section class="doc-section level-2"><h3 id=_mediator_room_roompart_message_version_2>Mediator &#8594; Room, roomPart message (version 2)</h3><div class=listing-block><pre>roomPart,&lt;roomId&gt;,{
+    "username": "username",
+    "userId": "&lt;userId&gt;"
+}</pre></div><p>Sent when a player leaves the room without moving to another room, e.g. they
+log out, close their browser, or otherwise drop their connection. Think of this
+as the player going <code>away</code>.</p><p>Used in version 2 of the protocol.</p><div role=doc-pagebreak style=page-break-after:always></div></section></section><section class="doc-section level-1"><h2 id=_messages_sent_by_the_room>Messages sent by the Room</h2><p>Rooms can always broadcast everything to everyone. Use either a specific player
+id or `*`in the routing information to allow downstream filters to direct
+traffic appropriately.</p><section class="doc-section level-2"><h3 id=_room_mediator_acknowledgement_ack_with_supported_versions>Room &#8594; Mediator, acknowledgement (ack) with supported versions</h3><p>This packet should be sent when the WebSocket is opened, and indicates the
+possible versions of this WebSocket communication protocol supported by the
+room (or rooms) behind this WebSocket endpoint.</p><div class=listing-block><pre>ack,{
+    "version": [1,2]
+}</pre></div><p>The version field is a list of number.</p></section><section class="doc-section level-2"><h3 id=_room_mediator_client_location_message>Room &#8594; Mediator &#8594; Client, location message</h3><p>Send information about the room to the client. This message is sent after
+receiving a <code>roomHello</code>.</p><div class=listing-block><pre>player,&lt;playerId&gt;,{
+    "type": "location",
+    "name": "shortName",
+    "fullName": "Room's descriptive full name",
+    "description": "Lots of text about what the room looks like",
+    "exits": {
+        "shortDirection" : "currentDescription for Player",
+        "N" :  "a dark entranceway"
+    },
+    "commands": {
+        "/custom" : "Description of what command does"
+    },
+    "roomInventory": ["itemA","itemB"]
+}</pre></div><p>Some notes:</p><div class=ulist><ul><li>Only <code>type</code>, <code>name</code>, <code>fullName</code>, and <code>description</code> are required.</li><li>Some attributes, like <code>exits</code>, <code>commands</code>, and <code>roomInventory</code> are optional,
+and can also be sent with other room events as a pseudo-push notification.</li><li>You should probably leave out <code>exits</code>. A room&#8217;s neighbors can change,
+and door descriptions (as seen from the outside) are meant to be a clue as to what
+the neighboring room is. We allow exits to be specified to allow things like
+locked doors.</li></ul></div></section><section class="doc-section level-2"><h3 id=_room_mediator_client_chat_messages>Room &#8594; Mediator &#8594; Client, chat messages</h3><div class=listing-block><pre>player,*,{...}
+{
+  "type": "chat",
+  "username": "username",
+  "content": "&lt;message&gt;",
+  "bookmark": "String representing last message seen"
+}</pre></div><p>Content is a simple string containing the chat message.</p><p>The bookmark is used when a client re-joins, to allow missed messages to be
+returned to the client when requested. Mechanism for this TBD.</p></section><section class="doc-section level-2"><h3 id=_room_mediator_client_event_message>Room &#8594; Mediator &#8594; Client, Event message</h3><div class=listing-block><pre>player,&lt;playerId&gt;,{
+    "type": "event",
+    "content": {
+        "*": "general text for everyone",
+        "&lt;playerId&gt;": "specific to player"
+    },
+    "bookmark": "String representing last message seen"
+}
+player,*,{
+    "type": "event",
+    "content": {
+        "*": "general text for everyone",
+        "&lt;playerId&gt;": "specific to player"
+    },
+    "bookmark": "String representing last message seen"
+}</pre></div><p>Events can be routed specifically to a player, or can be broadcast to everyone.
+The content can also be directed to specific users vs. all users. The structure
+is the same to make it easier to deal with consistently. Typical patterns would be:</p><div class=listing-block><pre>player,playerA,{
+    "type":"event",
+    "content": {"*": "You feel the earth move"},
+    "bookmark": "roomName-235"
+}
+
+player,*,{
+    "type":"event",
+    "content": {
+        "playerA": "You feel the earth move",
+        "*": "playerA looks rather ill"
+    },
+    "bookmark": "backendTopic-identifier"
+}</pre></div><p>The bookmark is used when a client re-joins, to allow missed messages to be
+returned to the client when requested. Mechanism for this TBD.</p></section><section class="doc-section level-2"><h3 id=_room_mediator_client_playerlocation_message>Room &#8594; Mediator &#8594; Client, playerLocation message</h3><p>Indicates that a player can leave by the requested exit (<code>exitId</code>). The <code>exit</code>
+attribute, if present, should return the exit details as returned by the map API.
+The <code>exit</code> attribute is not required, but must be present if the details to be
+used are not present in the map (i.e. this is how you make up and down work).</p><div class=listing-block><pre>playerLocation,&lt;playerId&gt;,{
+    "type": "exit",
+    "content": "You exit through door xyz... ",
+    "exitId": "N",
+    "exit": { ... }
+}</pre></div><p>This must be directed to a specific player.</p><div role=doc-pagebreak style=page-break-after:always></div></section></section><section class="doc-section level-1"><h2 id=_sequence_diagram>Sequence diagram</h2><p>This diagram won&#8217;t win any design competitions, but it does give a general idea
+the way messages flow between the Client, the Mediator, and Rooms.</p><p><img src=../images/sequences.svg alt="Sequence diagram"></p><p>Additional notes:</p><div class=ulist><ul><li>First Room is part of the Mediator. It obeys the WebSocket protocol in terms
+of messages sent back and forth, but communication with First Room does not
+occur over a WebSocket.</li></ul></div></section></article><nav class=prev-next><div class=nav-left><div class=long><a href=/architecture/other-services.html title="Previous: Other services">Other services</a></div><div class=short><a href=/architecture/other-services.html title="Previous: Other services">Previous</a></div></div><div class=nav-center><div class=long>Up: <a href=/architecture/>Application Architecture</a></div><div class=short><a href=/architecture/>Up</a></div></div><div class=nav-right><div class=long><a href=/architecture/application-security.html title="Next: Application Security">Application Security</a></div><div class=short><a href=/architecture/application-security.html title="Next: Application Security">Next</a></div></div></nav></main><footer class=foot><div id=copyrights>&#169; 2016-2020 under terms of the Apache License 2.0.</div><div>Follow us:
+<a target=_blank href=https://twitter.com/gameontext title="Follow @gameontext"><i class="fa fa-twitter" aria-hidden=true></i></a></div></footer><script type=application/javascript>var doNotTrack=false;if(!doNotTrack){window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;ga('create','UA-90113653-2','auto');ga('send','pageview');}</script><script async src=https://www.google-analytics.com/analytics.js></script></body></html>

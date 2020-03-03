@@ -1,0 +1,148 @@
+<!doctype html><html lang=en><head><meta charset=utf-8><meta http-equiv=x-ua-compatible content="chrome=1"><meta name=viewport content="width=device-width,initial-scale=1,maximum-scale=1"><link rel=stylesheet href=https://use.fontawesome.com/e3112f1bdf.css><link rel=stylesheet href=/css/flex.min.62d46290de4e8cb4b407a0a4c54711bb69af2f268ce654c5af64efa38732d394.css><link rel="shortcut icon" href=/favicon.ico type=image/x-icon><title>GO: Create a room from scratch</title><link rel=canonical href=/walkthroughs/advanced/room-from-scratch.html><link rel=alternate type=application/rss+xml href=/blog/index.xml title="Game On! Adventures with microservices"></head><body><header class=head-single><h1><a href=/>GAME<span class=on>ON</span></a></h1><div>Hands-on experiment building microservices and cloud native applications</div></header><nav class=project><a target=_blank href=https://gameontext.org title="Play the game"><i class="fa fa-play" aria-hidden=true></i><span>Play <span>the game</span></span></a>
+<a href=/about/ title="Read the book"><i class="fa fa-book" aria-hidden=true></i><span>Learn <span>more</span></span></a>
+<a href=/blog/ title="Read the blog"><i class="fa fa-newspaper-o" aria-hidden=true></i><span>Read <span>our blog</span></span></a>
+<a target=_blank href=https://gameontext.org/slackin/ title="Join our slack team"><i class="fa fa-slack" aria-hidden=true></i><span><span>Join us on</span> Slack</span></a>
+<a target=_blank class=github href=https://github.com/gameontext title="View project on GitHub"><i class="fa fa-github" aria-hidden=true></i><span>Github</span></a></nav><main class="book page"><article><header><h1>Create a room from scratch</h1></header><p>Where we learn about the things a room must be, to be a room.</p><section class="doc-section level-1"><h2 id=_overview>Overview</h2><p>This adventure will teach you about the responsibilities a room has from a protocol perspective within Game On.
+This information will be handy if you are looking to understand what makes a room a room, or if you are planning
+on creating your own room from scratch in a language we haven&#8217;t provided a sample for. <em>(If you do create one,
+we&#8217;d be happy to fork from your repo and offer it as the official sample for a Game On room in that language).</em></p><p>You will gain a basic understanding of the Game On Websocket Protocol, and how a Room interacts with it.</p></section><section class="doc-section level-1"><h2 id=_why_totally_from_scratch>Why totally from scratch?</h2><p>We already provide examples in <a href=https://github.com/gameontext/sample-room-java>Java</a> (via JEE), in <a href=https://github.com/gameontext/esp8266-room>Arduino style-C</a>, in <a href=https://github.com/gameontext/sample-room-go>Go</a>,
+and in <a href=https://github.com/gameontext/sample-room-nodejs>Javascript</a>. If you are not familiar with the
+various libraries used to implement the Rooms in those languages, the bare essentials
+required to throw together a basic room in your favorite language may not be easy to spot.</p></section><section class="doc-section level-1"><h2 id=_prerequisites>Prerequisites</h2><p>Although this adventure will not be giving code snippets, you will probably want to check your target language
+offers some support for:</p><div class=ulist><ul><li>WebSockets (acting as a WebSocket endpoint/server)</li><li>JSON Processing (encode/decode of json)</li></ul></div><p>It would be vaguely possible to avoid the 2nd requirement with some careful string processing, but if you do not have
+WebSocket support, you&#8217;ll likely be better off picking a different language, or setting up some kind of relay between something
+hosting a WebSocket, and a normal tcp/ip listen socket, though that would be an extremely advanced adventure ;)</p><p>Additionally, because Game On lives out in the cloud ;) , you will need:</p><div class=ulist><ul><li>A way to host an internet reachable endpoint.</li></ul></div></section><section class="doc-section level-1"><h2 id=_walkthrough>Walkthrough</h2><section class="doc-section level-2"><h3 id=_basic_elements>Basic Elements.</h3><p>A room in Game On is basically a WebSocket endpoint, hosted in a way where Game On is able to reach the endpoint.
+Either the endpoint needs to be directly accessible from the internet (eg, if it&#8217;s running within a cloud container with a public
+bound ip address, or route).. or indirectly (eg, via a port forward on your own router).</p><p>The room is registered to the Game On Map Service, either directly via the Map service <a href=https://gameontext.org/swagger/>REST API</a>, or using the in-game
+room management page, or the CLI <a href=https://github.com/gameontext/regutil>regutil</a> or even via the <a href=https://gameontext.org/interactivemap>Interactive Map</a>. If you are new to Game On,
+we&#8217;d strongly recommend using the in-game room management page. Look <a href=/walkthroughs/register-room.html>here</a> for more info.</p><p>You only need to register the room once, and doing so isn&#8217;t related to the liveness of your Room.
+Think of the registration as an entry in a telephone directory: an entry in the directory does
+not mean there&#8217;s actually a phone connected to the line, or that anyone will answer it.</p><p>You can create the registration at any point, and can go back and update it at any time.</p></section><section class="doc-section level-2"><h3 id=_the_websocket>The WebSocket</h3><p>Once a room has been registered, players (or you!) can attempt to visit the room (via <code>/teleport</code> or by navigating
+with `/go.. `). Game On will attempt to establish a websocket connection to your endpoint. Game On, specifically the
+Mediator service, will be the client, your room will be the server.</p><p>Once connected, the Mediator will follow the <a href=/architecture/websocket-protocol.html>Game On WebSocket Protocol</a> to interact with your room.
+The Mediator got its name because of what it does: push packets of JSON with a little header associated to it
+back and forth between connected clients and the Room. It&#8217;s worth having a quick glance through that
+document, it&#8217;s the one that should be trusted for how the packets need to be formatted, and what&#8217;s
+legal etc. In this walkthrough, we&#8217;ll only be covering the basics. The JSON used should be valid,
+but in case of discrepancy, trust the <a href=/architecture/websocket-protocol.html>Protocol Documentation</a>.</p><p>Each packet is formatted as follows..</p><div class=listing-block><pre class=highlight><code class=language-text data-lang=text>  target,recipient,jsonPayload</code></pre></div><p>The <em>target</em> can be <code>player</code>, <code>playerLocation</code>, or can start with <code>room</code>. The <em>recipient</em> varies based on the <em>target</em>:</p><div class=ulist><ul><li>If the <em>target</em> is <code>player</code>, the <em>recipient</em> can be a specific player id, or <code>*</code></li><li>If the <em>target</em> is like <code>room*</code>, the <em>recipient</em> must be the specific room&#8217;s ID.</li></ul></div><p>The <em>jsonPayload</em> is where having some sort of JSON processing support will be handy.</p><aside class="admonition-block tip" role=doc-tip><h6 class="block-title label-only"><span class=title-label>Tip:</span></h6><p>Your json processing should tolerate and ignore unexpected fields. This will help your room remain
+functional as the protocol evolves over time!</p></aside><p>From here, we&#8217;ll describe the normal packets we expect to see.. referencing the protocol documentations&#8217;s
+<a href=/architecture/websocket-protocol.html#_sequence_diagram>Sequence Diagram</a></p><p>Note: About this routing business (<code>*</code> vs <code>playerId</code> for the <em>recipient</em>): The protocol was built to allow
+rooms to always broadcast to all connected WebSocket sessions. The Mediator uses the routing element
+to decide whether to propagate the message back to a client or drop it based on the player id. When coding
+your room, take advantage of the broadcast capability for WebSockets: we built the protocol to allow it!</p><section class="doc-section level-3"><h4 id=_getting_started>Getting Started.</h4><p>As soon as the Mediator connects to the room, it expects to recieve an <code>ack</code> packet from the room.
+The ack packet says which version(s) of the Game On protocol the Room supports.
+The ack packet is a little unusual, in that it has no <em>`recipient`</em> section, and it has a special target of <code>ack</code>.</p><p>Since you are creating this room from scratch, we&#8217;d recommend saying you support versions 1 & 2 of the protocol, like this:</p><div class=listing-block><pre class=highlight><code class=language-json data-lang=json>ack,{
+    "version": [1,2]
+}</code></pre></div><p>What changed?
+* Version 2 supports additional targets to allow you to distinguish between a Player "disconnecting" from
+your room (due to Logout, Timeout, or Browser Close), and "leaving" your room to go somewhere else.
+* Version 1 doesn&#8217;t have these extra targets, which can make reasoning over who is "in" your room a little trickier.</p><p>The version attribute is an array of supported values, it is <strong>not</strong> a range.</p><aside class="admonition-block tip" role=doc-tip><h6 class="block-title label-only"><span class=title-label>Tip:</span></h6><p>Just because the core Game On services will usually use the latest protocol revision, doesn&#8217;t mean associated
+tools or processes will. That said, keeping it simple and supporting only one version of the protocol isn&#8217;t a dire choice.
+The Sweep may be motivated to award more points to those Rooms that support the latest protocol versions.</p></aside><p>In the paragraphs below, we&#8217;ll specifically mention the Mediator</p></section><section class="doc-section level-3"><h4 id=_messages_recieved>Messages Recieved&#8230;&#8203;</h4><section class="doc-section level-4"><h5 id=_hello_hello>Hello, Hello</h5><p>Pretty soon after you&#8217;ve sent the ack there should follow a <code>roomHello</code>. This is because the Mediator will normally only connect to
+your Room if someone tries to enter it. Thus, you see the <code>ack</code>, followed by the <code>roomHello</code>. The protocol doesn&#8217;t require this however,
+so try not to be dependent upon it. The only requirement here is that when the Mediator opens the websocket to you, that you respond with
+the <code>ack</code>. The Mediator could decide at that point to close the connection, or send any other valid packet (we&#8217;ll see some likely candidates
+in a bit).</p><div class=listing-block><pre class=highlight><code class=language-json data-lang=json>roomHello,&lt;roomId&gt;,{
+    "username": "username",
+    "userId": "&lt;userId&gt;",
+    "version": 1|2
+}</code></pre></div><p>The roomHello packet will arrive with your <code>roomId</code> as the recipient, and with the username & userId of the connecting user,
+along with the version Game On has selected to talk with you, this will be a version from the array you supplied in the ack.</p><aside class="admonition-block tip" role=doc-tip><h6 class="block-title label-only"><span class=title-label>Tip:</span></h6><p>You can host multiple rooms via the same websocket endpoint, but only if you use the &lt;roomId> in the messages
+to tell which of your rooms a packet is intended for.</p></aside><aside class="admonition-block tip" role=doc-tip><h6 class="block-title label-only"><span class=title-label>Tip:</span></h6><p>Do not make assumptions related to the relationship between users and websocket connections for Game On.
+Today, Game On makes one websocket connection per user, but this may not always be the case.</p></aside><p>You don&#8217;t have to send any response to a <code>roomHello</code> packet, it is information to tell you a user has joined your room.
+However, it is courteous to reply to a <code>roomHello</code> with a <code>location</code> response. We&#8217;ll cover that in a mo'.</p><aside class="admonition-block tip" role=doc-tip><h6 class="block-title label-only"><span class=title-label>Tip:</span></h6><p>userId&#8217;s are unique within GameOn, and uniquely represent a user. Be aware the same user can sign in multiple times via different browsers/devices though!</p></aside></section><section class="doc-section level-4"><h5 id=_goodbye_goodbye>Goodbye, Goodbye</h5><p>As you might expect, if you get a <code>roomHello</code> when a player enters you room, you&#8217;ll also get a <code>roomGoodbye</code> when they leave.
+The goodbye packet is somewhat simpler, because it doesn&#8217;t have to do dual duty carrying information relating to the version Game On
+is using to talk to the room.</p><div class=listing-block><pre class=highlight><code class=language-json data-lang=json>roomGoodbye,&lt;roomId&gt;,{
+    "username": "username",
+    "userId": "&lt;userId&gt;"
+}</code></pre></div><p><code>roomGoodbye</code> is only sent when a player actively leaves the room via a <code>/go</code> command that switches the player location.</p><p>You don&#8217;t have to send any response to a <code>roomGoodbye</code> packet, it is information to tell you a user has left your room.</p></section><section class="doc-section level-4"><h5 id=_wakey_wakey>Wakey Wakey!!</h5><p>What if a player falls asleep while in your room, or gets distracted by a YouTube video of Cats?</p><p>Arguably they have never left your room, but Game On knows they are no longer active, and may have suspended their session.</p><p>If you have claimed to support protocol version 2 (as suggested) in your <code>ack</code>, then there are 2 additional messages you
+can recieve, which will give you status updates on players that are 'in' your room: <code>roomPart</code> and `roomJoin.</p><div class=listing-block><pre class=highlight><code class=language-json data-lang=json>roomPart,&lt;roomId&gt;,{
+    "username": "username",
+    "userId": "&lt;userId&gt;",
+}
+roomJoin,&lt;roomId&gt;,{
+    "username": "username",
+    "userId": "&lt;userId&gt;",
+    "version": 2
+}</code></pre></div><p>You don&#8217;t have to send any response to these packets. Again they provide information to the room as players come and go,
+or become inactive / active. You will only recieve these messages for players that you have receieved a <code>roomHello</code> for
+(on socket connection). You should continue to see them until you recieve a <code>roomGoodbye</code> for them. The default state
+of a player after a <code>roomHello</code> is considered to be active.</p><p>As with a <code>roomHello</code>, it is courteous to reply to a <code>roomJoin</code> with a <code>location</code> response.</p></section><section class="doc-section level-4"><h5 id=_everything_else>Everything else.</h5><p>The rest of the packets you&#8217;ll receive are chat/commands destined for your room, and they&#8217;re structured like this:</p><div class=listing-block><pre class=highlight><code class=language-json data-lang=json>room,&lt;roomId&gt;,{
+    "username": "username",
+    "userId": "&lt;userId&gt;",
+    "content": "&lt;message&gt;"
+}</code></pre></div><p>The content attribute is the line of text entered by the user. The convention is that if the content begins with a <code>/</code>
+that the content should be treated as a command, else it should be dealt with as 'chat'.</p></section></section><section class="doc-section level-3"><h4 id=_messages_to_send>Messages to send</h4><p>Now that we know what Game On will send to your room, it&#8217;s time to cover what you can send back to Game On.
+(you already know one 'Room &#8594; Mediator' message, <code>ack</code>).</p><p>Your room is responsible for handling pretty much all user commands, and chat, that are sent to it. Only a few
+select commands are handled for you:</p><div class=table-block><table class="frame-all grid-all"><col><col><tbody><tr><td class="halign-left valign-top"><code>/sos</code></td><td class="halign-left valign-top">teleports the player back to first room. Players can always get back First Room.</td></tr><tr><td class="halign-left valign-top"><code>/help</code></td><td class="halign-left valign-top">lists the available commands for a room. You can contribute to this via the <code>location</code> message (and others).</td></tr><tr><td class="halign-left valign-top"><code>/exits</code></td><td class="halign-left valign-top">lists the exits available from a room. Again, the <code>location</code> message lets you contribute to this list.</td></tr></table></div><p>Everything else is up to your room. Including a few suggested commands you probably should implement:</p><div class=table-block><table class="frame-all grid-all"><col><col><tbody><tr><td class="halign-left valign-top"><code>/look</code></td><td class="halign-left valign-top">should return a <code>location</code> message</td></tr><tr><td class="halign-left valign-top"><code>/go &lt;direction></code></td><td class="halign-left valign-top">should return a <code>playerLocation</code> message</td></tr><tr><td class="halign-left valign-top"><code>&lt;chat></code></td><td class="halign-left valign-top">(anything not prefixed <code>/</code>) should respond with a <code>chat</code> type message</td></tr></table></div><p>The messages from the Room tend to be for the player, and will have a <em>target</em> of <code>player</code>, and a <em>recipient</em> of either
+a specific player ID, or <code>*</code> for broadcast. There are ways to customize particular responses for specific players, too.</p><aside class="admonition-block tip" role=doc-tip><h6 class="block-title label-only"><span class=title-label>Tip:</span></h6><p>Messages from a room can contain a <code>bookmark</code> field, designed to allow a client to 'resume from last seen bookmark'.
+Bookmarks are strings, and should be unique-ish. Your room&#8217;s shortName followed by an ever increasing number, maybe
+something involving a date.</p></aside><section class="doc-section level-4"><h5 id=_location_location_location>Location, Location, Location</h5><p>After you receive a <code>roomHello</code>, you should reply with a <code>location</code> response. In Game On terms, this is you sending back the room
+description for the client to render for the user. The protocol documents the location response like this..</p><div class=listing-block><pre class=highlight><code class=language-text data-lang=text>player,&lt;playerId&gt;,{
+    "type": "location",
+    "name": "Room name",
+    "fullName": "Room's descriptive full name",
+    "description", "Lots of text about what the room looks like",
+    "exits": {
+        "shortDirection" : "currentDescription for Player",
+        "N" :  "a dark entranceway"
+    },
+    "commands": {
+        "/custom" : "Description of what command does"
+    },
+    "roomInventory": ["itemA","itemB"]
+}</code></pre></div><p>Here we see all the information a room can send back to greet a newly joining player. Most of this is self-explanatory,
+but here&#8217;s a brief overview of how the data connects to the user experience.</p><div class=table-block><table class="frame-all grid-all"><col><col><tbody><tr><td class="halign-left valign-top">name</td><td class="halign-left valign-top">The room&#8217;s name, used infrequently by the UI. This should be the same short name used when registering the room.</td></tr><tr><td class="halign-left valign-top">fullName</td><td class="halign-left valign-top">The Proper Name to be displayed in the white title bar, and before the horizontal rule in the <code>/look</code> UI response.</td></tr><tr><td class="halign-left valign-top">description</td><td class="halign-left valign-top">The text used after the horizontal rule in the <code>/look</code> UI response.</td></tr><tr><td class="halign-left valign-top">exits</td><td class="halign-left valign-top">Related in a mystical manner to the result of the <code>/exits</code> command. See below.</td></tr><tr><td class="halign-left valign-top">commands</td><td class="halign-left valign-top">The commands that this room needs to add to the <code>/help</code> response for the room.</td></tr><tr><td class="halign-left valign-top">roomInventory</td><td class="halign-left valign-top">Items the room should list in the <code>You notice:</code> list.</td></tr></table></div><aside class="admonition-block tip" role=doc-tip><h6 class="block-title label-only"><span class=title-label>Tip:</span></h6><p>exits, commands, and roomInventory can also be tagged onto <code>event</code> type messages, it&#8217;s an easy way to
+update the clients view of those data at anytime.</p></aside><p>The exit information that a room might provide is descriptive only. Because rooms move around in the map,
+your room never quite knows who its neighbors are, and that is to be expected. You can provide alternate/fixed
+descriptions for some of the doors in your room, which might be useful if you had some kind of puzzle to solve.
+We&#8217;ve wanted to get wormholes working for awhile (where you define extra doors that go places), so if you feel
+like making this one work, we&#8217;ll take the help with enthusiasm.</p></section><section class="doc-section level-4"><h5 id=_chat>Chat!</h5><p>Your room is responsible for handling chat: specifically ensuring that chatter coming in from one player is broadcast
+to all other connected players. When you recieve a room message where the content is not prefixed with
+<code>/</code> you should reply with a <code>chat</code> message, which have a format like this:</p><div class=listing-block><pre class=highlight><code class=language-text data-lang=text>player,*,{...}
+{
+  "type": "chat",
+  "username": "username",
+  "content": "&lt;message&gt;",
+  "bookmark": "String representing last message seen"
+}</code></pre></div><p>The chat message is fairly self-explanatory, the <code>username</code> field carries who sent the chat message,
+<code>content</code> is what they said, and bookmark, as mentioned earlier, is a unique value for this message.</p><p>The target of this message is <code>*</code>, which allows everyone to see it, otherwise it wouldn&#8217;t exactly be chat. ;)</p></section><section class="doc-section level-4"><h5 id=_replies_to_user_room>Replies to user / room.</h5><p>Chat has a particular style when displayed in the UI, it&#8217;s marked out as who said it, and in a different colour to text like the
+room description etc. There will come a point when your room needs to respond in ways other than chat, eg. If you
+implement <code>/examine shoes</code> you wouldn&#8217;t expect the reply to come as <code>username says the shoes look rather tall</code>, but
+rather <code>The shoes have a rather excessive heel</code>.</p><p>To send a non-chat type response, we use a room <code>event</code> message, which comes in two varieties.</p><p>The first allows you to send a response just to a single user:</p><div class=listing-block><pre class=highlight><code class=language-text data-lang=text>player,&lt;playerId&gt;,{
+    "type": "event",
+    "content": {
+        "&lt;playerId&gt;": "specific to player"
+        },
+    "bookmark": "String representing last message seen"
+}</code></pre></div><p>Notice how the <em>recipient</em> in the header is set to <code>&lt;playerId></code>, this routes the message only
+to the player with user id <code>playerId</code>.</p><p>The second variety allows for content to be targetted to multiple places:</p><div class=listing-block><pre class=highlight><code class=language-text data-lang=text>player,*,{
+    "type": "event",
+    "content": {
+        "*": "general text for everyone",
+        "&lt;playerId&gt;": "specific to player"
+    },
+    "bookmark": "String representing last message seen"
+}</code></pre></div><p>Notice how the <em>recipient</em> in this variety of event is set to <code>*</code>,
+and the content block allows for both content per user id, <em>and</em> content to be sent to everyone else.</p><p>This type of message is great if you want to implement the typical text adventure approach of sending
+<code>You look at the shoes</code> to the player, while sending <code>Playername looks at the shoes</code> to everyone else.</p></section><section class="doc-section level-4"><h5 id=_moving_on>Moving on..</h5><p>Lastly, Rooms should implement <code>/go</code>!</p><p>It is up to the room to agree that a player should leave when the player issues <code>/go N</code> or similar.</p><p>This allows for rooms to create basic puzzles where the doors can remain 'locked'
+because the room won&#8217;t allow the player to transition (except via <code>/sos</code> which the room has no part in),
+until a puzzle has been solved. It also allows a room to decide if a player should leave, even if
+the player does not issue a <code>/go</code> command first!</p><div class=listing-block><pre class=highlight><code class=language-text data-lang=text>playerLocation,&lt;playerId&gt;,{
+    "type": "exit",
+    "content": "You exit through door xyz... ",
+    "exitId": "N"
+}</code></pre></div><p>If a room sends this message, the Mediator treats it as a request to transition the player out of the room, in the direction
+indicated, and will send the content text to the player affected.</p><p>Notice although this message has a <code>type</code> of <code>exit</code>, its the <em>target</em> field here that&#8217;s the important difference,
+the <em>target</em> of <code>playerLocation</code> routes this Message in Game On to the code responsible for maintaining & transitioning
+players between locations.</p><p>The <code>exitId</code> here should be short name of an exit from the current room. Eg, <code>N</code>,<code>S</code>,<code>E</code>,<code>W</code></p><p>The simple implementation of <code>/go &lt;direction></code> just parses <code>&lt;direction></code> and converts it
+into the appropriate shortname, before issuing the <code>playerLocation</code> message, but there are alternatives.
+One option is to invent an obstacle or puzzle that must be solved before sending the <code>playerLocation</code> message.
+A more complex option could use the Map REST API to retrieve the exits currently
+mapped around itself, and manage what&#8217;s allowed via <code>/go</code> based on that data! Just bear in mind that
+rooms do move around in the map&#8230;&#8203;</p></section></section></section></section><section class="doc-section level-1"><h2 id=_suggested_extensions>Suggested extensions</h2><div class=ulist><ul><li>Create a room with a button that must be pushed by the player before <code>/go</code> is allowed to work for that player.</li><li>Create a simple room protocol test program that sends various messages to a room&#8217;s websocket, and evaluates responses for correctness</li><li>Create rooms! in PHP, Perl, Visual Basic..</li><li>Create an advanced adventure tutorial for creating a room in your chosen language: we can include it in this book,
+or bring it in as an official sample in the repository.</li></ul></div></section><section class="doc-section level-1"><h2 id=_conclusion>Conclusion</h2><p>This adventure should have taught you enough to be able to understand the Game On Websocket Protocol
+requirements that you are able to create a room from scratch in a language of your choice.</p></section><section class="doc-section level-1"><h2 id=_suggested_further_adventures>Suggested further adventures.</h2><p>You may want to try reading the other adventures to understand the types of technologies/solutions that are used to handle
+the implications of scaling, or fault tolerance, or other Microservice concerns, though you may have to extrapolate from
+the language the adventure was written in to the one you&#8217;ve chosen.</p></section></article><nav class=prev-next><div class=nav-left><div class=long><a href=/walkthroughs/advanced/test-sso-login.html title="Previous: Testing Social Login apps">Testing Social Login apps</a></div><div class=short><a href=/walkthroughs/advanced/test-sso-login.html title="Previous: Testing Social Login apps">Previous</a></div></div><div class=nav-center><div class=long>Up: <a href=/walkthroughs/advanced/>Advanced Adventures</a></div><div class=short><a href=/walkthroughs/advanced/>Up</a></div></div><div class=nav-right><div class=long><a href=/chronicles/ title="Previous: Appendix: The Chronicles">Appendix: The Chronicles</a></div><div class=short><a href=/chronicles/ title="Previous: Appendix: The Chronicles">Previous</a></div></div></nav></main><footer class=foot><div id=copyrights>&#169; 2016-2020 under terms of the Apache License 2.0.</div><div>Follow us:
+<a target=_blank href=https://twitter.com/gameontext title="Follow @gameontext"><i class="fa fa-twitter" aria-hidden=true></i></a></div></footer><script type=application/javascript>var doNotTrack=false;if(!doNotTrack){window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;ga('create','UA-90113653-2','auto');ga('send','pageview');}</script><script async src=https://www.google-analytics.com/analytics.js></script></body></html>

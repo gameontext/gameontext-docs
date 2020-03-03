@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Blog: Events and other (mis-)adventures on Game On! Adventures with microservices</title><link>/blog/</link><description>Recent content in Blog: Events and other (mis-)adventures on Game On! Adventures with microservices</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Thu, 27 Feb 2020 20:08:20 -0500</lastBuildDate><atom:link href="/blog/index.xml" rel="self" type="application/rss+xml"/><item><title>Moving GameOn to Kubernetes</title><link>/2018/01/11/gameon-kubernetes.html</link><pubDate>Thu, 11 Jan 2018 00:00:00 +0000</pubDate><guid>/2018/01/11/gameon-kubernetes.html</guid><description>Game On! and Kubernetes Here at Game On! central, we've been considering how to run on Kubernetes for quite some time, and during a pause in the recent Holiday Season, we had a chance to add Kubernetes support allowing you to run the core services locally.
+This work partly builds on an earlier attempt to bring Game On! to Kubernetes back in May last year. We learnt a few lessons from that attempt, and like to think this attempt is a little cleaner.</description></item><item><title>Climbing inside your code: A unique look at the game</title><link>/2017/11/02/climbing-inside-your-code.html</link><pubDate>Thu, 02 Nov 2017 00:00:00 +0000</pubDate><guid>/2017/11/02/climbing-inside-your-code.html</guid><description>Long long ago, in a land far far away (also known as QCon San Francisco, 2016), I met John Voorhees and Avik Das from Primitive, a small startup building VR tools that allow you to visualize your code in an immersive way.
+We were also talking about Game On!, because we're about helping you experiment with new technologies and concepts in a differently immersive way.
+They scanned and built a visualization of the core game services, and brought it to JavaOne!</description></item><item><title>Lagom gets in the game at JavaOne 2017</title><link>/2017/10/31/lagom-gets-in-the-game.html</link><pubDate>Tue, 31 Oct 2017 00:00:00 +0000</pubDate><guid>/2017/10/31/lagom-gets-in-the-game.html</guid><description>JavaOne was a month ago! No way! Time sure flies.
+Our lab with Lightbend was an excellent adventure, complete with the exciting, heart-pounding, last-minute rush to get the materials working end to end. I don't know about you, but that last minute hacking stuff is why I love what I do.
+I enjoyed working with the Lightbenders; they're a great team, with solid ideas around how to build reactive applications. What we demonstrated in the lab barely scratched the surface of what you can do with their framework.</description></item><item><title>Devops Days in Raleigh</title><link>/2017/10/16/devops-days-in-raleigh.html</link><pubDate>Mon, 16 Oct 2017 00:00:00 +0000</pubDate><guid>/2017/10/16/devops-days-in-raleigh.html</guid><description>Venu Beyagudem, Jarek Gawor, Ranjan Kumar, and I (Heather Saunders) brought Game On! for its debut at DevOps Days in Raleigh, NC in early September.
+DevOps days is a series of conferences across the world that covers topics of software development, IT infrastructure, and of course the DevOps principals that connect them and make them tick. Topics for speeches range from monitoring tool selection, to organizational culture. If you’re interested in seeing if DevOps days is coming near you, check out https://www.</description></item><item><title>Spring Room!</title><link>/2017/10/10/sample-room-spring.html</link><pubDate>Tue, 10 Oct 2017 00:00:00 +0000</pubDate><guid>/2017/10/10/sample-room-spring.html</guid><description>We have a new sample room written in Java with the Spring framework:
+sample-room-spring the room up and running This post is a brief overview of the creation process.
+Jumpstart with code gen Using this guide, we made a Spring microservice starter that could be deployed to Bluemix with just a few commands:
+{% highlight shell_session %} $ bx dev create ? Select a pattern:
+Web App Mobile App Backend for Frontend Microservice MFP Enter a number&amp;gt; 4 ?</description></item><item><title>Simplified Docker Compose for local development</title><link>/2017/09/22/simplified-docker-compose-for-local-development.html</link><pubDate>Fri, 22 Sep 2017 00:00:00 +0000</pubDate><guid>/2017/09/22/simplified-docker-compose-for-local-development.html</guid><description>We now have a special branch in the gameon repository that contains a snapshot of a smooth end-to-end local development flow with docker-compose.
+1 2 3 &amp;gt; git clone https://github.com/gameontext/gameon.git &amp;gt; cd gameon &amp;gt; ./go-admin.sh up TA-DA!!
+Yes, yes. Kubernetes is next, we promise. But with this revision of the Docker Compose path, we dropped a lot of complexity (bye, Amalgam8!) and created a simplified path for getting started.</description></item><item><title>Headed to JavaOne 2017!</title><link>/2017/09/12/headed-to-javaone.html</link><pubDate>Tue, 12 Sep 2017 00:00:00 +0000</pubDate><guid>/2017/09/12/headed-to-javaone.html</guid><description>That's right, Game On! is going back to JavaOne this year!
+Frenetic activity has ensued (wow, does this feel familiar), as we prepare for the conference. If you're a frequent visitor, there may be some bumps as we clean things up!
+Both a Hands-on Lab and a general session feature the game. Be sure to put them on your schedule!
+Introduction to Reactive Systems [HOL7896]
+In this two-hour workshop, IBM and Lightbend are teaming up to introduce you to developing reactive microservices on Kubernetes.</description></item><item><title>We have a Scala Room!</title><link>/2017/08/06/sample-scala-room.html</link><pubDate>Sun, 06 Aug 2017 00:00:00 +0000</pubDate><guid>/2017/08/06/sample-scala-room.html</guid><description>&lt;p>What follows is the stream-of-conciousness and research that lead up to our newest sample room!&lt;/p>
+&lt;h2 id="tldr">tl;dr&lt;/h2>
+&lt;ul>
+&lt;li>&lt;a href="/walkthroughs/advanced/room-from-scratch.html">advanced adventures&lt;/a>.&lt;/li>
+&lt;li>&lt;a href="https://github.com/gameontext/sample-room-scala">sample-room-scala&lt;/a>&lt;/li>
+&lt;li>&lt;a href="http://134.168.52.95:9000/">the room up and running&lt;/a>&lt;/li>
+&lt;/ul>
+&lt;h2 id="day-0">Day 0&lt;/h2>
+&lt;p>So for me 2017/18 is going to include adventures in polyglot.&lt;/p>
+&lt;blockquote>
+&lt;p>This will include but will not be only restricted to
+&lt;code>Kotlin&lt;/code>,&lt;code>Prolog&lt;/code>, &lt;code>Erlang&lt;/code>, &lt;code>Racket&lt;/code>, &lt;code>Haskell&lt;/code>, &lt;code>Closure&lt;/code>, &lt;code>Scala&lt;/code>&lt;/p>
+&lt;/blockquote>
+&lt;h2 id="day-1">Day 1&lt;/h2>
+&lt;h3 id="decide-on-tooling">Decide on tooling.&lt;/h3>
+&lt;ul>
+&lt;li>&lt;a href="http://www.scala-lang.org">scala&lt;/a> is the language.&lt;/li>
+&lt;li>&lt;a href="http://www.scala-sbt.org/">sbt&lt;/a> is the build tool.&lt;/li>
+&lt;li>&lt;a href="http://www.foundweekends.org/giter8/">giter8&lt;/a> to set up starter directories.&lt;/li>
+&lt;li>&lt;a href="https://www.playframework.com/">play&lt;/a> is the Websocket Framework.&lt;/li>
+&lt;li>&lt;a href="http://ensime.org">ensime&lt;/a> is the plugin for emacs.
+&lt;ul>
+&lt;li>&lt;code>play&lt;/code> has a &lt;a href="https://www.playframework.com/documentation/2.6.x/ScalaWebSockets">web socket api&lt;/a>&lt;/li>
+&lt;li>&lt;code>giter8&lt;/code> has a &lt;a href="https://github.com/foundweekends/giter8/wiki/giter8-templates">starter template&lt;/a> for &lt;code>play&lt;/code>.&lt;/li>
+&lt;/ul>
+&lt;/li>
+&lt;li>&lt;code>ensime&lt;/code> looks fun as a development environment.&lt;/li>
+&lt;/ul>
+&lt;h3 id="learn-to-stop-hating-and-love-regexes">Learn to stop hating and love regexes&lt;/h3>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre class="chroma">&lt;code>&lt;span class="lnt"> 1
+&lt;/span>&lt;span class="lnt"> 2
+&lt;/span>&lt;span class="lnt"> 3
+&lt;/span>&lt;span class="lnt"> 4
+&lt;/span>&lt;span class="lnt"> 5
+&lt;/span>&lt;span class="lnt"> 6
+&lt;/span>&lt;span class="lnt"> 7
+&lt;/span>&lt;span class="lnt"> 8
+&lt;/span>&lt;span class="lnt"> 9
+&lt;/span>&lt;span class="lnt">10
+&lt;/span>&lt;span class="lnt">11
+&lt;/span>&lt;span class="lnt">12
+&lt;/span>&lt;span class="lnt">13
+&lt;/span>&lt;span class="lnt">14
+&lt;/span>&lt;span class="lnt">15
+&lt;/span>&lt;span class="lnt">16
+&lt;/span>&lt;span class="lnt">17
+&lt;/span>&lt;span class="lnt">18
+&lt;/span>&lt;span class="lnt">19
+&lt;/span>&lt;span class="lnt">20
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre class="chroma">&lt;code class="language-scala" data-lang="scala">&lt;span class="n">scala&lt;/span>&lt;span class="o">&amp;gt;&lt;/span> &lt;span class="n">sample&lt;/span>
+&lt;span class="n">res69&lt;/span>&lt;span class="k">:&lt;/span> &lt;span class="kt">String&lt;/span> &lt;span class="o">=&lt;/span>
+&lt;span class="n">roomHello&lt;/span>&lt;span class="o">,&lt;/span>&lt;span class="o">&amp;lt;&lt;/span>&lt;span class="n">roomId&lt;/span>&lt;span class="o">&amp;gt;&lt;/span>&lt;span class="o">,&lt;/span>&lt;span class="o">{&lt;/span>
+&lt;span class="s">&amp;#34;username&amp;#34;&lt;/span>&lt;span class="k">:&lt;/span> &lt;span class="err">&amp;#34;&lt;/span>&lt;span class="kt">username&lt;/span>&lt;span class="err">&amp;#34;&lt;/span>&lt;span class="o">,&lt;/span>
+&lt;span class="s">&amp;#34;userId&amp;#34;&lt;/span>&lt;span class="k">:&lt;/span> &lt;span class="err">&amp;#34;&lt;/span>&lt;span class="kt">&amp;lt;&lt;/span>&lt;span class="kt">userId&lt;/span>&lt;span class="kt">&amp;gt;&lt;/span>&lt;span class="err">&amp;#34;&lt;/span>&lt;span class="o">,&lt;/span>
+&lt;span class="s">&amp;#34;version&amp;#34;&lt;/span>&lt;span class="k">:&lt;/span> &lt;span class="err">1&lt;/span>&lt;span class="kt">|&lt;/span>&lt;span class="err">2&lt;/span>
+&lt;span class="o">}&lt;/span>
+&lt;span class="n">scala&lt;/span>&lt;span class="o">&amp;gt;&lt;/span> &lt;span class="n">pattern&lt;/span>
+&lt;span class="n">res70&lt;/span>&lt;span class="k">:&lt;/span> &lt;span class="kt">scala&lt;/span>&lt;span class="kt">.&lt;/span>&lt;span class="kt">util&lt;/span>&lt;span class="kt">.&lt;/span>&lt;span class="kt">matching&lt;/span>&lt;span class="kt">.&lt;/span>&lt;span class="kt">Regex&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="o">(&lt;/span>&lt;span class="o">?&lt;/span>&lt;span class="n">s&lt;/span>&lt;span class="o">)&lt;/span>&lt;span class="o">(&lt;/span>&lt;span class="n">\w&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="o">)&lt;/span>&lt;span class="o">,&lt;/span>&lt;span class="o">(&lt;/span>&lt;span class="o">[&lt;/span>&lt;span class="kt">^&lt;/span>,&lt;span class="o">]&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="o">)&lt;/span>&lt;span class="o">,&lt;/span>&lt;span class="o">(&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="o">)&lt;/span>
+&lt;span class="n">scala&lt;/span>&lt;span class="o">&amp;gt;&lt;/span> &lt;span class="k">val&lt;/span> &lt;span class="n">pattern&lt;/span>&lt;span class="o">(&lt;/span>&lt;span class="n">target&lt;/span>&lt;span class="o">,&lt;/span>&lt;span class="n">id&lt;/span>&lt;span class="o">,&lt;/span>&lt;span class="n">payload&lt;/span>&lt;span class="o">)&lt;/span> &lt;span class="k">=&lt;/span> &lt;span class="n">sample&lt;/span>
+&lt;span class="n">target&lt;/span>&lt;span class="k">:&lt;/span> &lt;span class="kt">String&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">roomHello&lt;/span>
+&lt;span class="n">id&lt;/span>&lt;span class="k">:&lt;/span> &lt;span class="kt">String&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="o">&amp;lt;&lt;/span>&lt;span class="n">roomId&lt;/span>&lt;span class="o">&amp;gt;&lt;/span>
+&lt;span class="n">payload&lt;/span>&lt;span class="k">:&lt;/span> &lt;span class="kt">String&lt;/span> &lt;span class="o">=&lt;/span>
+&lt;span class="o">{&lt;/span>
+&lt;span class="s">&amp;#34;username&amp;#34;&lt;/span>&lt;span class="k">:&lt;/span> &lt;span class="err">&amp;#34;&lt;/span>&lt;span class="kt">username&lt;/span>&lt;span class="err">&amp;#34;&lt;/span>&lt;span class="o">,&lt;/span>
+&lt;span class="s">&amp;#34;userId&amp;#34;&lt;/span>&lt;span class="k">:&lt;/span> &lt;span class="err">&amp;#34;&lt;/span>&lt;span class="kt">&amp;lt;&lt;/span>&lt;span class="kt">userId&lt;/span>&lt;span class="kt">&amp;gt;&lt;/span>&lt;span class="err">&amp;#34;&lt;/span>&lt;span class="o">,&lt;/span>
+&lt;span class="s">&amp;#34;version&amp;#34;&lt;/span>&lt;span class="k">:&lt;/span> &lt;span class="err">1&lt;/span>&lt;span class="kt">|&lt;/span>&lt;span class="err">2&lt;/span>
+&lt;span class="o">}&lt;/span>
+&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div></description></item><item><title>Room on a chip</title><link>/2017/07/18/room-on-a-chip.html</link><pubDate>Tue, 18 Jul 2017 00:00:00 +0000</pubDate><guid>/2017/07/18/room-on-a-chip.html</guid><description>&lt;p>&lt;a href="https://gameontext.org/">Game On!&lt;/a> is a fun little text adventure written using a Microservice architecture. It's also extensible, allowing users to write their own &amp;lsquo;Rooms&amp;rsquo; (locations within the text adventure world), that run as Microservices, in the cloud, on their own systems, etc.&lt;/p>
+&lt;p>I've played with Arduino's and Raspberry Pi's, and similar for quite some time. I tried having an Arduino read data from a Floppy Drive, which was fun, and ultimately led to &lt;a href="http://hackaday.com/2012/03/31/floppy-autoloader-takes-the-pain-out-of-archiving-5000-amiga-disks/">a crazy floppy disk autoloader&lt;/a>. From there, I ended up moving on from Arduino to the Maple, then from there to a Teensy 3.0, and most recently, a rather fun little collection of boards based around a Chip known as the &lt;a href="https://en.wikipedia.org/wiki/ESP8266">ESP8266&lt;/a>&lt;/p>
+&lt;p>&lt;img src="http://bit.ly/2tAIOE8" alt="esp8266 board">&lt;/p>
+&lt;!-- raw HTML omitted -->
+&lt;p>There are some nice things about one of the ESP8266 boards I had (&lt;a href="http://bit.ly/2u3bsQg">Witty Cloud / GizWits&lt;/a>):&lt;/p>
+&lt;!-- raw HTML omitted -->
+&lt;ul>
+&lt;li>you program it using the Arduino API,&lt;/li>
+&lt;li>it has built in WiFi, 4MB of flash to store your code, 64k of instruction ram, and 96k of data ram to play with.&lt;/li>
+&lt;li>it runs at 80mhz or so&lt;/li>
+&lt;li>it has an LED light that can change color&lt;/li>
+&lt;li>it has a light sensor&lt;/li>
+&lt;/ul>
+&lt;p>That's pretty impressive for something that costs around 5$ shipped.&lt;/p>
+&lt;p>When you know there are Arduino JSON libraries, and Arduino WebSocket libraries that can run on it, you start wondering: is it possible to host a Room for Game On on an ESP8266 ?&lt;/p>
+&lt;p>I had a spare moment at a weekend, so decided to find out! =)&lt;/p></description></item><item><title>Swift and Watson Conversation Service</title><link>/2017/04/24/swift-and-watson.html</link><pubDate>Mon, 24 Apr 2017 00:00:00 +0000</pubDate><guid>/2017/04/24/swift-and-watson.html</guid><description>Thanks to @jkingoliver, we have a new advanced adventure combining Swift with Watson! This room uses the Watson Conversation Service to create a sandwich shop.
+Create a Game On! Room in Swift Integrate Watson Conversation Service Go play!</description></item><item><title>Local development with Vagrant</title><link>/2017/03/21/vagrant-support.html</link><pubDate>Tue, 21 Mar 2017 00:00:00 +0000</pubDate><guid>/2017/03/21/vagrant-support.html</guid><description>Setting up the core game services locally can be a tricky business. If you don't fancy installing our core game services and dependencies on your most favorite dev box, have a look at our Vagrant project clone the gameon repository, cd gameon, and run vagrant up, which will set up a virtual machine ready for local development.
+Go play!
+*Edit 2017-09-13: As noted above, using Vagrant for local development is now even easier.</description></item><item><title>Using JSR-107 Caching in Java-based rooms</title><link>/2017/03/06/jsr107-caching.html</link><pubDate>Mon, 06 Mar 2017 00:00:00 +0000</pubDate><guid>/2017/03/06/jsr107-caching.html</guid><description>Caching is one of those awkward bits of function you can totally avoid adding when first creating a bit of code. Everything will work just fine during your initial testing, but worries start to creep in when you start to consider what happens when running at scale: will remote services be invoked too frequently? And what happens to session data when processes are added or removed to accommodate changes in load?</description></item><item><title>What's the weather like?</title><link>/2017/03/05/checking-the-weather.html</link><pubDate>Sun, 05 Mar 2017 00:00:00 +0000</pubDate><guid>/2017/03/05/checking-the-weather.html</guid><description>@rstephenrrtx has published a new chronicle relating his experience building a room that checks the weather using IBM Weather Company's REST APIs:
+Weather Room (Interacting with REST API service)</description></item><item><title>Using Watson Alchemy Data API to create a News room</title><link>/2017/02/21/watson-news.html</link><pubDate>Tue, 21 Feb 2017 00:00:00 +0000</pubDate><guid>/2017/02/21/watson-news.html</guid><description>@bradleyap has published a new chronicle relating his experience using the Watson Alchemy Data API to create a news room:
+Making a Watson Alchemy Data News Room</description></item><item><title>Adding items (and interest) to your room</title><link>/2017/02/15/room-items.html</link><pubDate>Wed, 15 Feb 2017 00:00:00 +0000</pubDate><guid>/2017/02/15/room-items.html</guid><description>Finally! An adventure dedicated solely to making your room more awesome and interesting. This adventure focuses solely on game protocol and how to enhance your room implementation.
+Advanced Adventure for Game On Room Items Go play!</description></item><item><title>Creating a room from scratch</title><link>/2017/02/13/room-from-scratch.html</link><pubDate>Mon, 13 Feb 2017 00:00:00 +0000</pubDate><guid>/2017/02/13/room-from-scratch.html</guid><description>Curious how to write your own room from scratch without a fork/clone? We've got your back, intrepid explorer, behold this adventure written just for you:
+Advanced Adventure for room creation from scratch Go play!</description></item><item><title>Game On! at OSCon London 2016</title><link>/2016/10/17/oscon-london.html</link><pubDate>Mon, 17 Oct 2016 00:00:00 +0000</pubDate><guid>/2016/10/17/oscon-london.html</guid><description>Kate and I took Game On! to OSCon London! We spoke about our experiences building the game, and Kate created a new room in Java from scratch and showed the game finding the room, and coping as the service recycled in response to updates.</description></item><item><title>Game On! at JavaOne 2016</title><link>/2016/09/29/gameon-at-javaone.html</link><pubDate>Thu, 29 Sep 2016 00:00:00 +0000</pubDate><guid>/2016/09/29/gameon-at-javaone.html</guid><description>Last week was JavaOne in San Francisco and a number of us from the WebSphere Microservices squad (@MarkNSweep, @ebullient, @BarDweller, and @pavittr) were able to go. Game On! made a nice showing, complete with a lab, T-shirts, and prizes.
+Read more (with pictures!) at wasdev.net</description></item><item><title>Cars, Pi cameras and ASCII art&amp;#58; Microservices with Liberty and Game On!</title><link>/2016/05/11/cars-pi-cameras-ascii-art.html</link><pubDate>Wed, 11 May 2016 00:00:00 +0000</pubDate><guid>/2016/05/11/cars-pi-cameras-ascii-art.html</guid><description>The Liberty microservices team, based in IBM Hursley in the UK, decided to include some ASCII art in Game On!. From there, it was but a short step to driving a remote-controlled car around the floor of the latest WebSphere User Group meeting at IBM Southbank, taking pictures with a Raspberry Pi camera to render as ASCII art.
+Read more (with pictures!) at wasdev.net</description></item></channel></rss>

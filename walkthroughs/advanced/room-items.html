@@ -1,0 +1,104 @@
+<!doctype html><html lang=en><head><meta charset=utf-8><meta http-equiv=x-ua-compatible content="chrome=1"><meta name=viewport content="width=device-width,initial-scale=1,maximum-scale=1"><link rel=stylesheet href=https://use.fontawesome.com/e3112f1bdf.css><link rel=stylesheet href=/css/flex.min.62d46290de4e8cb4b407a0a4c54711bb69af2f268ce654c5af64efa38732d394.css><link rel="shortcut icon" href=/favicon.ico type=image/x-icon><title>GO: Enhancing a room with items</title><link rel=canonical href=/walkthroughs/advanced/room-items.html><link rel=alternate type=application/rss+xml href=/blog/index.xml title="Game On! Adventures with microservices"></head><body><header class=head-single><h1><a href=/>GAME<span class=on>ON</span></a></h1><div>Hands-on experiment building microservices and cloud native applications</div></header><nav class=project><a target=_blank href=https://gameontext.org title="Play the game"><i class="fa fa-play" aria-hidden=true></i><span>Play <span>the game</span></span></a>
+<a href=/about/ title="Read the book"><i class="fa fa-book" aria-hidden=true></i><span>Learn <span>more</span></span></a>
+<a href=/blog/ title="Read the blog"><i class="fa fa-newspaper-o" aria-hidden=true></i><span>Read <span>our blog</span></span></a>
+<a target=_blank href=https://gameontext.org/slackin/ title="Join our slack team"><i class="fa fa-slack" aria-hidden=true></i><span><span>Join us on</span> Slack</span></a>
+<a target=_blank class=github href=https://github.com/gameontext title="View project on GitHub"><i class="fa fa-github" aria-hidden=true></i><span>Github</span></a></nav><main class="book page"><article><header><h1>Enhancing a room with items</h1></header><p>Where we learn about how to add items to your room.</p><section class="doc-section level-1"><h2 id=_overview>Overview</h2><p>This adventure teaches you about adding virtual items to your room in Game On, taking you through understanding the required
+parts of the protocol and some ideas on how to handle commands.
+You&#8217;ll learn how to have items show up in your Room Description and how to support simple commands that interact with them.</p></section><section class="doc-section level-1"><h2 id=_why_virtual_items>Why Virtual Items?</h2><p>Game On presents itself to users as a text-based adventure game. Within text adventures, the concepts of items and inventory are common.
+The classic <code>/take sword</code> and <code>/kill dragon with sword</code> are great examples of how to make a room feel more like an interactive
+experience and less like a technology demonstration.</p><p>For example, when you visit RecRoom in Game On (<code>/sos</code>, <code>/teleport RecRoom</code>), you see how it uses items to construct a puzzle that
+keep users in the room entertained. Items in rooms are used in many ways, you could have them represent remote
+services, or just be a signpost with instructions for how to interact with your room.</p><p>In this adventure, we add a <code>Button</code> to the room and have it respond when the user pushes it.</p></section><section class="doc-section level-1"><h2 id=_prerequisites>Prerequisites</h2><p>This adventure doesn&#8217;t require any prerequisites and may be attempted directly after completing the <a href=https://github.com/gameontext/sample-room-java>Java Sample Room</a>.</p></section><section class="doc-section level-1"><h2 id=_walkthrough>Walkthrough</h2><section class="doc-section level-2"><h3 id=_protocol>Protocol</h3><p>Game On Rooms support the concepts of 'items' via the websocket protocol. This means there is a difference between
+sending a Room Description that has the items embedded in the description text..</p><p>And a description that leaves them out and declares them to the room via the protocol..</p><p>To understand how to do this, we need to look at the <a href=/architecture/websocket-protocol.html>Game On Websocket Protocol</a>..</p><p>The particular message we are interested in is the <a href=/architecture/websocket-protocol.html#_room_mediator_client_location_message>'location'</a> message, which carries the Room Description and other information back to Game On. It is this "other information" that we may use to tell the game about items in the room.</p><p>The location message is documented like this:</p><div class=listing-block><pre class=highlight><code class=language-json data-lang=json>player,&lt;playerId&gt;,{
+    "type": "location",
+    "name": "Room name",
+    "fullName": "Room's descriptive full name",
+    "description": "Lots of text about what the room looks like",
+    "exits": {
+        "shortDirection" : "currentDescription for Player",
+        "N" :  "a dark entranceway"
+    },
+    "commands": {
+        "/custom" : "Description of what command does"
+    },
+    "roomInventory": ["itemA","itemB"]
+}</code></pre></div><p>At the end is the "roomInventory" field which may be used to pass an Array of Strings that represent the items in the room.
+When the game renders the list in the web interface, it looks similar to this:</p><div class=listing-block><pre class=highlight><code class=language-text data-lang=text>Room's descriptive full name
+----------------------------
+Lots of text about what the room looks like
+
+You notice:
+o itemA
+o itemB</code></pre></div><p>The <code>itemA</code>, and <code>itemB</code> have been called out by the the game&#8217;s web interface, because they were present in the <code>roomInventory</code> part
+of the location message from the Room.</p><aside class="admonition-block tip" role=doc-tip><h6 class="block-title label-only"><span class=title-label>Tip:</span></h6><p>Use unique names for the items in your room to more easily identify them. Consider the challenges of coding a parser to tell the difference between <code>coffee</code> and <code>coffee machine</code>, when you could avoid the issue by renaming the <code>coffee machine</code> <code>vending machine</code></p></aside></section><section class="doc-section level-2"><h3 id=_java_sample_room>Java Sample Room</h3><p>Within the sample room, the <code>location</code> message is built from details in the <a href=https://github.com/gameontext/sample-room-java/blob/master/src/main/java/org/gameontext/sample/RoomDescription.java>RoomDescription</a> object, by the
+<a href=https://github.com/gameontext/sample-room-java/blob/master/src/main/java/org/gameontext/sample/RoomImplementation.java>RoomImplementation</a> object, using the <a href=https://github.com/gameontext/sample-room-java/blob/master/src/main/java/org/gameontext/sample/protocol/Message.java>Message</a> object&#8217;s utility method <code>createLocationMessage</code>.</p><p>Here we see the method <code>createLocationMessage</code> building up the response to send..</p><div class=listing-block><pre class=highlight><code class=language-java data-lang=java>public static Message createLocationMessage(String userId, RoomDescription roomDescription) {
+
+    JsonObjectBuilder payload = Json.createObjectBuilder();
+    payload.add(TYPE, "location");
+    payload.add("name", roomDescription.getName());
+    payload.add("fullName", roomDescription.getFullName());
+    payload.add("description", roomDescription.getDescription());
+
+    // convert map of commands into JsonObject
+    JsonObject commands = roomDescription.getCommands();
+    if ( !commands.isEmpty()) {
+        payload.add("commands", commands);
+    }
+
+    // Convert list of items into json array
+    JsonArray inventory = roomDescription.getInventory();
+    if ( !inventory.isEmpty()) {
+        payload.add("roomInventory", inventory);
+    }
+
+    return new Message(Target.player, userId, payload.build().toString());
+}</code></pre></div><p>We see that the <code>location</code> message is built as JSON and the items are being read from the <a href=https://github.com/gameontext/sample-room-java/blob/master/src/main/java/org/gameontext/sample/RoomDescription.java>RoomDescription</a>
+object passed as an argument.</p><aside class="admonition-block note" role=note><h6 class="block-title label-only"><span class=title-label>Note:</span></h6><p>The <code>roomInventory</code> field is only added when there are actually items to send. By default the sample room has none.</p></aside><p>The <a href=https://github.com/gameontext/sample-room-java/blob/master/src/main/java/org/gameontext/sample/RoomDescription.java>RoomDescription</a> object offers the methods</p><div class=listing-block><pre class=highlight><code class=language-java data-lang=java>   public void addItem(String itemName);
+   public void removeItem(String itemName);
+   public JsonArray getInventory();</code></pre></div><p>Which would allow a Room implementation to add/remove items from the room, and thus from the description returned to the user.</p><aside class="admonition-block tip" role=doc-tip><h6 class="block-title label-only"><span class=title-label>Tip:</span></h6><p>The room item response as JSON is cached by the RoomDescription object, notice how in the getInventory method, the <code>arr</code> array is only built if `itemObj' is null.</p></aside><p>Over in the <a href=https://github.com/gameontext/sample-room-java/blob/master/src/main/java/org/gameontext/sample/RoomImplementation.java>RoomImplementation</a> we see the simple <code>processCommand</code> method, that parses the input from the user
+and carries out the appropriate action. In this case, we&#8217;re interested in the <code>/look</code> command, which should trigger a <code>location</code> response.</p><p>Sure enough, there within the switch statement, we see a location message being built & returned to the user.</p><div class=listing-block><pre class=highlight><code class=language-java data-lang=java>  case "/look":
+  case "/examine":
+      // See RoomCommandsTest#testHandle*Look*
+
+      // Treat look and examine the same (though you could make them do different things)
+      if ( remainder == null || remainder.contains("room") ) {
+          // This is looking at or examining the entire room. Send the player location message,
+          // which includes the room description and inventory
+          endpoint.sendMessage(session, Message.createLocationMessage(userId, roomDescription));
+      } else {
+          endpoint.sendMessage(session,
+                  Message.createSpecificEvent(userId, LOOK_UNKNOWN));
+      }
+      break;</code></pre></div><p>If we wanted to add additional behavior, perhaps to support <code>/examine itemName</code>, this is where we could add it. Either as an extension
+to the switch block handling <code>/examine</code> and <code>/look</code>, or via an entirely new command. If the item were a button, we might like to add
+<code>/push button</code> as a command and send an appropriate response.</p><p>Let&#8217;s look at adding that button now.</p><section class="doc-section level-3"><h4 id=_adding_our_own_item>Adding our own item.</h4><p>Firstly, find the <code>postConstruct</code> method in the <a href=https://github.com/gameontext/sample-room-java/blob/master/src/main/java/org/gameontext/sample/RoomImplementation.java>roomImplementation</a>, and before the last log statement, add..</p><div class=listing-block><pre class=highlight><code class=language-java data-lang=java>roomDescription.addItem("button");</code></pre></div><p>Then locate the switch statement within the <code>processCommand</code> method. Add a little code so that the 'else' block in the <code>/look</code> and <code>/examine</code> case, that used to look like:</p><figure class=listing-block><figcaption>Existing Sample Code</figcaption><pre class=highlight><code class=language-java data-lang=java>  } else {
+      endpoint.sendMessage(session,
+              Message.createSpecificEvent(userId, LOOK_UNKNOWN));
+  }</code></pre></figure><p>is updated to look like:</p><figure class=listing-block><figcaption>Replaced Sample Code</figcaption><pre class=highlight><code class=language-java data-lang=java>  } else {
+      if(remainder.contains("button"){
+          endpoint.sendMessage(session,
+              Message.createBroadcastEvent(username+" examines the button",
+                              userId, "It's a big red button, you are very tempted to..."));
+      }else{
+          endpoint.sendMessage(session,
+              Message.createSpecificEvent(userId, LOOK_UNKNOWN));
+      }
+  }</code></pre></figure><p>Finally, lets add a little code to handle the <code>/push</code> command for our button.
+Go back to that <code>postConstruct</code> method, and below your <code>addItem("button")</code> line add:</p><div class=listing-block><pre class=highlight><code class=language-java data-lang=java>roomDescription.addCommand("/push","Pushes an item, like, a button?");</code></pre></div><p>That causes the room description to add our custom command to the <code>location</code> response, so any user doing <code>/help</code> in the room will
+see <code>/push</code> described as a command.</p><p>Now, back in the switch statement within the <code>processCommand</code> method, add a new switch block that looks like&#8230;&#8203;</p><div class=listing-block><pre class=highlight><code class=language-java data-lang=java>case "/push":
+    // Handle the push command, response depends if user pushes button, or anything else.
+    if ( remainder.contains("button") ) {
+            endpoint.sendMessage(session,
+                Message.createBroadcastEvent(username+" pushes the button. Nothing Happens. Surprising.",
+                                              userId, "You push the big red button."));
+
+    } else {
+        endpoint.sendMessage(session, Message.createSpecificEvent(userId, "What do you want to push?));
+    }
+    break;</code></pre></div><p>That bit is invoked when the first word of the input is <code>/push</code> with <code>remainder</code> set to whatever the rest of the command was.
+If the user did <code>/push button</code> or <code>/push the button</code> etc, we&#8217;ll send them a message saying they pushed the button and send
+everyone else a message saying Nothing Happened. If the user only does <code>/push</code> by itself, we prompt them they should probably
+say what they want to push.</p></section></section></section><section class="doc-section level-1"><h2 id=_suggested_extensions>Suggested extensions</h2><div class=ulist><ul><li>Add a novelty 'mystical fortune telling ball' that gives random fortunes when shaken.</li><li>The parsing approach here is crude, consider how you could design a framework to support multiple items, each offering their
+own commands, and help text, and having an effect.</li><li>Could you add/remove an item to the room dynamically at runtime? (remember the caching in RoomDescription)<ul><li>Perhaps via new <code>/additem</code> and <code>/removeitem</code> commands?</li><li>Perhaps an object that appears based on the name of the player joining the room ?</li></ul></li></ul></div></section><section class="doc-section level-1"><h2 id=_conclusion>Conclusion</h2><p>Items and commands are important parts of the Game On protocol and are designed to improve the end user experience with your room.
+You should now have a general understanding of the steps required to add items and handle them with commands.</p></section><section class="doc-section level-1"><h2 id=_suggested_further_adventures>Suggested further adventures</h2><div class=ulist><ul><li><a href=jsr107-caching.html>Caching adventure</a> - Learn about stateful items.</li><li><a href=jaxrs-rest.html>JAX RS</a> - Learn about invoking REST endpoint using JAX RS</li></ul></div></section></article><nav class=prev-next><div class=nav-left><div class=long><a href=/architecture/ title="Previous: Application Architecture">Application Architecture</a></div><div class=short><a href=/architecture/ title="Previous: Application Architecture">Previous</a></div></div><div class=nav-center><div class=long>Up: <a href=/walkthroughs/advanced/>Advanced Adventures</a></div><div class=short><a href=/walkthroughs/advanced/>Up</a></div></div><div class=nav-right><div class=long><a href=/walkthroughs/advanced/jaxrs-rest.html title="Next: Communication with REST & JAX-RS">Communication with REST & JAX-RS</a></div><div class=short><a href=/walkthroughs/advanced/jaxrs-rest.html title="Next: Communication with REST & JAX-RS">Next</a></div></div></nav></main><footer class=foot><div id=copyrights>&#169; 2016-2020 under terms of the Apache License 2.0.</div><div>Follow us:
+<a target=_blank href=https://twitter.com/gameontext title="Follow @gameontext"><i class="fa fa-twitter" aria-hidden=true></i></a></div></footer><script type=application/javascript>var doNotTrack=false;if(!doNotTrack){window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;ga('create','UA-90113653-2','auto');ga('send','pageview');}</script><script async src=https://www.google-analytics.com/analytics.js></script></body></html>

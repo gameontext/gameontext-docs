@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>play on Game On! Adventures with microservices</title><link>/tags/play.html</link><description>Recent content in play on Game On! Adventures with microservices</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Sun, 06 Aug 2017 00:00:00 +0000</lastBuildDate><atom:link href="/tags/play/index.xml" rel="self" type="application/rss+xml"/><item><title>We have a Scala Room!</title><link>/2017/08/06/sample-scala-room.html</link><pubDate>Sun, 06 Aug 2017 00:00:00 +0000</pubDate><guid>/2017/08/06/sample-scala-room.html</guid><description>&lt;p>What follows is the stream-of-conciousness and research that lead up to our newest sample room!&lt;/p>
+&lt;h2 id="tldr">tl;dr&lt;/h2>
+&lt;ul>
+&lt;li>&lt;a href="/walkthroughs/advanced/room-from-scratch.html">advanced adventures&lt;/a>.&lt;/li>
+&lt;li>&lt;a href="https://github.com/gameontext/sample-room-scala">sample-room-scala&lt;/a>&lt;/li>
+&lt;li>&lt;a href="http://134.168.52.95:9000/">the room up and running&lt;/a>&lt;/li>
+&lt;/ul>
+&lt;h2 id="day-0">Day 0&lt;/h2>
+&lt;p>So for me 2017/18 is going to include adventures in polyglot.&lt;/p>
+&lt;blockquote>
+&lt;p>This will include but will not be only restricted to
+&lt;code>Kotlin&lt;/code>,&lt;code>Prolog&lt;/code>, &lt;code>Erlang&lt;/code>, &lt;code>Racket&lt;/code>, &lt;code>Haskell&lt;/code>, &lt;code>Closure&lt;/code>, &lt;code>Scala&lt;/code>&lt;/p>
+&lt;/blockquote>
+&lt;h2 id="day-1">Day 1&lt;/h2>
+&lt;h3 id="decide-on-tooling">Decide on tooling.&lt;/h3>
+&lt;ul>
+&lt;li>&lt;a href="http://www.scala-lang.org">scala&lt;/a> is the language.&lt;/li>
+&lt;li>&lt;a href="http://www.scala-sbt.org/">sbt&lt;/a> is the build tool.&lt;/li>
+&lt;li>&lt;a href="http://www.foundweekends.org/giter8/">giter8&lt;/a> to set up starter directories.&lt;/li>
+&lt;li>&lt;a href="https://www.playframework.com/">play&lt;/a> is the Websocket Framework.&lt;/li>
+&lt;li>&lt;a href="http://ensime.org">ensime&lt;/a> is the plugin for emacs.
+&lt;ul>
+&lt;li>&lt;code>play&lt;/code> has a &lt;a href="https://www.playframework.com/documentation/2.6.x/ScalaWebSockets">web socket api&lt;/a>&lt;/li>
+&lt;li>&lt;code>giter8&lt;/code> has a &lt;a href="https://github.com/foundweekends/giter8/wiki/giter8-templates">starter template&lt;/a> for &lt;code>play&lt;/code>.&lt;/li>
+&lt;/ul>
+&lt;/li>
+&lt;li>&lt;code>ensime&lt;/code> looks fun as a development environment.&lt;/li>
+&lt;/ul>
+&lt;h3 id="learn-to-stop-hating-and-love-regexes">Learn to stop hating and love regexes&lt;/h3>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre class="chroma">&lt;code>&lt;span class="lnt"> 1
+&lt;/span>&lt;span class="lnt"> 2
+&lt;/span>&lt;span class="lnt"> 3
+&lt;/span>&lt;span class="lnt"> 4
+&lt;/span>&lt;span class="lnt"> 5
+&lt;/span>&lt;span class="lnt"> 6
+&lt;/span>&lt;span class="lnt"> 7
+&lt;/span>&lt;span class="lnt"> 8
+&lt;/span>&lt;span class="lnt"> 9
+&lt;/span>&lt;span class="lnt">10
+&lt;/span>&lt;span class="lnt">11
+&lt;/span>&lt;span class="lnt">12
+&lt;/span>&lt;span class="lnt">13
+&lt;/span>&lt;span class="lnt">14
+&lt;/span>&lt;span class="lnt">15
+&lt;/span>&lt;span class="lnt">16
+&lt;/span>&lt;span class="lnt">17
+&lt;/span>&lt;span class="lnt">18
+&lt;/span>&lt;span class="lnt">19
+&lt;/span>&lt;span class="lnt">20
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre class="chroma">&lt;code class="language-scala" data-lang="scala">&lt;span class="n">scala&lt;/span>&lt;span class="o">&amp;gt;&lt;/span> &lt;span class="n">sample&lt;/span>
+&lt;span class="n">res69&lt;/span>&lt;span class="k">:&lt;/span> &lt;span class="kt">String&lt;/span> &lt;span class="o">=&lt;/span>
+&lt;span class="n">roomHello&lt;/span>&lt;span class="o">,&lt;/span>&lt;span class="o">&amp;lt;&lt;/span>&lt;span class="n">roomId&lt;/span>&lt;span class="o">&amp;gt;&lt;/span>&lt;span class="o">,&lt;/span>&lt;span class="o">{&lt;/span>
+&lt;span class="s">&amp;#34;username&amp;#34;&lt;/span>&lt;span class="k">:&lt;/span> &lt;span class="err">&amp;#34;&lt;/span>&lt;span class="kt">username&lt;/span>&lt;span class="err">&amp;#34;&lt;/span>&lt;span class="o">,&lt;/span>
+&lt;span class="s">&amp;#34;userId&amp;#34;&lt;/span>&lt;span class="k">:&lt;/span> &lt;span class="err">&amp;#34;&lt;/span>&lt;span class="kt">&amp;lt;&lt;/span>&lt;span class="kt">userId&lt;/span>&lt;span class="kt">&amp;gt;&lt;/span>&lt;span class="err">&amp;#34;&lt;/span>&lt;span class="o">,&lt;/span>
+&lt;span class="s">&amp;#34;version&amp;#34;&lt;/span>&lt;span class="k">:&lt;/span> &lt;span class="err">1&lt;/span>&lt;span class="kt">|&lt;/span>&lt;span class="err">2&lt;/span>
+&lt;span class="o">}&lt;/span>
+&lt;span class="n">scala&lt;/span>&lt;span class="o">&amp;gt;&lt;/span> &lt;span class="n">pattern&lt;/span>
+&lt;span class="n">res70&lt;/span>&lt;span class="k">:&lt;/span> &lt;span class="kt">scala&lt;/span>&lt;span class="kt">.&lt;/span>&lt;span class="kt">util&lt;/span>&lt;span class="kt">.&lt;/span>&lt;span class="kt">matching&lt;/span>&lt;span class="kt">.&lt;/span>&lt;span class="kt">Regex&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="o">(&lt;/span>&lt;span class="o">?&lt;/span>&lt;span class="n">s&lt;/span>&lt;span class="o">)&lt;/span>&lt;span class="o">(&lt;/span>&lt;span class="n">\w&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="o">)&lt;/span>&lt;span class="o">,&lt;/span>&lt;span class="o">(&lt;/span>&lt;span class="o">[&lt;/span>&lt;span class="kt">^&lt;/span>,&lt;span class="o">]&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="o">)&lt;/span>&lt;span class="o">,&lt;/span>&lt;span class="o">(&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="o">)&lt;/span>
+&lt;span class="n">scala&lt;/span>&lt;span class="o">&amp;gt;&lt;/span> &lt;span class="k">val&lt;/span> &lt;span class="n">pattern&lt;/span>&lt;span class="o">(&lt;/span>&lt;span class="n">target&lt;/span>&lt;span class="o">,&lt;/span>&lt;span class="n">id&lt;/span>&lt;span class="o">,&lt;/span>&lt;span class="n">payload&lt;/span>&lt;span class="o">)&lt;/span> &lt;span class="k">=&lt;/span> &lt;span class="n">sample&lt;/span>
+&lt;span class="n">target&lt;/span>&lt;span class="k">:&lt;/span> &lt;span class="kt">String&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">roomHello&lt;/span>
+&lt;span class="n">id&lt;/span>&lt;span class="k">:&lt;/span> &lt;span class="kt">String&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="o">&amp;lt;&lt;/span>&lt;span class="n">roomId&lt;/span>&lt;span class="o">&amp;gt;&lt;/span>
+&lt;span class="n">payload&lt;/span>&lt;span class="k">:&lt;/span> &lt;span class="kt">String&lt;/span> &lt;span class="o">=&lt;/span>
+&lt;span class="o">{&lt;/span>
+&lt;span class="s">&amp;#34;username&amp;#34;&lt;/span>&lt;span class="k">:&lt;/span> &lt;span class="err">&amp;#34;&lt;/span>&lt;span class="kt">username&lt;/span>&lt;span class="err">&amp;#34;&lt;/span>&lt;span class="o">,&lt;/span>
+&lt;span class="s">&amp;#34;userId&amp;#34;&lt;/span>&lt;span class="k">:&lt;/span> &lt;span class="err">&amp;#34;&lt;/span>&lt;span class="kt">&amp;lt;&lt;/span>&lt;span class="kt">userId&lt;/span>&lt;span class="kt">&amp;gt;&lt;/span>&lt;span class="err">&amp;#34;&lt;/span>&lt;span class="o">,&lt;/span>
+&lt;span class="s">&amp;#34;version&amp;#34;&lt;/span>&lt;span class="k">:&lt;/span> &lt;span class="err">1&lt;/span>&lt;span class="kt">|&lt;/span>&lt;span class="err">2&lt;/span>
+&lt;span class="o">}&lt;/span>
+&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div></description></item></channel></rss>

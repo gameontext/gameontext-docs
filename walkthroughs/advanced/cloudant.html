@@ -1,0 +1,233 @@
+<!doctype html><html lang=en><head><meta charset=utf-8><meta http-equiv=x-ua-compatible content="chrome=1"><meta name=viewport content="width=device-width,initial-scale=1,maximum-scale=1"><link rel=stylesheet href=https://use.fontawesome.com/e3112f1bdf.css><link rel=stylesheet href=/css/flex.min.62d46290de4e8cb4b407a0a4c54711bb69af2f268ce654c5af64efa38732d394.css><link rel="shortcut icon" href=/favicon.ico type=image/x-icon><title>GO: NoSQL persistance with Cloudant</title><link rel=canonical href=/walkthroughs/advanced/cloudant.html><link rel=alternate type=application/rss+xml href=/blog/index.xml title="Game On! Adventures with microservices"></head><body><header class=head-single><h1><a href=/>GAME<span class=on>ON</span></a></h1><div>Hands-on experiment building microservices and cloud native applications</div></header><nav class=project><a target=_blank href=https://gameontext.org title="Play the game"><i class="fa fa-play" aria-hidden=true></i><span>Play <span>the game</span></span></a>
+<a href=/about/ title="Read the book"><i class="fa fa-book" aria-hidden=true></i><span>Learn <span>more</span></span></a>
+<a href=/blog/ title="Read the blog"><i class="fa fa-newspaper-o" aria-hidden=true></i><span>Read <span>our blog</span></span></a>
+<a target=_blank href=https://gameontext.org/slackin/ title="Join our slack team"><i class="fa fa-slack" aria-hidden=true></i><span><span>Join us on</span> Slack</span></a>
+<a target=_blank class=github href=https://github.com/gameontext title="View project on GitHub"><i class="fa fa-github" aria-hidden=true></i><span>Github</span></a></nav><main class="book page"><article><header><h1>NoSQL persistance with Cloudant</h1></header><p>Where we learn about Persistence via Cloudant.</p><section class="doc-section level-1"><h2 id=_overview>Overview</h2><p>This adventure will take you through the basics of Persistence from a Microservice perspective, using Cloudant
+as your backing database. You will add simple usage of Cloudant to a Game On room, and will learn about configuring
+a Cloudant service instance, communicating with it, and how you might use this further within a room.</p></section><section class="doc-section level-1"><h2 id=_why_cloudant>Why Cloudant ?</h2><p>There are many options for persistence in a microservices architecture, including nosql db&#8217;s, graph db&#8217;s, and regular
+sql db&#8217;s. In this walkthrough we&#8217;ll just be looking at one, Cloudant. Cloudant describes itself as:</p><div class=quote-block><blockquote><p>"&#8230;&#8203;a fully-managed database service built to scale globally,
+run non-stop, and handle flexible schemas for rapid development. Just PUT JSON in and GET JSON out."</p></blockquote></div><p>It has a REST based interface and uses JSON as its records. Which makes for nice, simple integration with most
+microservice projects, although remember that just because we&#8217;re choosing Cloudant for this Room service,
+<a href=https://plainoldobjects.com/2015/09/02/does-each-microservice-really-need-its-own-database-2/>it doesn&#8217;t mean all of your services have to!</a></p><p>Being able to store documents in this manner isn&#8217;t just something you might want for a room, the Game On Player
+service, and the Map service both use Cloudant to persist their data.</p><p>We&#8217;ll extend the Java Sample Room, to add a way for users in the room to select items from a vending
+machine, and have the room modify <code>/examine</code> to show the item the user has equipped. We&#8217;ll store the
+selection for a player in Cloudant, and query the stored data to handle the <code>/examine</code> command for a player.</p></section><section class="doc-section level-1"><h2 id=_prerequisites>Prerequisites</h2><p>This walkthrough starts after having completed the <a href=https://github.com/gameontext/sample-room-java>Java Sample Room</a>.</p><p>It requires a Cloudant service for your room to talk to, you can acquire one for free
+in Bluemix by;</p><div class="olist arabic"><ol class=arabic><li>Signing into the Bluemix web console.</li><li>Select <code>Services</code> from the "<em>Hamburger</em>" Menu. (or cheat, and use the link in the next step.)</li><li>Click the <code>Catalog</code> link to go to the view of <a href="https://console.ng.bluemix.net/catalog/?taxonomyNavigation=services">available services in Bluemix</a>.</li><li>Search for, or navigate to <a href=https://console.ng.bluemix.net/catalog/services/cloudant-nosql-db/><code>Cloudant NoSQL DB</code></a></li><li><p>Goto the Cloudant service page, scroll down, and ensure you select the <code>'Lite'</code> (Free) tier.</p><aside class="admonition-block tip" role=doc-tip><h6 class="block-title label-only"><span class=title-label>Tip:</span></h6><p>Notice the free tier has restrictions not just on how much data you store, but also how
+often you can perform lookups, writes, and queries.</p></aside></li><li>In the <code>Connect to:</code> drop down on the left, find and select your Java Sample Room.</li><li>Give the Service name/Credential name something meaningful that you&#8217;ll recognise later.</li><li>Hit the 'Create' button at the bottom right.</li></ol></div><aside class="admonition-block tip" role=doc-tip><h6 class="block-title label-only"><span class=title-label>Tip:</span></h6><p>If you already have a Cloudant service in bluemix, you may use it rather than creating another.
+But <strong>you</strong> need to be able to understand the implications for any data already in that service.</p></aside><p>Congratulations, you&#8217;ve created a Cloudant instance that we&#8217;ll use in the rest of this walkthrough.</p></section><section class="doc-section level-1"><h2 id=_walkthrough>Walkthrough</h2><section class="doc-section level-2"><h3 id=_pom_xml_updates_to_add_the_cloudant_client>Pom.xml updates to add the Cloudant client.</h3><p>Firstly, edit the <code>pom.xml</code> in your room project and find the <code>&lt;dependencies>&#8230;&#8203;&lt;/dependencies></code> block.
+Add this dependency after the existing ones, just before the <code>&lt;/dependencies></code>
+tag.</p><div class=listing-block><pre class=highlight><code class=language-xml data-lang=xml>&lt;dependency&gt;
+    &lt;groupId&gt;com.cloudant&lt;/groupId&gt;
+    &lt;artifactId&gt;cloudant-client&lt;/artifactId&gt;
+    &lt;version&gt;2.8.0&lt;/version&gt;
+&lt;/dependency&gt;</code></pre></div><p>This will allow us to use the Cloudant client library within our Room code.</p></section><section class="doc-section level-2"><h3 id=_parsing_vcap_services_to_obtain_the_service_details>Parsing VCAP_SERVICES to obtain the service details.</h3><p>When our Room is running as a CF App in Bluemix, we&#8217;ll be supplied the details for our Cloudant instance
+as part of the environment variable <code>VCAP_SERVICES</code>. This happens because we attached the service to our
+Java Room app in step 6 in the Prerequisites section.</p><p>To retrieve the service details we need to parse the JSON supplied in this environment var, and extract
+the Cloudant specific information.</p><p>As documented over on the <a href=https://console.ng.bluemix.net/docs/services/Cloudant/index.html#getting-started-with-cloudant>'Getting started with Cloudant'</a> page, the JSON will have structure like this:</p><div class=listing-block><pre class=highlight><code class=language-json data-lang=json>{
+    "cloudantNoSQLDB": {
+        "name": "Cloudant-3s",
+        "label": "cloudantNoSQLDB",
+        "plan": "shared",
+        "credentials": {
+            "username": "someusername",
+            "password": "secret",
+            "host": "myhost-bluemix.cloudant.com",
+            "port": 443,
+            "url": "https://someusername:secret@myhost-bluemix.cloudant.com"
+        }
+    }
+}</code></pre></div><p>Lets start by processing that using the <code>javax.json</code> package. In the <code>RoomImplementation</code>
+class, add the following code to the <code>postConstruct</code> method.</p><div class=listing-block><pre class=highlight><code class=language-java data-lang=java>  String vcapServicesEnv = System.getenv("VCAP_SERVICES");
+  if (vcapServicesEnv == null) {
+      throw new RuntimeException("VCAP_SERVICES was not set, are we running in Bluemix?");
+  }
+  JsonObject vcapServices = Json.createReader(
+                              new StringReader(vcapServicesEnv)).readObject();
+  JsonArray serviceObjectArray = vcapServices.getJsonArray("cloudantNoSQLDB");
+  JsonObject serviceObject = serviceObjectArray.getJsonObject(0);
+  JsonObject credentials = serviceObject.getJsonObject("credentials");
+  String username = credentials.getJsonString("username").getString();
+  String password = credentials.getJsonString("password").getString();
+  String url = credentials.getJsonString("url").getString();</code></pre></div><p>That will read the JSON, and dive down to obtain the credentials, and then the username, password,
+and url we need.</p></section><section class="doc-section level-2"><h3 id=_connecting_to_the_database>Connecting to the database</h3><p>Once we have the credentials, and URL, we need to create a <code>CloudantClient</code> that will let us
+talk to the service.</p><div class=listing-block><pre class=highlight><code class=language-java data-lang=java>CloudantClient client = ClientBuilder.url(new URL(url))
+            .username(username)
+            .password(password)
+            .build();</code></pre></div><p>From the <code>CloudantClient</code> we can obtain a <code>Database</code> object that lets us talk to our database
+managed by our Cloudant Service. First declare the <code>db</code> object as a class variable so we can refer to it later.</p><p>Add this to <code>RoomImplementation</code> near where <code>roomDescription</code> is defined.</p><div class=listing-block><pre class=highlight><code class=language-java data-lang=java>private Database db;</code></pre></div><p>Then initialise it within the <code>postConstruct</code> method after your have built the
+<code>CloudandClient</code>.</p><div class=listing-block><pre class=highlight><code class=language-java data-lang=java>db = client.database("Shoes",true);</code></pre></div><p>This will obtain the database called <code>Shoes</code>, and if it doesn&#8217;t exist, it will create it. That&#8217;s great,
+because at this point we know it doesn&#8217;t exist yet, but once it does, we can keep using the same
+code to obtain it regardless.</p><aside class="admonition-block tip" role=doc-tip><h6 class="block-title label-only"><span class=title-label>Tip:</span></h6><p>if you are using a pre-existing Cloudant service, here you can use a unique db name that won&#8217;t
+clash with any other data you have stored.</p></aside></section><section class="doc-section level-2"><h3 id=_creating_a_simple_item_selection_machine_in_game_on>Creating a simple item selection machine in Game On.</h3><p>We take a quick twisty road away from persistence for a moment, because we need something to persist.</p><p>Lets create ourselves an imaginary machine that the player can use to pick a pair of shoes. To keep
+this walkthrough brief, we&#8217;ll limit the machine to existing via custom commands, but if you follow
+the <a href=room-items.html>'Adding items to your room'</a> tutorial, you could easily make it into a real Game On room item.</p><p>First we&#8217;ll add some shoes for our machine to stock.. in the <code>RoomImplementation</code> class, add
+a class variable declaration like this:</p><div class=listing-block><pre class=highlight><code class=language-java data-lang=java>final static String shoes[][] = {
+   {"Red Stilettos", "a beautiful pair of red stiletto heels."},
+   {"Pink GoGo Boots", "a shockingly high platformed pair of gogo boots."},
+   {"Green Strappy Sandals", "a curious combination seemingly held together by"+
+                             " many tiny buckles."},
+   {"Blue Wedge Heels", "a deep blue pair of very high wedge heels."},
+   {"Black Oxfords", "a dull boring pair of oxfords, with a 5 inch heel."}
+};</code></pre></div><p>We&#8217;ll use the primary index to know which pair we are talking about, and the secondary to
+obtain details about the shoes. We&#8217;ll try to keep the descriptions so that we can add them to
+text based on the template <code>"&lt;PlayerName> is wearing"</code>.</p><p>Find the <code>processCommand</code> method in the <code>RoomImplementation</code> class. It&#8217;s main logic is comprised of a
+switch statement that compares the command the user entered, with the commands the room understands.
+Add a block to that switch statement that looks like the following:</p><div class=listing-block><pre class=highlight><code class=language-java data-lang=java>case "/listshoes" :
+    StringBuilder sb = new StringBuilder();
+    sb.append("There are the following shoes available;\n");
+    for(String[] shoe : shoes){
+      sb.append("* \"");
+      sb.append(shoe[0]);
+      sb.append("\" - \"");
+      sb.append(shoe[1]);
+      sb.append("\"");
+    }
+    endpoint.sendMessage(session,
+                       Message.createSpecificEvent(userId,
+                       sb.toString()));
+    break;</code></pre></div><p>Thats enough to allow our users to discover our shoes, And we also want to allow them to equip a pair:</p><div class=listing-block><pre class=highlight><code class=language-java data-lang=java>case "/equip" :
+  if(remainder == null){
+  endpoint.sendMessage(session,
+                       Message.createSpecificEvent(userId,
+                       "Equip what? maybe try /listshoes, and pick a pair"));
+  }
+    for(String[] shoe : shoes){
+      if(shoe[0].toLowerCase().equals(remainder)){
+        endpoint.sendMessage(session,
+                             Message.createSpecificEvent(userId,
+                             "You are now wearing "+shoe[1]));
+  		return;
+  	}
+  }
+  //no match
+  endpoint.sendMessage(session,
+                       Message.createSpecificEvent(userId,
+                       "I couldn't find "+remainder+" to equip."+
+                       " Maybe try /listshoes, and pick a pair"));
+  break;</code></pre></div><p>Thats enough to allow a player do do <code>/equip red stilettos</code> and have an appropriate
+response go back. Of course, we know this, but the room user doesn&#8217;t yet, we could
+update our RoomDescription to include information on our new command. Take a look at
+the <a href=room-items.html>Adding items to your room</a> adventure to find out more.</p><p>So far, the room is still stateless, although we&#8217;ve allowed the user to pick from
+a list of shoes, and told them they are now wearing them, we forgot we did that as soon
+as we sent them the message.</p><p>Effectively that&#8217;s as far as you can get without some sort of persistence. Next
+we&#8217;ll look at saving the choices to the database.</p></section><section class="doc-section level-2"><h3 id=_tracking_the_equipped_item_via_the_database>Tracking the equipped item via the database.</h3><p>Before we can put things into, and get things out of, the database we need to
+decide on what 'things' are. Cloudant will store JSON objects, and the Cloudant
+client API we are using will automatically map these to & from Java bean type
+objects.</p><p>First we must create a class representing the data we plan to store and
+retrieve from the database. We could just store the players userId and an
+index into the shoes array, but that would be fragile if the array changed
+and could lead to someone wearing the wrong shoes! Instead, we will store the
+players userId and the name and description for the shoes they chose. That
+way if we change the shoes in the machine, they will always get to keep the
+version they had.</p><aside class="admonition-block note" role=note><h6 class="block-title label-only"><span class=title-label>Note:</span></h6><p>There are obviously many ways to crack this particular nut, and we&#8217;re not
+trying to make any statement here about the suitability of the one we&#8217;ve chosen
+beyond that it works well for the purpose of this tutorial. One of the suggested
+extensions to this adventure is to improve the way the items are stored =)</p></aside><p>Here&#8217;s our example class:</p><div class=listing-block><pre class=highlight><code class=language-java data-lang=java>public class PlayerData {
+  private String _id;
+  private String _rev;
+  private String shoeName = null;
+  private String shoeDesc = null;
+
+  public PlayerData() {
+    shoeName = "";
+    shoeDesc = "";
+  }
+
+  public String get_id() { return _id;	}
+  public void set_id(String _id) { this._id = _id; }
+
+  public String get_rev() {	return _rev;}
+  public void set_rev(String _rev) { this._rev = _rev; }
+
+  public String getShoeName() { return shoeName; }
+  public void setShoeName(String shoeName) { this.shoeName = shoeName; }
+
+  public String getShoeDesc() { return shoeDesc; }
+  public void setShoeDesc(String shoeDesc) { this.shoeDesc = shoeDesc; }
+
+}</code></pre></div><p>The code is pretty much what you&#8217;d expect, a class with getters/setters for the
+Shoe Name & Shoe Description. Notice also the 2 extra fields <code>_id</code> and <code>_rev</code>
+which <a href=https://wiki.apache.org/couchdb/HTTP_Document_API#Special_Fields>form part of how Cloudant remembers the data</a>. We&#8217;ll
+use the <code>_id</code> field with the userId we have for the player.</p><p>Now lets edit our <code>/equip</code> method to store/update the choice in the database.</p><div class=listing-block><pre class=highlight><code class=language-java data-lang=java>case "/equip" :
+  if(remainder == null){
+    endpoint.sendMessage(session,
+                         Message.createSpecificEvent(userId,
+                         "Equip what? maybe try /listshoes, and pick a pair"));
+  }
+  for(String[] shoe in shoes){
+    if(shoe[0].toLowerCase().equals(remainder)){
+      endpoint.sendMessage(session,
+                           Message.createSpecificEvent(userId,
+                           "You are now wearing "+shoe[1]));
+
+      PlayerData pd = new PlayerData();
+      pd.set_id(userId);
+      pd.setShoeName(shoe[0]);
+      pd.setShoeDesc(shoe[1]);
+      db.post(pd);
+
+      return;
+    }
+  }
+  //no match
+  endpoint.sendMessage(session,
+                       Message.createSpecificEvent(userId,
+                       "I couldn't find "+remainder+" to equip."+
+                       " Maybe try /listshoes, and pick a pair")););
+  break;</code></pre></div><p>When a player uses <code>/equip</code> now, we will push the details of their selected
+shoe choice to the database. Now let&#8217;s see about reading it back&#8230;&#8203;</p></section><section class="doc-section level-2"><h3 id=_querying_the_db_for_examine_command>Querying the db for <code>/examine</code> command</h3><p>We will update the <code>/examine</code> command so that if a player issues <code>/examine &lt;playername></code>
+that we will will return the message <code>&lt;playername> is wearing &lt;shoedesc></code>. If we
+have no database entry for the player, we&#8217;ll just return a fixed message.</p><p>Our first minor problem to solve is that our <code>PlayerData</code> is indexed by player
+id, but the players in the room will be using usernames to refer to each other.
+So we need a way to track the username to player id mappings active in our room.</p><p>Head up to where <code>roomDescription</code> is declared in <code>RoomImplementation</code> and add
+a quick HashMap that we&#8217;ll use to store that data.</p><div class=listing-block><pre class=highlight><code class=language-java data-lang=java>private Map&lt;String,String&gt; nameToId = new ConcurrentHashMap&lt;String,String&gt;();</code></pre></div><aside class="admonition-block note" role=note><h6 class="block-title label-only"><span class=title-label>Note:</span></h6><p>In this example, we are pretending that player names are unique. They are
+<strong>not</strong>. Player Ids however, <strong>are</strong> unique. To deal with that correctly within a Room would
+require code that would otherwise distract from the use of Cloudant we&#8217;re trying
+to cover here.</p><p>To handle this properly you need to effectively build a way to
+distinguish 2 players using the same name within your room, and track if the player
+changes their name while in your room.</p><p>For the most part, names are unique enough to get away with what we&#8217;re doing here, especially
+for an example, so don&#8217;t worry too much!!</p></aside><p>Locate the <code>handleMessage</code> method of the <code>RoomImplementation</code> class, and just after
+the <code>userId</code> and <code>username</code> fields have been declared, add:</p><div class=listing-block><pre class=highlight><code class=language-java data-lang=java>nameToId.put(username.toLowerCase(),userId);</code></pre></div><p>That will update the map every time we receive a message. We can then track when
+players leave by adding this to the <code>roomPart</code> and <code>roomGoodbye</code> blocks:</p><div class=listing-block><pre class=highlight><code class=language-java data-lang=java>nameToId.remove(username.toLowerCase());</code></pre></div><p>This is almost right, but if a player signs into your room more than once (say
+from a mobile device and a laptop) then when they leave via any device, you&#8217;ll
+think they left from every device. If you fancy a challenge, solving this isn&#8217;t
+too hard. As a hint, the Player service offers a way to <a href=https://gameontext.org/swagger/#!/players/getPlayerLocation>query player location</a>.</p><aside class="admonition-block tip" role=doc-tip><h6 class="block-title label-only"><span class=title-label>Tip:</span></h6><p>Consider using a JSR-107 Cache, rather than a Map, to store the id&#8594;name relationship.
+That way if your room is scaled up to multiple instances under load, they will all
+share a consistent view of the players "in the room". Find out more in the
+<a href=jsr107-caching.html>JSR-107 Caching Walkthrough</a>.</p></aside><p>Now we have a way to map from player name to player id, we can update our
+<code>/examine</code> command to allow <code>/examine playername</code>.</p><p>Find the <code>/look</code> and <code>/examine</code> case statement in the <code>processCommand</code> method
+in the <code>RoomImplementation</code> class. Update it to look like this:</p><div class=listing-block><pre class=highlight><code class=language-java data-lang=java>case "/look":
+case "/examine":
+    if ( remainder == null || remainder.contains("room") ) {
+        endpoint.sendMessage(session, Message.createLocationMessage(userId, roomDescription));
+    } else {
+        String targetId = nameToId.get(remainder);
+        if(targetId!=null){
+            try {
+                PlayerData pd = db.find(PlayerData.class,targetId);
+                endpoint.sendMessage(session,
+                      Message.createSpecificEvent(userId, remainder
+                         +" is wearing "+pd.getShoeDesc()));
+            } catch (NoDocumentException e) {
+                endpoint.sendMessage(session,
+                       Message.createSpecificEvent(userId, remainder
+                         +" does not seem to be wearing any shoes at the moment."));
+            }
+        } else {
+            endpoint.sendMessage(session,
+                Message.createSpecificEvent(userId, LOOK_UNKNOWN));
+        }
+    }
+    break;</code></pre></div><p>Now when a player does <code>/examine fred</code> we&#8217;ll check if we know the player
+id for fred (which we should do, if fred is in our room), and then we&#8217;ll look
+in the database to see if fred has <code>/equip</code> 'd a pair of shoes.</p></section><section class="doc-section level-2"><h3 id=_working_example_repo>Working example repo</h3><p>For complete versions of the code discussed so far, check out my <a href=https://github.com/gameontext/sample-room-java/tree/cloudant-advanced-adventure-sample>Sample Cloudant Room</a>.
+It does everything described here, showing usage of the Cloudant client API to store and retrieve information.</p></section></section><section class="doc-section level-1"><h2 id=_suggested_extensions>Suggested extensions</h2><div class=ulist><ul><li>Store the item descriptions themselves in the db</li><li>Use the database to store id&#8217;s of users trusted to add items to the vending machine<ul><li>Add commands to allow trusted users to update the machine content</li></ul></li><li>Update the db to allow players to own more than 1 pair of shoes<ul><li>Use Cloudant to locate the equipped pair for a player using a filtered query</li><li>Allow players to trade shoes with each other</li></ul></li></ul></div></section><section class="doc-section level-1"><h2 id=_conclusion>Conclusion</h2><p>You have now learned a little about how to talk to Cloudant, and use it to persist
+data from your Microservice. Although here the example is just for fun, you can
+hopefully see how you could apply the same approach for more serious data within
+a service. For a discussion of how the Game On Map service uses Cloudant, have a look
+<a href=/architecture/map.html>here</a>.</p></section><section class="doc-section level-1"><h2 id=_suggested_further_adventures>Suggested further adventures.</h2><p>Consider taking a look at the <a href=jsr107-caching.html>JSR-107 adventure</a>, it would be interesting to store
+active items in a Cache, and prepopulate the cache from the db. You could also investigate
+the JSR-107 Write-through behavior to keep the db up to date with cache changes.</p><p>Or maybe take a look at the <a href=room-items.html>Adding items to your room adventure</a>, and learn how you
+could turn the vending machine, and the items the player obtains from it, into proper
+Game On entities.</p></section></article><nav class=prev-next><div class=nav-left><div class=long><a href=/walkthroughs/advanced/jaxrs-rest.html title="Previous: Communication with REST & JAX-RS">Communication with REST & JAX-RS</a></div><div class=short><a href=/walkthroughs/advanced/jaxrs-rest.html title="Previous: Communication with REST & JAX-RS">Previous</a></div></div><div class=nav-center><div class=long>Up: <a href=/walkthroughs/advanced/>Advanced Adventures</a></div><div class=short><a href=/walkthroughs/advanced/>Up</a></div></div><div class=nav-right><div class=long><a href=/walkthroughs/advanced/jsr107-caching.html title="Next: JSR-107 Caching">JSR-107 Caching</a></div><div class=short><a href=/walkthroughs/advanced/jsr107-caching.html title="Next: JSR-107 Caching">Next</a></div></div></nav></main><footer class=foot><div id=copyrights>&#169; 2016-2020 under terms of the Apache License 2.0.</div><div>Follow us:
+<a target=_blank href=https://twitter.com/gameontext title="Follow @gameontext"><i class="fa fa-twitter" aria-hidden=true></i></a></div></footer><script type=application/javascript>var doNotTrack=false;if(!doNotTrack){window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;ga('create','UA-90113653-2','auto');ga('send','pageview');}</script><script async src=https://www.google-analytics.com/analytics.js></script></body></html>
