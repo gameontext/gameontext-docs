@@ -1,0 +1,18 @@
+{{- with .Parent -}}
+{{- else -}}
+<div class="flex-media">
+{{- end -}}
+<div class="item">
+  {{- if .IsNamedParams -}}
+  <a href="#{{ .Get "src" | md5 }}" class="thumbnail"><img src="{{ .Get "src" | safeURL }}" {{ with .Get "title" }}title="{{.}}"{{ end }} /></a>
+  <a href="#_" id="{{ .Get "src" | md5 }}" class="lightbox"><img src="{{ .Get "src" | safeURL }}" {{ with .Get "title" }}title="{{.}}"{{ end }}  /></a>
+  {{- else -}}
+  <a href="#{{ .Get 0 | md5 }}" class="thumbnail"><img src="{{ .Get 0 }}"  /></a>
+  <a href="#_" id="{{ .Get 0 | md5 }}" class="lightbox"><img src="{{ .Get 0 }}"  /></a>
+  {{- end -}}
+</div>
+{{- with .Parent -}}
+{{- else -}}
+</div>
+{{- end -}}
+

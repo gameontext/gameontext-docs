@@ -1,0 +1,84 @@
+---
+title: Making a Watson Alchemy Data News Room
+weight: 17
+type: book
+---
+
+:icons: font
+:signedHeaders: link:/architecture/application-security.html
+:WebSocketProtocol: link:/architecture/websocket-protocol.html
+:game-on: https://gameontext.org/
+:amalgam8: http://amalgam8.io
+:news-rm-code: http://github.com/bradleyap/Watson-news-sample-room-java
+:demo-tool: http://querybuilder.alchemyapi.com/builder
+:bm-cat: http://console.ng.bluemix.net/catalog
+:svc-dscr: http://www-03.ibm.com/software/sla/sladb.nsf/pdf/0012-04/$file/i128-0012-04_06-2016_en_US.pdf
+
+This entry in the Chronicles will seem more like deleted scenes from a movie when compared to what has been chronicled so far.
+
+The room I wanted to create was a Watson Alchemy Data API News Room. The details and the code can be found {news-rm-code}[on github]
+
+Among other things, what slowed me down a tad bit was trying to look at why a simple string edit to initial values of the room description would cause the tests to fail. Tests are sometimes written in a preliminary fashion and in projects like GameOn!, oriented toward learning. Perhaps they are written just to demo having them, not so much demoing how to write them? Here was my quick fix: `mvn install -DskipTests` Yep, I took the path of least resistance.
+
+I learned that an API like Watson Alchemy Data is very complex. Many of my coding errors related to an inadequate grasp of the queries that are accepted by this API even though I had a {demo-tool}[very helpful tool to learn with. http://querybuilder.alchemyapi.com/builder]. {demo-tool}[This site] allows you to check boxes for what type of query you want, display the query that is built and shows the JSON data you have retrieved. Quite nice! The JSON you get back is straight-forward but it's very easy to make mistakes when you transcribe and/or embed the pattern into code that accesses it.
+
+Some final observations, I was given an allowed number of "transactions" with my free Watson Alchemy API service account. 1000 transactions per day for the 'Free Plan' with other limitations described in the {bm-cat}[Bluemix catalog]. So as soon as I exceeded this daily number of transactions the service quit working. After a little digging I got a better picture of what this 'Free Plan' allows me to do.
+
+Lessons learned...
+
+1) Understand that for Alchemy Data API calls, "transactions" are a calculuated number based on the number of "enriched" items returned, and their volume and the timeframe specified by your query. This is documented in the {svc-dscr}[Service Description for Alchemy API for Bluemix]
+
+Additionally, it is rumored that for each call to the API there is a constant cost component of 2 transactions. So the calculation is stated in a more specific way (by Bluemix level 1 help):
+
+----
+        transactions = (number_of_returns * count) + 2
+----
+
+2) Request specific information. Instead of having a "return=enriched.url" argument in the query, retreive the more specific data with "return=enriched.url.title" or with "return=enriched.url.title,enriched.url.url"
+
+3) Look at sample queries that the {demo-tool}[Alchemy API demo] to learn how to formulate different kinds of queries without using your own apiKey.
+
+4) Lower the count to 1 in your query when you need to experiment see possible data items that *can* be returned, or better yet, use the Demo app above. I've been able to confirm that the "enriched.url" data has the following sub-elements: "author, cleanedTitle, concepts, docSentiment, entities, relations, feeds, image, keywords, imageKeywords, language, publicationDate, relations, taxonomy, text, title, url. Most of these will use up your daily limit quickly even with a count of 1, except for author,cleanedTitle,docSentiment,title and url. For example, using "count=1", I burned 784 transactions by fetching each of these with "return=enriched.url". ("enriched.url" is the site and it's contents, "enriched.url.url" is the site address").
+
+5) Reduce the count to less than 10 for more specific queries.
+
+6) A paid plan might be needed if you want to make the Watson News service available to all visitors to a GameOn! room. However, this depends on what information you want Watson to provide. For each API call that restricts the number of results shown to 10 and the number of returns to only 2 abbreviated items (url and title), the cost is not 22 transactions. To give you an idea of how much things cost, I'll gradually change parts of the Demo URL. But remember, the more you remove, the more like a plain keyword search your query becomes and the less you exploit the Alchemy API's human like intelligence....
+
+The following query costs 814 transactions. That's more than half of the daily limit and no text is returned.
+Any changes will show a gradual reduction in transaction cost and it also shows reduced exploitation of service capabilities:
+
+----
+        https://gateway-a.watsonplatform.net/calls/data/GetNews?apikey=<your_key_here>&return=enriched.url.title,enriched.url.url&start=1484611200&end=1485298800&q.enriched.url.enrichedTitle.entities.entity=|text=IBM,type=company|&q.enriched.url.enrichedTitle.docSentiment.type=positive&q.enriched.url.enrichedTitle.taxonomy.taxonomy_.label=technology%20and%20computing&count=25&outputMode=json
+----
+
+Here I will show how the cost changes. You will see a gradual reduction in transaction cost along with reduced exploitation of service capabilities when parts of the query are removed:
+
+[cols="2*" options="header"]
+|===
+|change
+|transactions used
+
+|no changes
+|814
+
+|count=10
+|784
+
+|count=1 and remvoed q.enriched.url.enrichedTitle.taxonomy.taxonomy_.label=technology%20and%20computing
+| 575
+
+|removed q.enriched.url.enrichedTitle.docSentiment.type=positive
+|384
+
+|changed to acces.alchemyapi URL
+|384
+
+|changed to start now end now
+|50
+|===
+
+7) You can see the number of transactions used for the current day by visiting here:
+
+----
+        http://access.alchemyapi.com/calls/info/GetAPIKeyInfo?apikey=<api_key>
+----

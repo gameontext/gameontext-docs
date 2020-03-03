@@ -1,0 +1,21 @@
+---
+title: Automation! Clouds!
+weight: 2
+type: book
+---
+
+:icons: font
+:signedHeaders: link:/architecture/application-security.html
+:WebSocketProtocol: link:/architecture/websocket-protocol.html
+:game-on: https://gameontext.org/
+
+image:../images/Progression.002.jpeg[Progression, width=90%]
+
+Automated build pipelines arrived! and Docker containers out in the cloud!
+Thankfully for those of us doing most of the dev work, the creation, testing of
+the delivery pipeline was pretty transparent. The build pipeline is triggered by
+a commit to the master branches of our repositories, which means no change to our
+usual workflow.
+
+A proxy was added to help route requests between the services and docker
+containers, and to give us a seamless domain space ({game-on}[gameontext.org]).

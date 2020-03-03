@@ -1,0 +1,74 @@
+---
+title: Git
+weight: 6
+type: book
+---
+
+:icons: font
+:toc:
+:toc-title:
+:toc-placement: manual
+:toclevels: 1
+:submodules: https://git-scm.com/book/en/v2/Git-Tools-Submodules
+:mastery: https://medium.com/@porteneuve/mastering-git-submodules-34c65e940407#.fdmpndvh6
+:notanswer: http://somethingsinistral.net/blog/git-submodules-are-probably-not-the-answer/
+:yukmodules: https://codingkilledthecat.wordpress.com/2012/04/28/why-your-company-shouldnt-use-git-submodules/
+:installgit: https://git-scm.com/book/en/v2/Getting-Started-Installing-Git
+:gameontext: https://githubhttps://github.com/gameontext.com/gameontext
+:contribute: https://github.com/gameontext/gameon/blob/master/CONTRIBUTING.md
+
+image::http://imgs.xkcd.com/comics/git.png[caption="", title="xkcd: Git",float="right",align="center",link="http://xkcd.com/1597/", width=250]
+
+We use submodules to facilitate grabbing all the core servies in one fell swoop.
+
+toc::[]
+
+Yes, yes we know, Git Submodules {notanswer}[are not] a {yukmodules}[cake walk]. But we believe the convenience of being able to grab the set of core services as a whole is worth it. If you plan to contribute back (as we hope you will), {submodules}[some reading] may be {mastery}[required].
+
+== References for using Git
+
+* https://git-scm.com/doc[Git Reference, Book, Cheat sheets]
+* {submodules}[GitBook: Submodules]
+* {mastery}[Mastering Git Submodules]
+
+== Safety precautions for using git with submodules
+
+If you end up using submodules in anger, consider the following:
+
+* Make `status` submodule aware: +
+`git config --global status.submoduleSummary true`
+* Make `diff` submodule aware: +
+`git config --global diff.submodule log`
+* From the parent repository (gameon):
+** Use `rebase` instead of merge: +
+`git config alias.srebase 'submodule update --remote --rebase'`
+** Recursive diff. +
+`git config alias.sdiff '!'"git diff && git submodule foreach 'git diff'"`
+** Safe(r) push: +
+`git config alias.spush 'push --recurse-submodules=check'`
+
+== Signing Commits
+
+If you're going to contribute code to Game On!, then you need to certify
+that you agree to the Developer's Certificate of Origin, as documented in
+our {contribute}[contribution guidelines]. You must use your real name.
+
+You can make this easy with the following alias:
+-------------------------------------------
+git config alias.cs 'commit -s'
+-------------------------------------------
+
+Set your name and email (for the project only), using:
+-------------------------------------------
+git config user.email "joe.smith@email.com>"
+git config user.name "Joe Smith"
+-------------------------------------------
+
+== Other useful aliases
+
+Note global vs. project-specific, make up your own mind which to use.
+
+* Undo staged changes: +
+`git config --global alias.unstage 'reset HEAD --'`
+* See last commit: +
+`git config --global alias.last 'log -1 HEAD'`

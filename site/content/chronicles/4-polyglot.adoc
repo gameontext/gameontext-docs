@@ -1,0 +1,19 @@
+---
+title: Something other than Java!
+weight: 4
+type: book
+---
+
+:icons: font
+:signedHeaders: link:/architecture/application-security.html
+:WebSocketProtocol: link:/architecture/websocket-protocol.html
+:game-on: https://gameontext.org/
+
+image:../images/Progression.004.jpeg[Progression, width=95%]
+
+Our team has nothing against JavaScript, but Java is what we know. When attempting
+something big and new, we felt it was a good idea to constrain the number of
+moving parts in the air. In this case, we stuck with a language we were
+familiar with for the first core services.
+
+The Node.js room brought JavaScipt to the backend. More will follow.

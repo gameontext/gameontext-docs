@@ -1,0 +1,154 @@
+---
+title: Running with Kubernetes
+weight: 6
+type: book
+aliases:
+- "/walkthroughs/local-k8s.html"
+---
+
+:icons: font
+:toc:
+:toc-title:
+:toc-placement: manual
+:toclevels: 2
+:sociallogin: link:/walkthroughs/advanced/test-sso-login.html
+:wdt-eclipse: link:/walkthroughs/eclipse_and_wdt.html
+:docker: https://docs.docker.com/engine/installation/
+:git: link:git.html
+:vagrant: https://www.vagrantup.com/downloads.html
+:root: https://github.com/gameontext/gameon
+:adventures: link:/walkthroughs/advanced/
+:contribute: https://github.com/gameontext/gameon/blob/master/CONTRIBUTING.md
+:releases: https://github.com/docker/compose/releases
+:kubectl: https://kubernetes.io/docs/tasks/tools/install-kubectl/
+:helm: https://docs.helm.sh/using_helm/#installing-helm
+:cluster: https://github.com/gameontext/gameon/tree/master/kubernetes#set-up-a-kubernetes-cluster
+
+== Requirements
+
+* {docker}[Docker]
+* Kubernetes version 1.9 or greater:
+  - [kubectl]
+  - A {cluster}[configured Kubernetes cluster]
+* {helm}[helm] (optional)
+
+[[running]]
+== Starting game services locally
+
+1. Obtain the source for the root project ({root}[gameontext/gameon])
+  * HTTPS: `git clone https://github.com/gameontext/gameon.git`
+  * SSH: `git clone git@github.com:gameontext/gameon.git`
+2. Change to the gameon directory
++
+-------------------------------------------
+$ cd gameon
+-------------------------------------------
+3. Setup your environment (one time, see <<go-run,below>>).
++
+-------------------------------------------
+$ ./go-admin.sh choose       # choose Docker Compose
+$ eval $(./go-admin.sh env)  # set script aliases
+$ alias go-run               # confirm `docker/go-run.sh`
+-------------------------------------------
+4. Set up core game services (repeatable):
++
+-------------------------------------------
+$ go-run setup
+-------------------------------------------
++
+This will ensure you have the right versions of applications we use, prompt to
+use helm or not, and create a certificate for signing JWTs.
++
+If your cluster IP changes (or you have made changes to some templated
+files and want to start over), use:
++
+-------------------------------------------
+$ go-run reset
+-------------------------------------------
++
+All script commands in the following steps will show the command (`kubectl` or
+`helm`) being invoked, so you can follow along, or invoke on your own.
+5. Start core game services:
++
+-------------------------------------------
+$ go-run up
+-------------------------------------------
++
+This step will also create a `gameon-system` name space and a generic kubernetes
+secret containing that certificate.
+6. Wait for the system warm up
++
+-------------------------------------------
+$ go-run wait
+-------------------------------------------
+or, to watch the action, visit the kubernetes dashboard. For example, with
+`minikube`, try:
++
+-------------------------------------------
+$ minikube dashboard
+-------------------------------------------
+7. *Carry on with {adventures}[building your room]!*
+8. Clean up
++
+-------------------------------------------
+$ go-run down
+-------------------------------------------
+
+
+== Files supporting Kubernetes
+
+The `kubernetes` subdirectory of the root project contains the following:
+
+* `chart/gameon-system` (directory) defines a helm chart for deploying core game services
+* `kubectl` (directory) defines individual YAML files to create Kubernetes artifacts
+   (config maps, services, and deployments)
+* `.template.configmap.yaml`, `.template.ingress.yaml`, and `.template.values.yaml`
+  are copied into the `kubectl` and `chart` directories by the setup script once
+  the cluster IP address is known.
+* `go-run.sh` helps with starting, stopping, and cleaning up Game On! core services.
+* `k8s-functions` contains most of the functions working directly with `kubectl` or `helm`.
+
+== Configuration
+
+When Game On! runs in the cloud, it uses etcd to obtain its configuration.
+When running locally it expects all this to be fed to it via the environment.
+
+With Kubernetes, configuration is injected via `ConfigMap` objects:
+* When using `kubectl` alone, configuration attributes are provided by
+  `kubectl/configmap.yaml`.
+* When using `helm`, configuration attributes are provided by
+   `chart/gameon-system/values.yaml`
+
+As referenced earlier, these files won't exist until the setup script has
+run at least once.
+
+[[rebuild]]
+== Rebuilding Core Game services with Kubernetes
+
+_TBD_
+
+
+[[go-run]]
+[NOTE]
+.About `go-run.sh` and `go-run`:
+====
+- Use `eval $(./kubernetes/go-run.sh env)` to add `go-run` and `go-admin` aliases
+  to your shell:
++
+-------------------------------------------
+$ eval $(./kubernetes/go-run.sh env)
+$ alias
+-------------------------------------------
+
+- Use `go-run` without arguments to get a list of available actions. Some examples
+  based on the alias created above:
++
+-------------------------------------------
+$ go-run setup
+$ go-run up
+$ go-run wait
+$ go-run down
+-------------------------------------------
+
+
+====

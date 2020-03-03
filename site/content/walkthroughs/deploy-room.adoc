@@ -1,0 +1,19 @@
+---
+title: Deploy your room service
+weight: 6
+type: book
+aliases:
+- "/walkthroughs/deployRoom.html"
+---
+
+:icons: font
+:more: link:/walkthroughs/advanced/
+:first-room: https://gameontext.org/#/play
+:register: link:register-room.html
+
+Your room needs a publicly reachable endpoint for people to visit it.
+
+This could mean running your room as a traditional server on any old hosting
+service. But as we're playing with cloud native applications and microservices,
+we should try deploying our service to a Cloud provider.
+

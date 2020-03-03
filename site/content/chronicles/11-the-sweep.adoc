@@ -1,0 +1,16 @@
+---
+title: Swept away...
+weight: 11
+type: book
+---
+
+:icons: font
+:signedHeaders: link:/architecture/application-security.html
+:WebSocketProtocol: link:/architecture/websocket-protocol.html
+:game-on: https://gameontext.org/
+
+image:../images/Progression.011.jpeg[Progression, width=95%]
+
+Our first non-player character! The Sweep is in early days, so we don't know in
+what directions it will grow, but it will serve an important function: keeping
+the map alive and vital by pruning sick rooms.

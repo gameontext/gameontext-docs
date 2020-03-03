@@ -1,0 +1,273 @@
+---
+title: Running with Docker Compose
+weight: 6
+type: book
+---
+
+:icons: font
+:toc:
+:toc-title:
+:toc-placement: manual
+:toclevels: 2
+:sociallogin: link:/walkthroughs/advanced/test-sso-login.html
+:wdt-eclipse: link:/walkthroughs/eclipse-and-wdt.html
+:docker: https://docs.docker.com/engine/installation/
+:git: link:git.html
+:vagrant: https://www.vagrantup.com/downloads.html
+:root: https://github.com/gameontext/gameon
+:adventures: link:/walkthroughs/advanced/
+:contribute: https://github.com/gameontext/gameon/blob/master/CONTRIBUTING.md
+:compose: https://docs.docker.com/compose/install/
+:releases: https://github.com/docker/compose/releases
+
+== Requirements
+
+* `docker-compose` {releases}[version 1.15.0 or greater].
+{compose}[Installation instructions] vary by platform.
+
+[[running]]
+== Starting game services locally
+
+1. Obtain the source for the root project ({root}[gameontext/gameon])
+  * HTTPS: `git clone https://github.com/gameontext/gameon.git`
+  * SSH: `git clone git@github.com:gameontext/gameon.git`
+
+2. Change to the gameon directory
++
+-------------------------------------------
+$ cd gameon
+-------------------------------------------
+3. Setup your environment (one time, see <<go-run,below>>).
++
+-------------------------------------------
+$ ./go-admin.sh choose       # choose Docker Compose
+$ eval $(./go-admin.sh env)  # set script aliases
+$ alias go-run               # confirm `docker/go-run.sh`
+-------------------------------------------
+4. Set up core game services (repeatable):
++
+-------------------------------------------
+$ go-run setup
+-------------------------------------------
++
+This will ensure that you have an env file suitable for use
+with `docker-compose` and pulls the initial images required
+for running the system.
++
+When using Vagrant, this step is done as part of provisioning the VM.
+
+5. Start core game services:
++
+-------------------------------------------
+$ go-run up
+-------------------------------------------
+
+6. Wait for the system warm up
++
+-------------------------------------------
+$ go-run wait
+-------------------------------------------
+or, to watch the logs stream by, try:
++
+-------------------------------------------
+$ go-run logs
+-------------------------------------------
+
+7. *Carry on with {adventures}[building your room]!*
+
+8. Clean up
++
+-------------------------------------------
+$ go-run down
+-------------------------------------------
+
+
+== Files supporting Docker Compose
+
+The `docker` subdirectory of the root project
+contains the files required to make game services go:
+
+* `docker-compose.yml` declares core game and required backing services
+* `docker-compose.override.yml.example` can be copied to `docker-compose.override.yml`
+  and modified to support overlays for local development
+* `go-run.sh` helps with starting, stopping, and cleaning up Game On! core services.
+* `docker-functions` is used by `go-run.sh` to generate the keystore volume
+   and perform docker-specific, environment-appropriate commands.
+
+== Configuration
+
+When Game On! runs in the cloud, it uses etcd to obtain its configuration.
+When running locally it expects all this to be fed to it via the environment.
+The `gameon.env` file defined in the docker directory provides this local
+configuration for Docker Compose.
+
+Some additional notes regarding environment-specific config:
+
+* When you run natively, the "host" for your containers is the OS itself, so
+  127.0.0.1 will work just fine (default url in `gameon.env`).
+
+* When you run in Docker Toolbox, there is a VirtualMachine acting as the host
+  for your containers. This means that (for URLs and other things) you need to
+  use the xref:dockerhost[IP of the VM]. A `gameon.<DOCKER_MACHINE_NAME>env`
+  file will be created as a modified copy of `gameon.env` to adjust.
+
+* Similarly, if you are running with Vagrant, you need to use the Vagrant VM's
+  IP address. A `gameon.vagrantenv` file will be created in the docker directory
+  as a modified copy of `gameon.env`.
+
+== SSH Keys and KeyStores
+
+Because Game On! uses a Certificate for HTTPS and for JWT signing, we need to
+generate one for local use. We create a special mapped volume (called `keystore`)
+that provides a generated local keystore to containers.
+
+Scripts will ensure that this volume exists.
+
+[[go-run]]
+[NOTE]
+.About `go-run.sh`, `go-run`, and `go-compose`:
+====
+- Use `eval $(./docker/go-run.sh env)` to add `go-run` and `go-compose` aliases
+  to your shell:
++
+-------------------------------------------
+$ eval $(./docker/go-run.sh env)
+$ alias
+-------------------------------------------
+
+- Use `go-run` without arguments to get a list of available actions. Some examples
+  based on the alias created above:
++
+-------------------------------------------
+$ go-run up
+$ go-run down
+$ go-run logs
+$ go-run rebuild
+$ go-run restart
+$ go-run wait
+-------------------------------------------
+
+- `go-compose` wraps the invocation of `docker-compose` with `-f` options for
+`docker-compose.yml` and `docker-compose.override.yml` (if present), and
+`sudo` (if required).
++
+-------------------------------------------
+$ go-compose ps
+$ go-compose logs
+-------------------------------------------
+
+====
+
+Additional notes when running with Docker Compose:
+
+* `docker-compose` still requires sudo on linux platforms, even
+though `docker` doesn't.
+* The Vagrant VM allows all `sudo` operations with no password.
+
+[[rebuild]]
+== Rebuilding Core Game services with Docker Compose
+
+The following instructions assume you've cloned the root repository,
+and are interested in editing the `map` service as an example:
+
+1. Change to the gameon directory
++
+-------------------------------------------
+$ cd gameon
+-------------------------------------------
+2. Obtain the source for the project that you want to change.
++
+-------------------------------------------
+$ git submodule init map
+$ git submodule update map
+-------------------------------------------
+3. Make your changes from within the child directory
++
+-------------------------------------------
+$ cd map
+$ git checkout -b newbranch
+-------------------------------------------
+Edit source or docker/image files using your favorite IDE.
++
+TIP: If you plan to edit projects with Eclipse, run `./bin/eclipse.sh` to generate eclipse project files.
+
+4. Compile the source and rebuild docker image
+* To rebuild and restart the map service:
++
+-------------------------------------------
+$ go-run rebuild map
+-------------------------------------------
+* To rebuild the image without recreating the container:
++
+-------------------------------------------
+$ go-run rebuild_only map
+-------------------------------------------
+* If the service argument is left off, it will attempt to rebuild all
+of the core services (auth, map, mediator, player, room, webapp). If those
+submodules haven't been checked out, there is no harm. The image from dockerhub
+will be used instead.
++
+[NOTE]
+.Top-down vs. incremental updates
+====
+If you want to try using incremental publish, where your changes are live inside
+the container without requiring the container to be stopped, started, rebuilt
+or otherwise messed with, you'll need to create and/or add some lines
+to `./docker/docker-compose.override.yml` to create overlay volumes.
+
+`./docker/docker-compose.override.yml.example` provides examples of how
+to map expected github subrepository paths to volumes. Copy snippets from
+that file for the services you're interested in into `docker-compose.override.yml`.
+
+`./docker/go-run.sh` will accommodate the creation of the `docker-compose.override.yml`
+file, but you may need to run `eval $(./docker/go-run.sh env)` to update your
+aliases.
+====
+
+5. Push your changes to a new branch. From the map directory:
++
+-------------------------------------------
+$ git add -u
+$ git commit -s
+-------------------------------------------
+[NOTE]
+====
+Git commits must be {contribute}[signed]
+====
+Once you make your commit, if you go back to the root directory, you will see
+a pending change for map. This indicates that the submodule is different than
+the version from the current branch of the root project.
+
+*Do not check in changes to submodule versions*
++
+Care must be taken to avoid staging these files if you otherwise end up making
+changes to files in the root project itself.
+
+=== Iterative development of Java applications with WDT
+
+If you're using Eclipse for development, and have opted for the iterative
+approach (using `docker-compose.override.yml` for volumes, e.g.),
+we recommend using WebSphere Developer Tools (WDT) to work with the Java
+services contained in the sample. There is some (one time) {wdt-eclipse}[configuration
+required to make WDT happy with the docker-hosted applications],
+but you are then free to use eclipse to make changes to the project that will
+be immediately picked up by the running server without having to rebuild
+or restart anything.
+
+[[dockerhost]]
+=== Determining the host IP address (Docker Toolbox)
+
+After you have Docker Toolbox installed, verify the host machine name:
+`docker-machine ls`. The default name is `default`, but if you're a former
+Boot2Docker user, it may be `dev` instead. Substitute this value appropriately
+in what follows.
+
+If you aren't using the docker quick-start terminal, you'll need to set the
+docker environment variables in your command shell using
+`eval "$(docker-machine env default)"`.
+
+Get the IP address for your host using `docker-machine ip default`.
+
+`./docker/go-setup.sh` and `./docker/go-run.sh` will create a
+`gameon.<DOCKER_MACHINE_NAME>env` file to account for the IP address
+difference.

@@ -1,0 +1,460 @@
+---
+title: Communication with REST & JAX-RS
+weight: 15
+type: book
+aliases:
+- "/walkthroughs/mapviarest.html"
+---
+
+:icons: font
+:toc:
+:toc-title:
+:toc-placement: preamble
+:toclevels: 2
+:linkref: http://www.google.com
+:rest: https://en.wikipedia.org/wiki/Representational_state_transfer
+:jaxrs: https://en.wikipedia.org/wiki/Java_API_for_RESTful_Web_Services
+:jaxrsclient: https://docs.oracle.com/javaee/7/api/javax/ws/rs/client/package-summary.html
+:mapservice: link:/architecture/map.html
+:sample-room-with-mapclient: https://github.com/gameontext/sample-room-java/tree/c888aad87b5ebac2a2fe740b1b39d3194d95b60b/src/main/java/org/gameontext/sample/map/client
+:sample-room: https://github.com/gameontext/sample-room-java
+:sample-room-walkthrough: link:/walkthroughs/create-room.html
+:liberty-jaxrs-config: https://www.ibm.com/support/knowledgecenter/SS7K4U_8.5.5/com.ibm.websphere.wlp.zseries.doc/ae/twlp_jaxrs2.0_clientconfig.html
+:map-swagger-get-room: https://gameontext.org/swagger/#!/map/getRoom
+:circuit-breaker: http://www.javaworld.com/article/2824163/application-performance/stability-patterns-applied-in-a-restful-architecture.html?page=2
+:failsafe: https://github.com/jhalterman/failsafe
+:jsr107: link:jsr107-caching.html
+
+Where we learn how to talk to Map via REST & JAX-RS
+
+== Overview
+
+In this adventure, we'll learn about the {rest}[Representational State Transfer (REST)] approach
+for defining services. We'll explore how the {jaxrs}[JAX-RS] specification simplifies working with
+REST endpoints by adding simple client capabilities to a Game On room.
+
+== Why REST ?
+
+{rest}[REST] has become pervasive as a way to communicate between services, defining an easy and simple way
+to invoke an action against a remote endpoint.
+
+From a microservice perspective REST is one the most important basic tools you will need, to expose your
+own services for others to invoke, and to call on other services yourself.
+
+Within this tutorial we'll look at how you can use {jaxrs}[JAX-RS], a Java API for Rest,
+to create a client to talk to the {mapservice}[Game On Map Service], to have your room query it's own information.
+
+== Prerequisites
+
+This walkthrough starts after you have completed the {sample-room-walkthrough}[Create a Room]
+adventure, and expanding on the {sample-room}[Java Sample Room] project.
+
+No additional accounts or services are required.
+
+== Walkthrough
+
+=== Server Configuration
+
+We're going to create a {jaxrsclient}[JAX RS Client] to talk to the Map service. To use
+{liberty-jaxrs-config}[JAX-RS within Liberty] we need
+to cmake sure the server is configured to use both the jaxrs-2.0 and the
+cdi-1.2 features.
+
+To do that, opensample-room-java/src/main/liberty/config/server.xml, and look for:
+
+[source,xml]
+----
+<feature>jaxrs-2.0</feature>
+<feature>cdi-1.2</feature>
+----
+
+The order of these two elements is not important, they just have to be there.
+
+=== Creating the client
+
+We'll create our MapClient as a bean we can inject via CDI.
+
+Lets start with a simple skeleton from which we'll build the client capability.
+
+[source,java]
+----
+@ApplicationScoped
+public class MapClient {
+    public static final String DEFAULT_MAP_URL = "https://gameontext.org/map/v1/sites";
+    private WebTarget queryRoot;
+    @PostConstruct
+    public void initClient() {
+        try {
+            Client queryClient = ClientBuilder.newBuilder().build();
+
+            // create the jax-rs 2.0 client
+            this.queryRoot = queryClient.target(DEFAULT_MAP_URL);
+
+        } catch ( Exception ex ) {
+            Log.log(Level.SEVERE, this, "Unable to initialize map service client", ex);
+        }
+    }
+
+    public String getMapData(String roomId) {
+    }
+}
+----
+
+Here we're creating a simple bean, and using the `@PostConstruct` method to configure
+a JAX RS WebTarget that's pointing at the Game On Map Service.
+
+TIP: Instead of hardcoding the Map URL, why not pass it in as an environment variable, and
+have server.xml set the environment variable as a JNDI Entry you can inject into the MapClient.
+
+With the WebTarget initialised, lets have a look at the code for `getMapData`
+
+[source,java]
+----
+    public String getMapData(String siteId) {
+        WebTarget target = this.queryRoot.path(siteId);
+        Response r = null;
+        try {
+            r = target.request(MediaType.APPLICATION_JSON).get();
+            if (r.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL)) {
+                String data = r.readEntity(String.class);
+                return data;
+            }
+            return null;
+        } catch (ResponseProcessingException rpe) {
+            Response response = rpe.getResponse();
+            Log.log(Level.FINER, this, "Exception fetching room uri: {0} resp code: {1} ",
+                    target.getUri().toString(),
+                    response.getStatusInfo().getStatusCode()
+                    + " "
+                    + response.getStatusInfo().getReasonPhrase());
+            Log.log(Level.FINEST, this, "Exception fetching room ", rpe);
+        } catch (ProcessingException e) {
+            Log.log(Level.FINEST, this, "Exception fetching room ("
+              + target.getUri().toString()
+              + ")",
+              e);
+        } catch (WebApplicationException ex) {
+            Log.log(Level.FINEST, this, "Exception fetching room ("
+              + target.getUri().toString()
+              + ")",
+              ex);
+        }
+        // Unable to obtain the room.
+        return null;
+    }
+----
+
+First impressions are that's an awful lot of exception handlers for such a simple request.
+
+We want to issue a {map-swagger-get-room}[`GET` to the Map service] using the url:
+
+`https://gameontext.org/map/v1/sites/{siteId}`
+
+The first line of the method, `this.queryroot.path(siteId)` adds our `siteId` argument
+to our URL. Then we issue the request:
+
+`target.request(MediaType.APPLICATION_JSON).get()`
+
+That sends the HTTP GET request to the target URL, and returns us a `Response` object. At this
+stage, we do not know if the request was succesful, or if the Map service reported an error.
+It's important to understand that just because you get a Response, does not mean the request
+was successful. For example, if the siteId is not found, you will recieve a 404 Response from
+the Map service.
+
+Once we have the Response, we test it to see if the Response says the
+request was carried out successfully. If so, then we can proceed to read the data from
+the Response.
+
+There are various other ways you can end up in the Exception blocks, if the host name isn't known,
+or if the connection was refused, or other network related issues. In each case, we just
+log the error, and return null.
+
+If we print the string we get back from the Response, we'll see that Map sends us a block of
+JSON for the room. Here's the Response for one of the standard rooms, `RecRoom`
+
+[source,json]
+----
+{
+  "info": {
+     "name":"RecRoom",
+     "fullName":"Rec Room",
+     "description":"A dimly lit shabbily decorated room, that appears tired and dated. It looks like someone attempted to provide kitchen facilities here once, but you really wouldn't want to eat anything off those surfaces!",
+     "doors":{
+       "n":"A dark alleyway, with a Neon lit sign saying 'Rec Room', you can hear the feint sounds of a jukebox playing.",
+       "w":"The doorway has a sign saying 'Rec Room' beneath it, about halfway down the door, someone has written 'No Goblins' in crayon.",
+       "s":"Hidden behind piles of trash, you think you can make out the back entrance to the Rec Room.",
+       "e":"The window on the wall of the Rec Room looks large enough to climb through."}
+   },
+   "exits":{
+       "n":{"name":"creepyroom",
+            "fullName":"Creepy Room",
+            "door":"A steel door with a coffee cup.",
+            "_id":"edb77e1c506243ffa2dc496de6970b13"},
+       "w":{"name":"First Room",
+            "fullName":"The First Room",
+            "door":"A fake wooden door with stickers of friendly faces plastered all over it",
+            "_id":"firstroom"},
+       "s":{"name":"REAL",
+            "fullName":"rEaLItY",
+            "door":"A very very very very very very very very very very very very normal door",
+            "_id":"f9ec231dc64379be70d081e04d340f81"},
+       "e":{"name":"room14",
+            "fullName":"David o",
+            "door":"See 'Try East' close by",
+            "_id":"e784d7f9eaff39fde4b6607116bb2c16"}
+   },
+   "owner":"game-on.org",
+   "createdOn":"2017-02-23T21:29:53.548Z",
+   "assignedOn":"2017-02-23T21:29:53.549Z",
+   "coord":{"x":1,"y":0},
+   "type":"room",
+   "_id":"658aa51512b7cbbc3ee5d0f502525545",
+   "_rev":"17-547f06f5dbfa4c98e959d6978353fcaf"
+}
+----
+
+Here you can see JSON returned containing the information supplied when the room was registered.
+Along with additional information related to it's current location within the Map; coordinates,
+adjoining rooms, and creation timestamps.
+
+With a little effort, we can write some code to retrieve the parts we are interested in, and
+then return that from our MapClient `getMapData` method as a typed object, rather than as a JSON String.
+
+We're only really after the name/fullname/description for our room. Lets create a bean to
+hold the data, so we have an object to return. This is just a really simple POJO, nothing
+to be amazed at ;)
+
+[source,java]
+----
+public class MapData {
+    private String name;
+    private String fullName;
+    private String description;
+
+    public String getName() {
+        return name;
+    }
+    public void setName(String name) {
+        this.name = name;
+    }
+    public String getFullName() {
+        return fullName;
+    }
+    public void setFullName(String fullName) {
+        this.fullName = fullName;
+    }
+    public String getDescription() {
+        return description;
+    }
+    public void setDescription(String description) {
+        this.description = description;
+    }
+}
+----
+
+Lets update the MapClient `getMapData` method to parse the JSON and populate the POJO.
+Change the return type of the method to be the new `MapData` class, and then remove the
+line `return data;` and substitute this block of code to process the returned data.
+
+[source,java]
+----
+        try {
+            rdr = Json.createReader(new StringReader(data));
+            JsonObject returnedJson = rdr.readObject();
+            JsonObject info = returnedJson.getJsonObject("info");
+
+            MapData mapData = new MapData();
+            mapData.setName(info.getString("name",null));
+            mapData.setFullName(info.getString("fullName",null));
+            mapData.setDescription(info.getString("description",null));
+
+            return mapData;
+        } finally {
+            if (rdr != null) {
+                rdr.close();
+            }
+        }
+----
+
+That's enough to get us a basic functional MapClient that we can use to
+retrieve the name/fullName/description for any room.
+
+=== Using the client
+
+Now let's look at wiring that client to our Room. We'll have our room look
+up it's data from the map, and have it use that, instead of the data we've
+supplied as defaults within RoomDescription.
+
+Our first challenge is discovering our room id, we could cut & paste it
+into the code manually from the room registration. Or we could inject it
+via an environment variable (then via jndi, and ``@Resource` or `@Inject`).
+
+There's a third, simpler option. We can use the id as sent to us in each Game On
+message sent to our room.
+
+Every time Game On sends a message to a room, it includes the id of the room
+it's talking to as part of the routing information in the message.
+
+One of the first messages the room receives is `roomHello`, to which we would
+normally respond with the `location` message that supplies Game On with the
+room description etc.
+
+We'll update the logic so that once we receieve our `roomHello` we'll make a
+quick call to Map to retrieve the description, and then use that data to give
+back to Game On.
+
+The `roomHello` handler today lives over in `RoomImplementation` and looks
+like this.
+
+[source,java]
+----
+case roomHello:
+    //		roomHello,<roomId>,{
+    //		    "username": "username",
+    //		    "userId": "<userId>",
+    //		    "version": 1|2
+    //		}
+    // See RoomImplementationTest#testRoomHello*
+
+    // Send location message
+    endpoint.sendMessage(session, Message.createLocationMessage(userId, roomDescription));
+
+    // Say hello to a new person in the room
+    endpoint.sendMessage(session,
+            Message.createBroadcastEvent(
+                    String.format(HELLO_ALL, username),
+                    userId, HELLO_USER));
+    break;
+----
+
+If we look a little above the block, we can see the switch statement, using `message.getTarget`
+to obtain the message type for evaluation. The `message` object offers another method,
+`getTargetId` which will return us the roomId for the recieved message.
+
+Lets start by injecting the MapClient to the `RoomImplementation`. Add a field declaration
+with an `@Inject` annotation like this.
+
+[source,java]
+----
+@Inject
+MapClient mapClient;
+----
+
+That will cause CDI to inject an instance of the `MapClient` class into `RoomImplementation`,
+which we'll use to lookup our room details.
+
+TIP: Remember you cannot use Injected resources within the objects constructor, they haven't
+been injected yet!! Use a `@PostConstruct` method instead.
+
+Revisit the `roomHello` block we identified earlier, and before sending the `location`
+message, add this code;
+
+[source,java]
+----
+  String roomId = message.getTargetId();
+  MapData data = mapClient.getMapData(roomId);
+  if(data!=null){
+    roomDescription.setDescription(data.getDescription());
+    roomDescription.setName(data.getName());
+    roomDescription.setFullName(data.getFullName());
+  }
+----
+
+You can verify this now if you deploy the room, edit the room description using
+the room registration user interface, and then visit your room. When you enter the room
+will use the description from the data registered
+in map, rather than the hardcoded defaults in the `RoomDescription` class.
+
+=== Improving the usage
+
+Great, except now we're making a request to update that info every time anyone enters
+the room, and we really should consider caching that information, as its unlikely it changes frequently.
+
+TIP: Consider using a JSR107 type cache to store the description information, then you
+can configure expiry conditions, and share the cache between scaled instances of your room!
+Check the JSR107 Advanced Adventure for details.
+
+Lets add a field to store the MapData within the `RoomImplementation` class. Near where
+you added the `MapClient` injection, add..
+
+[source,java]
+----
+MapData data = null;
+----
+
+Then, update the block we just added to only perform the get if we haven't done one yet.
+
+[source,java]
+----
+  String roomId = message.getTargetId();
+  if(data==null){
+    data = mapClient.getMapData(roomId);
+    if(data!=null){
+      roomDescription.setDescription(data.getDescription());
+      roomDescription.setName(data.getName());
+      roomDescription.setFullName(data.getFullName());
+    }
+  }
+----
+
+That's pretty good, we could even add a simple command in the `processCommand`
+block that could wipe the cached data so it can be refreshed;
+
+[source,java]
+----
+  case "/clearcache":
+    data = null;
+    endpoint.sendMessage(session,
+         Message.createSpecificEvent(userId, "Cache Cleared."));
+    break;
+----
+
+Now when you connect to the room, you can issue `/clearcache` and exit & re-enter
+the room to have it pick up changes made via the room registration interface.
+
+[TIP]
+=====
+Although it may now feel as if we've covered all the bases with our simple
+cache, consider what happens when the mapClient returns null. If there's an error
+talking to the Map service, resulting in a null return, the current approach would
+retry the request every time a player entered the room. That may not be ideal if
+your room is high traffic, or if the response is an error 500.
+
+Define fallback behaviors for these conditions (for example, use default hard-coded values in this case),
+and consider {circuitbreaker}[circuit breaker] or bulkhead patterns to minimize the number of outbound
+calls placed when errors occur. {failsafe}[Failsafe] is a lightweight Java library with few dependencies
+that can help with this, but that feels like a different adventure.
+=====
+
+==== Example in github.
+
+In case you just want to see what it can look like when it's all put together,
+we've got a git repo you may want to {sample-room-with-mapclient}[check out].
+(Pun intended.)
+
+
+== Suggested extensions
+
+This has been a simple look at REST, using a single 'GET' operation.
+The {map-swagger-get-room}[Map API] supports many others, and the Player service
+has a REST API also.
+
+You could try using the Player REST API to track the location of players
+who were in your room recently.
+
+You could expand your room service to host multiple rooms behind a
+single endpoint, and use the RoomID from room hello to lookup which
+description you should return when a user connects. Remember to cache
+the MapData for each ID!
+
+== Conclusion
+
+By following this guide, you have created a basic JAX-RS client, and
+used it to invoke the REST API of the Map service to look up your
+rooms details.
+
+== Suggested further adventures.
+
+You may want to consider the {jsr107}[JSR107 Caching example] to see how you
+could create a cache for the MapData that would automatically expire
+after a defined period of time.

@@ -1,0 +1,264 @@
+---
+title: Istio and Kubernetes
+weight: 80
+type: book
+aliases:
+- "/walkthroughs/local-k8s-istio.html"
+---
+
+:icons: font
+:toc:
+:toc-title:
+:toc-placement: manual
+:toclevels: 2
+:git: link:/walkthroughs/core/git.html
+:local-k8s: link:/walkthroughs/core/local-kubernetes.html
+:root: https://github.com/gameontext/gameon
+:adventures: link:/walkthroughs/advanced/
+:cluster: https://github.com/gameontext/gameon/tree/master/kubernetes#set-up-a-kubernetes-cluster
+:istio-install: https://istio.io/docs/setup/kubernetes/quick-start.html
+:istio-sidecar: https://istio.io/docs/setup/kubernetes/sidecar-injection.html#automatic-sidecar-injection
+
+In this adventure, we'll add Istio to the Kubernetes cluster running our core
+game services, to see what it does and how it works. So we don't make a mess of
+our configration with, and without, Istio, we'll be using {istio-sidecar}[automatic sidecar
+injection].
+
+== Requirements
+
+* A cluster configured and working with GO!, per {local-k8s}[Running with Kubernetes]
++
+-------------------------------------------
+$ eval $(./go-admin.sh env)  # set script aliases
+-------------------------------------------
+* A kubernetes cluster that supports {istio-sidecar}[Automatic sidecar injection].
+  - For `minikube` that means version v0.25.0 or later, and a few more parameters at startup:
++
+-------------------------------------------
+minikube start \
+  --extra-config=controller-manager.ClusterSigningCertFile="/var/lib/localkube/certs/ca.crt" \
+  --extra-config=controller-manager.ClusterSigningKeyFile="/var/lib/localkube/certs/ca.key" \
+  --extra-config=apiserver.Admission.PluginNames=NamespaceLifecycle,LimitRanger,ServiceAccount,PersistentVolumeLabel,DefaultStorageClass,DefaultTolerationSeconds,MutatingAdmissionWebhook,ValidatingAdmissionWebhook,ResourceQuota \
+  --kubernetes-version=v1.9.0 \
+  --memory 8192
+-------------------------------------------
+
+== Download and install the latest Istio release
+
+Please follow the instructions, {istio-install}[Istio Quick Start], to get Istio
+mesh installed on Kubernetes.
+
+The TL;DR version of installing the latest Istio release:
+
+-------------------------------------------
+$ curl -L https://git.io/getLatestIstio | sh -
+$ cd istio-0.5.1              # Adjust as needed
+$ export PATH=$PWD/bin:$PATH  # add istioctl to path
+-------------------------------------------
+
+== Add Istio to the Kubernetes cluster
+
+The following commands assume you're in the directory created when you
+installed istio (e.g. `istio-0.0.1` as shown above).
+
+1. Make sure our services are stopped:
++
+-------------------------------------------
+$ go-run down
+-------------------------------------------
+
+2. Install Istio's core components to the cluster
++
+-------------------------------------------
+$ kubectl apply -f install/kubernetes/istio.yaml
+-------------------------------------------
++
+Note: We are not enabling mutual TLS authentication between sidecars in this walkthrough.
++
+If you are using `minikube` and encounter errors like the following, wait a few moments, and try the
+above command again.
++
+-------------------------------------------
+unable to recognize ".../install/kubernetes/istio.yaml": no matches for config.istio.io/, Kind=attributemanifest
+unable to recognize ".../install/kubernetes/istio.yaml": no matches for config.istio.io/, Kind=stdio
+unable to recognize ".../install/kubernetes/istio.yaml": no matches for config.istio.io/, Kind=logentry
+unable to recognize ".../install/kubernetes/istio.yaml": no matches for config.istio.io/, Kind=rule
+unable to recognize ".../install/kubernetes/istio.yaml": no matches for config.istio.io/, Kind=metric
+-------------------------------------------
+
+3. The Webhooks used for automatic sidecar injection require a signed cert/key pair.
+For istio versions 0.5.0 and 0.5.1, we have to download the scripts first.
++
+-------------------------------------------
+# Only necessary for istio versions 0.5.0 and 0.5.1
+$ curl https://raw.githubusercontent.com/istio/istio/master/install/kubernetes/webhook-create-signed-cert.sh > install/kubernetes/webhook-create-signed-cert.sh
+$ curl https://raw.githubusercontent.com/istio/istio/master/install/kubernetes/webhook-patch-ca-bundle.sh > install/kubernetes/webhook-patch-ca-bundle.sh
+$ chmod +x install/kubernetes/webhook-*.sh
+-------------------------------------------
++
+.. Generate a cert/key pair signed by the Kubernetes’ CA. The resulting cert/key
+file is stored as a Kubernetes secret.
++
+-------------------------------------------
+$ ./install/kubernetes/webhook-create-signed-cert.sh \
+    --service istio-sidecar-injector \
+    --namespace istio-system \
+    --secret sidecar-injector-certs
+-------------------------------------------
+.. Install the sidecar injection configmap
++
+-------------------------------------------
+$ kubectl apply -f install/kubernetes/istio-sidecar-injector-configmap-release.yaml
+-------------------------------------------
+.. Set the caBundle in the webhook install YAML that the Kubernetes api-server uses to invoke the webhook.
++
+-------------------------------------------
+$ cat install/kubernetes/istio-sidecar-injector.yaml | \
+     ./install/kubernetes/webhook-patch-ca-bundle.sh > \
+     install/kubernetes/istio-sidecar-injector-with-ca-bundle.yaml
+-------------------------------------------
+.. Install the sidecar injector webhook.
++
+-------------------------------------------
+$ kubectl apply -f install/kubernetes/istio-sidecar-injector-with-ca-bundle.yaml
+-------------------------------------------
+.. The sidecar injector webhook should now be running. Let's check.
++
+-------------------------------------------
+$ kubectl -n istio-system get deployment -listio=sidecar-injector
+-------------------------------------------
++
+We should see something like:
++
+-------------------------------------------
+NAME                     DESIRED   CURRENT   UP-TO-DATE   AVAILABLE   AGE
+istio-sidecar-injector   1         1         1            1           1d
+-------------------------------------------
+
+4. Ensure the following Kubernetes services are deployed:
+`istio-pilot`, `istio-mixer`, `istio-ingress`.
++
+-------------------------------------------
+$ kubectl get svc -n istio-system
+-------------------------------------------
++
+You should see something like the following:
++
+-------------------------------------------
+NAME            CLUSTER-IP      EXTERNAL-IP       PORT(S)                       AGE
+istio-ingress   10.83.245.171   35.184.245.62     80:32730/TCP,443:30574/TCP    5h
+istio-pilot     10.83.251.173   <none>            8080/TCP,8081/TCP             5h
+istio-mixer     10.83.244.253   <none>            9091/TCP,9094/TCP,42422/TCP   5h
+-------------------------------------------
++
+[NOTE]
+====
+If your cluster is running in an environment that does not support an external
+load balancer (e.g., minikube), the EXTERNAL-IP of istio-ingress says <pending>.
+====
+
+5. Ensure the corresponding Kubernetes pods are deployed and all containers are up and running:
+`istio-pilot-*`, `istio-mixer-*`, `istio-ingress-*`, `istio-ca-*`, and `istio-sidecar-injector-*`.
++
+-------------------------------------------
+$ kubectl get pods -n istio-system
+-------------------------------------------
++
+You should see something like the following:
++
+-------------------------------------------
+istio-ca-3657790228-j21b9                1/1       Running   0          5h
+istio-ingress-1842462111-j3vcs           1/1       Running   0          5h
+istio-sidecar-injector-184129454-zdgf5   1/1       Running   0          5h
+istio-pilot-2275554717-93c43             1/1       Running   0          5h
+istio-mixer-2104784889-20rm8             2/2       Running   0          5h
+-------------------------------------------
+
+== Bring up Game On! with injected sidecars
+
+1. Install Game On! into the cluster. The namespace we create has a specific
+label: `istio-injection=enabled`. (If you look around line 80 in `k8s-functions`,
+you can verify this will be true).
++
+-------------------------------------------
+$ go-run setup
+$ go-run up
+-------------------------------------------
+
+2. Verify the `gameon-system` namespace is istio enabled
++
+-------------------------------------------
+$ kubectl get namespace -L istio-injection
+-------------------------------------------
++
+You should see something like the following:
++
+-------------------------------------------
+NAME            STATUS    AGE       ISTIO-INJECTION
+default         Active    2h
+gameon-system   Active    25s       enabled
+istio-system    Active    2h
+kube-public     Active    2h
+kube-system     Active    2h
+-------------------------------------------
+
+3. Every running pod will now have an Envoy sidecar alongside
++
+-------------------------------------------
+$ kubectl -n gameon-system get pod
+-------------------------------------------
++
+You should see something like the following:
++
+-------------------------------------------
+NAME                        READY     STATUS    RESTARTS   AGE
+auth-6ff7cb5d64-5gqnz       2/2       Running   0          5m
+couchdb-5bff8bbf86-vq4qs    2/2       Running   0          5m
+kafka-75f85f7b8b-nx7q4      2/2       Running   0          5m
+map-76f67598c8-2fmbh        2/2       Running   0          5m
+mediator-55d99f4f99-s52dz   2/2       Running   0          5m
+player-6cf9f569f8-k2mlt     2/2       Running   0          5m
+room-5785cb49c-lbq59        2/2       Running   0          5m
+swagger-5f55bbb7b-4xhk2     2/2       Running   0          5m
+webapp-7457645659-j2tkl     2/2       Running   0          5m
+-------------------------------------------
+
+4. Turn it off and back on again: Sidecar injection occurs at pod creation time.
+.. Let's kill the running pod and verify a new pod is created _without_ the injected
+sidecar.
++
+-------------------------------------------
+$ kubectl label namespace gameon-system istio-injection-
+$ kubectl -n gameon-system delete pod <choose from list of pods>
+$ kubectl -n gameon-system get pod
+-------------------------------------------
++
+.. Within a few seconds, you should see something like the following (I chose
+webapp-7457645659-j2tkl from my previous list of pods)
++
+-------------------------------------------
+NAME                        READY     STATUS    RESTARTS   AGE
+auth-6ff7cb5d64-5gqnz       2/2       Running   0          16m
+couchdb-5bff8bbf86-vq4qs    2/2       Running   0          16m
+kafka-75f85f7b8b-nx7q4      2/2       Running   0          16m
+map-76f67598c8-2fmbh        2/2       Running   0          16m
+mediator-55d99f4f99-s52dz   2/2       Running   0          16m
+player-6cf9f569f8-k2mlt     2/2       Running   0          16m
+room-5785cb49c-lbq59        2/2       Running   0          16m
+swagger-5f55bbb7b-4xhk2     2/2       Running   0          16m
+webapp-7457645659-h7mb5     1/1       Running   0          1m
+-------------------------------------------
++
+Notice that when webapp restarted, it was not restarted with a sidecar, hence
+its `1/1` READY status.
++
+.. Re-enable Istio sidecar injection
++
+-------------------------------------------
+$ kubectl label namespace gameon-system istio-injection=enabled
+$ kubectl -n gameon-system delete pod <pod without sidecar>
+$ kubectl -n gameon-system get pod
+-------------------------------------------
++
+Once all pods are back to 2/2 READY state, it's time to move on to the [next
+adventure with Istio].

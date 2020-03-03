@@ -1,0 +1,22 @@
+---
+title: Authorized operations
+weight: 9
+type: book
+---
+
+:icons: font
+:signedHeaders: link:/architecture/application-security.html
+:sharedLibrary: https://github.com/gameontext/signed
+:WebSocketProtocol: link:/architecture/websocket-protocol.html
+:game-on: https://gameontext.org/
+
+image:../images/Progression.009.jpeg[Progression, width=95%]
+
+We added {signedHeaders}[signed header-based security] to the Map service APIs.
+
+Adding security after the fact is a bad idea. Just sayin'. We managed it, but it
+was messy, and required coordinated rollouts across our services to get the support
+for Signed JWTs and signed HMACs working the way we wanted.
+
+The {sharedLibrary}[shared library] we built for managing signature verification
+did make this easier for Java.

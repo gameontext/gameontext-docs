@@ -1,0 +1,24 @@
+---
+title: More Rooms!
+weight: 10
+type: book
+---
+
+:icons: font
+:signedHeaders: link:/architecture/application-security.html
+:WebSocketProtocol: link:/architecture/websocket-protocol.html
+:game-on: https://gameontext.org/
+
+image:../images/Progression.010.jpeg[Progression, width=95%]
+
+Rooms written in Go, another room in JavaScript, and two more in Java. We learned
+lots as other people were able to try adding their own rooms, especially as some
+of them were trying to build their rooms while the Map/Concierge switch was in
+flight. Ouch.
+
+____
+In the end, I realize that my experience was different from what a new developer
+today would experience. We were building on shifting sand, they will be building
+on a more stable API set. Too bad for them; building on sand was its own kind of
+adventure game.
+____

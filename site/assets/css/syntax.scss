@@ -1,0 +1,65 @@
+/* Background */ .chroma { background-color: $body-bg }
+/* Error */ .chroma .err { color: $red; background-color: $red-bg }
+/* LineTableTD */ .chroma .lntd { vertical-align: top; padding: 0; margin: 0; border: 0; }
+/* LineTable */ .chroma .lntable { border-spacing: 0; padding: 0; margin: 0; border: 0; width: auto; overflow: auto; display: block; }
+/* LineHighlight */ .chroma .hl { display: block; width: 100%;background-color: $highlight-bg-color }
+/* LineNumbersTable */ .chroma .lnt { margin-right: 0.4em; padding: 0 0.4em 0 0.4em;color: $code-line-numbers }
+/* LineNumbers */ .chroma .ln { margin-right: 0.4em; padding: 0 0.4em 0 0.4em;color: $code-line-numbers }
+/* Keyword */ .chroma .k { color: $blue }
+/* KeywordConstant */ .chroma .kc { color: $blue }
+/* KeywordDeclaration */ .chroma .kd { color: $blue }
+/* KeywordNamespace */ .chroma .kn { color: $blue }
+/* KeywordPseudo */ .chroma .kp { color: $blue }
+/* KeywordReserved */ .chroma .kr { color: $blue }
+/* KeywordType */ .chroma .kt { color: $cyan }
+/* NameAttribute */ .chroma .na { color: $bright-blue }
+/* NameBuiltin */ .chroma .nb { color: $cyan }
+/* NameClass */ .chroma .nc { color: $lime; text-decoration: underline }
+/* NameConstant */ .chroma .no { color: $red }
+/* NameDecorator */ .chroma .nd { color: $code-output }
+/* NameEntity */ .chroma .ni { color: $maroon; font-weight: bold }
+/* NameFunction */ .chroma .nf { color: $lime }
+/* NameNamespace */ .chroma .nn { color: $cyan; text-decoration: underline }
+/* NameTag */ .chroma .nt { color: $bright-blue; font-weight: bold }
+/* NameVariable */ .chroma .nv { color: $red }
+/* LiteralString */ .chroma .s { color: $orange }
+/* LiteralStringAffix */ .chroma .sa { color: $orange }
+/* LiteralStringBacktick */ .chroma .sb { color: $orange }
+/* LiteralStringChar */ .chroma .sc { color: $orange }
+/* LiteralStringDelimiter */ .chroma .dl { color: $orange }
+/* LiteralStringDoc */ .chroma .sd { color: $orange }
+/* LiteralStringDouble */ .chroma .s2 { color: $orange }
+/* LiteralStringEscape */ .chroma .se { color: $orange }
+/* LiteralStringHeredoc */ .chroma .sh { color: $orange }
+/* LiteralStringInterpol */ .chroma .si { color: $orange }
+/* LiteralStringOther */ .chroma .sx { color: $orange }
+/* LiteralStringRegex */ .chroma .sr { color: $dark-cyan }
+/* LiteralStringSingle */ .chroma .s1 { color: $orange }
+/* LiteralStringSymbol */ .chroma .ss { color: $blue }
+/* LiteralNumber */ .chroma .m { color: $dark-cyan }
+/* LiteralNumberBin */ .chroma .mb { color: $dark-cyan }
+/* LiteralNumberFloat */ .chroma .mf { color: $dark-cyan }
+/* LiteralNumberHex */ .chroma .mh { color: $dark-cyan }
+/* LiteralNumberInteger */ .chroma .mi { color: $dark-cyan }
+/* LiteralNumberIntegerLong */ .chroma .il { color: $dark-cyan }
+/* LiteralNumberOct */ .chroma .mo { color: $dark-cyan }
+/* OperatorWord */ .chroma .ow { color: $blue }
+/* Comment */ .chroma .c { color: $code-comment; font-style: italic }
+/* CommentHashbang */ .chroma .ch { color: $code-comment; font-style: italic }
+/* CommentMultiline */ .chroma .cm { color: $code-comment; font-style: italic }
+/* CommentSingle */ .chroma .c1 { color: $code-comment; font-style: italic }
+/* CommentSpecial */ .chroma .cs { color: $blue; font-style: italic }
+/* CommentPreproc */ .chroma .cp { color: $olive }
+/* CommentPreprocFile */ .chroma .cpf { color: $olive }
+/* GenericDeleted */ .chroma .gd { color: $red }
+/* GenericEmph */ .chroma .ge { font-style: italic }
+/* GenericError */ .chroma .gr { color: $red }
+/* GenericHeading */ .chroma .gh { color: $navy; font-weight: bold }
+/* GenericInserted */ .chroma .gi { color: $lime }
+/* GenericOutput */ .chroma .go { color: $code-output }
+/* GenericPrompt */ .chroma .gp { color: $code-prompt }
+/* GenericStrong */ .chroma .gs { font-weight: bold }
+/* GenericSubheading */ .chroma .gu { color: $purple; font-weight: bold }
+/* GenericTraceback */ .chroma .gt { color: $red }
+/* GenericUnderline */ .chroma .gl { text-decoration: underline }
+/* TextWhitespace */ .chroma .w { color: $code-comment }

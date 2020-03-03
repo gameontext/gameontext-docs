@@ -1,0 +1,22 @@
+{{- if (eq (.Scratch.Get "active") .RelPermalink) -}}
+{{- range .RegularPages.ByWeight -}}
+<li class="article"><a href="{{.RelPermalink}}">{{.Title}}</a>{{ with .Description }} <span class="desc">{{ . }}</span>{{ end }}</li>
+{{- end -}}
+{{- range .Sections }}
+{{ .Scratch.Set "active" ($.Page.Scratch.Get "active") }}
+{{ partial "section-index.html" . }}
+{{- end }}
+{{- else -}}
+<li class="section"><a href="{{.RelPermalink}}">{{.Title}}</a>{{ with .Description }} <span class="desc">{{ . }}</span>{{ end }}
+  <ul>
+    {{- range .RegularPages.ByWeight -}}
+    <li class="article"><a href="{{.RelPermalink}}">{{.Title}}</a>{{ with .Description }} <span class="desc">{{ . }}</span>{{ end }}</li>
+    {{- end -}}
+    {{- range .Sections }}
+    {{ .Scratch.Set "active" ($.Page.Scratch.Get "active") }}
+    {{ partial "section-index.html" . }}
+    {{- end }}
+  </ul>
+</li>
+{{- end -}}
+

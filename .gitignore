@@ -1,9 +1,9 @@
-_site
-.sass-cache
-.jekyll-metadata
-deploy_rsa
-.bundle
 *~
-*.DS_Store
-vendor
-.vendor
+.DS_Store
+
+# hugo build
+public
+site/resources
+
+# asciidoctor wrapper
+bin/asciidoctor

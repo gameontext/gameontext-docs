@@ -1,0 +1,473 @@
+@import "normalize";
+@import url(//fonts.googleapis.com/css?family=Anonymous+Pro);
+@import "colors";
+@import "book";
+@import "syntax";
+
+html {
+  font-size: 80%;
+}
+
+body {
+  position: relative;
+  min-height: 100vh;
+  font-size: 1.2em; /* currently ems cause chrome bug misinterpreting rems on body element */
+  line-height: 1.3;
+  font-weight: 400;
+  font-family: $sans-font-family;
+  background-color: $body-bg;
+  color: $body-font-color;
+  display: flex;
+  flex-direction: column;
+  flex-wrap: nowrap;
+}
+
+/* Headings
+–––––––––––––––––––––––––––––––––––––––––––––––––– */
+h1, h2, h3, h4, h5, h6 {
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+  font-weight: normal;
+  color: $header-font-color;
+}
+
+.archive_list h2 {
+  margin-top: .5rem;
+  margin-bottom: .5rem;
+  font-size: 1.8rem;
+}
+
+/* Page Header
+–––––––––––––––––––––––––––––––––––––––––––––––––– */
+header.head {
+  padding: 20px;
+}
+header.head h1,
+header.head-single h1 {
+  margin-top: 0;
+  margin-bottom: 0.2rem;
+  font-size: 48px;
+  line-height: 48px;
+  font-weight: normal;
+  letter-spacing: -1px;
+}
+header.head-single h1 .on,
+header.head h1 .on {
+  font-weight: bold;
+}
+header.head-single h1 {
+  padding: 5px;
+}
+header.head div {
+  margin-top: 0;
+  margin-bottom: 0;
+  font-size: 1.3rem;
+  font-weight: normal;
+  line-height: 1.3rem;
+  letter-spacing: 0;
+}
+header.head-single div {
+  font-size: 1rem;
+  margin-bottom: 0.2rem;
+  padding: 10px 5px;
+}
+header.head a.button {
+  font-size: 1.5rem;
+}
+
+/* Article list
+–––––––––––––––––––––––––––––––––––––––––––––––––– */
+section.articles article {
+  margin-bottom: 3rem;
+  border: 1px solid $light-border-color;
+  padding: 15px;
+  border-bottom-right-radius: 3px;
+  border-bottom-left-radius: 3px;
+}
+/* Post Header
+–––––––––––––––––––––––––––––––––––––––––––––––––– */
+article header {
+  margin-bottom: 1.5rem;
+}
+main.page header h1,
+article header h4,
+article header h1 {
+  margin-bottom: .2rem;
+  border-bottom: 1px solid $light-border-color;
+}
+article header .byline {
+  color: $subheader-font-color;
+}
+/* Other text elements
+–––––––––––––––––––––––––––––––––––––––––––––––––– */
+p {
+  margin-top: 0;
+}
+dl dt{
+  margin-bottom:.3125em;
+  font-weight:bold;
+}
+dl dd{
+  margin-bottom:1.25em;
+}
+main.page,
+footer.foot,
+section.home,
+section.articles,
+article.post {
+  padding: 10px 20px;
+}
+footer.foot {
+  text-align: center;
+}
+nav.prev-next {
+  margin-top: 1.5rem;
+  margin-bottom: .5rem;
+}
+nav.prev-next a {
+  font-weight: bold;
+}
+article header .tags {
+  display: none;
+}
+article header address,
+article header .tags ul,
+article header .tags li {
+  display: inline;
+}
+article header .tags ul {
+  padding-left: 0;
+  list-style-type: none;
+}
+.nav-left {
+  text-align: left;
+}
+.nav-right {
+  text-align: right;
+}
+.nav-center {
+  text-align: center;
+}
+.archive_list ul {
+  padding-left: 15px;
+  list-style-type: none;
+}
+.archive_list li {
+  padding-bottom: 5px;
+}
+.archive_list .date {
+  font-family: $mono-font-family;
+  color: $subheader-font-color;
+  font-size: 1rem;
+}
+.archive_list .date::before {
+  content: '[';
+}
+.archive_list .date::after {
+  content: ']';
+}
+article .flex-media {
+  width: 100%;
+  display: flex;
+  flex-flow: row wrap;
+  justify-content: flex-start;
+  align-items: flex-start;
+}
+article .flex-media twitter-widget,
+article .flex-media .item {
+  width: 400px;
+  height: auto;
+  margin: 0 10px;
+}
+article .flex-media .item .video,
+article .flex-media .item img {
+  width: 100%;
+  margin-top: 10px;
+  margin-bottom: 10px;
+  box-sizing: border-box;
+  border-width: 1px;
+  border-style: solid;
+  border-color: $light-border-color;
+  border-radius: 4px;
+}
+article .flex-media .item .video {
+  position: relative;
+  padding-bottom: 56.25%; /* 16:9 */
+  padding-top: 25px;
+}
+article .flex-media .item .video iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* Colors
+–––––––––––––––––––––––––––––––––––––––––––––––––– */
+a {
+  color: $link-font-color;
+  text-decoration: none;
+  border-bottom: $link-underline;
+}
+a:hover {
+  color: $link-hover; }
+header.head,
+header.head div,
+header.head h1 a,
+header.head a.button,
+header.head-single,
+header.head-single div,
+header.head-single h1 a,
+footer.foot,
+footer.foot a {
+  color: $footer-font-color;
+  background-color: $footer-bg;
+}
+header.head h1 .on,
+header.head-single h1 .on {
+  color: $header-on-color;
+}
+nav.project,
+nav.project a {
+  background-color: $nav-bg-color;
+  color: $nav-font-color;
+}
+section.home {
+  background-color: $light-background;
+  color: $dark-gray;
+  border-bottom: 1px solid $light-border-color;
+}
+/* Link decorations
+–––––––––––––––––––––––––––––––––––––––––––––––––– */
+section a {
+  text-decoration: none;
+  border-bottom: 1px solid $light-border-color;
+}
+nav.project a,
+header.head a.button,
+header h1 a {
+  text-decoration: none;
+  border: none;
+}
+nav.project a {
+  padding: 5px;
+}
+nav.prev-next .nav-left .short:before,
+nav.prev-next .nav-left .long:before {
+  content: "\00AB \0020";
+  position: relative;
+  bottom: 3px;
+}
+nav.prev-next .nav-right .short:after,
+nav.prev-next .nav-right .long:after {
+  content: "\0020 \00BB";
+  position: relative;
+  bottom: 3px;
+}
+nav.index ul {
+  list-style-type: none;
+  margin-left: 1em;
+}
+nav.index li.section:before,
+nav.index li.article:before {
+  display: inline-block;
+  color: $light-border-color;
+  position: relative;
+  width: 1.2em;
+}
+nav.index li.section:before {
+  content: "\00A7 \0020 ";
+}
+nav.index li.article:before {
+  content: "\21C1 \0020 ";
+}
+nav.index .full li.section > a {
+  font-weight: bold;
+  color: $header-font-color;
+}
+nav.index .sections li.section > a {
+  color: $header-font-color;
+  font-weight: 500;
+}
+nav.index li > .desc {
+  display: block;
+  position: relative;
+  margin-top: -3px;
+  margin-left: 1.5em;
+  color: $subheader-font-color;
+  font-size: 85%;
+  color: $subheader-font-color;
+  font-style: italic;
+}
+nav.index li.article > a {
+  color: $title-font-color;
+}
+/* lightbox
+–––––––––––––––––––––––––––––––––––––––––––––––––– */
+.lightbox {
+  /** Default lightbox to hidden */
+  display: none;
+
+  /** Position and style */
+  position: fixed;
+  z-index: 999;
+  width: 100%;
+  height: 100%;
+  text-align: center;
+  top: 0;
+  left: 0;
+  background: $dark-background;
+}
+.lightbox img {
+  /** Pad the lightbox image */
+  max-width: 90%;
+  max-height: 80%;
+  margin-top: 2%;
+}
+.lightbox:target {
+  /** Remove default browser outline */
+  outline: none;
+
+  /** Unhide lightbox **/
+  display: block;
+}
+/* Layout
+–––––––––––––––––––––––––––––––––––––––––––––––––– */
+article blockquote {
+  margin-left: 2em;
+}
+nav.project {
+  display: flex;
+  justify-content: space-around;
+}
+header.head-single {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+}
+main.page,
+section.articles,
+article.post {
+  flex-grow: 1;
+}
+footer.foot {
+  display: flex;
+  flex-direction: column;
+}
+article header .byline {
+  display: flex;
+  justify-content: space-between;
+}
+nav.prev-next {
+  display: flex;
+  flex-wrap: nowrap;
+  justify-content: center;
+}
+main.book nav.prev-next {
+  justify-content: space-between;
+}
+main.book nav.prev-next .nav-left,
+main.book nav.prev-next .nav-right {
+  flex: 0 1 7rem;
+}
+main.book nav.prev-next .short {
+  display: inline;
+}
+main.book nav.prev-next .long {
+  display: none;
+}
+/* Hide extra content until wide viewport */
+header.head a.button {
+  display: none;
+}
+nav.project a > span {
+  display: none;
+}
+header.head-single div {
+  display: none;
+}
+/* Reveal and adjust as screen gets larger */
+@media(min-width: 400px) {
+  article header .tags {
+    display: inline;
+  }
+  header.head-single div {
+    display: block;
+  }
+}
+/* Larger than phablet */
+@media (min-width: 550px) {
+  nav.project a > span {
+    display: inline;
+  }
+  nav.project a > span > span {
+    display: none;
+  }
+  main.book nav.prev-next .nav-center {
+    .short {
+      display: none;
+    }
+    .long {
+      display: inline;
+    }
+  }
+}
+/* Larger than tablet */
+@media (min-width: 750px) {
+  nav.project a > span > span {
+    display: inline;
+  }
+  nav.project .github {
+    display: none;
+  }
+  header.head a.button {
+    display: block;
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    width: 134px;
+    height: 58px;
+    padding: 22px 0 0 68px;
+    background: transparent url(../images/github-button.png) 0 0 no-repeat;
+  }
+  header.head div {
+    margin-right: 220px;
+  }
+  footer.foot {
+    flex-direction: row;
+    justify-content: space-between;
+  }
+  main.book nav.prev-next .nav-left,
+  main.book nav.prev-next .nav-right {
+    flex: 0 1 16rem;
+    white-space: nowrap;
+    .short {
+      display: none;
+    }
+    .long {
+      display: inline-block;
+      width: 15rem;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+  }
+}
+/* Room for longer titles */
+@media (min-width: 800px) {
+  main {
+    max-width: 1000px;
+    min-width: 800px;
+    margin: 0 auto;
+  }
+  main.book nav.prev-next .nav-left,
+  main.book nav.prev-next .nav-right {
+    flex: 0 1 21rem;
+    .long {
+      display: inline-block;
+      width: 20rem;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+  }
+}

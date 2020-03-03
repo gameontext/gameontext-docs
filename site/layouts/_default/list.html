@@ -1,0 +1,21 @@
+{{ define "main" }}
+<main class="page">
+  <header class="page-header">
+    <h1 class="page-title">{{.Title}}</h1>
+  </header>
+  {{- with .Content }}
+  <article>
+    {{.}}
+  </article>
+  {{- end}}
+  <section class="archive_list">
+    <ul>
+      {{ range .Pages }}
+      <li>
+          <a href="{{.RelPermalink}}">{{.Date.Format "2006-01-02"}} | {{.Title}}</a>
+      </li>
+      {{ end }}
+    </ul>
+  </section>
+</main>
+{{ end }}

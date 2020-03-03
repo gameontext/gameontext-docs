@@ -1,0 +1,11 @@
+{{- with .Parent -}}
+{{- else -}}
+<div class="flex-media">
+{{- end -}}
+<div class="item"><div class="video">
+  <iframe src="https://www.youtube.com/embed/{{ .Get 0 }}" frameborder="0" allowfullscreen></iframe>
+</div></div>
+{{- with .Parent -}}
+{{- else -}}
+</div>
+{{- end -}}

@@ -1,0 +1,41 @@
+---
+title: Platform services
+weight: 11
+type: book
+---
+
+:chronicles: link:/chronicles/
+:map: link:map.html
+:goroom: https://github.com/gameontext/sample-room-go
+:maproom: https://gameontext.org/swagger/
+:nodejsroom: https://github.com/gameontext/sample-room-nodejs
+:recroom: https://github.com/gameontext/gameon-room
+:security: link:application-security.html
+:simpleroom: https://github.com/gameontext/sample-room-java
+:swagger: https://gameontext.org/swagger/
+:WebSocket: link:websocket-protocol.html
+:walkthroughs: link:/walkthroughs/
+
+image:../images/PlatformServices.jpeg["Platform services",align="center"]
+
+== Amalgam8 services.
+
+Amalgam8 supplies us a Registry, and a Controller, via which it implements the
+Service Discovery, and Service Proxying that we make use of in our core services.
+
+== Kafka/MessageHub
+
+We have started adding event driven processing to the Game On core services, and
+Kafka (also used by Amalgam8) is our chosen Publish/Subscribe solution.
+
+== etcd
+
+Etcd was added to simplify configuration management. There are many ways to
+slice this particular onion, but the important thing for us was being able to see the
+configuration attributes used, and in some cases shared, by our core services
+in a central place.
+
+The configuration attributes stored in etcd are environment-specific: different
+values are provided for different deployment stages using isolated etcd clusters.
+Etcd is not used when developing locally, we instead rely on local env files
+injected via Docker Compose.

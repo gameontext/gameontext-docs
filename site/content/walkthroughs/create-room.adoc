@@ -1,0 +1,66 @@
+---
+title: Create a Room service
+weight: 6
+type: book
+aliases:
+- "/walkthroughs/createRoom.html"
+---
+
+:icons: font
+:toc:
+:toc-title:
+:toc-placement: manual
+:toclevels: 2
+:WebSocket: link:/architecture/websocket-protocol.html
+:sweep: link:/architecture/the-sweep.html
+:javascript: https://github.com/gameontext/sample-room-nodejs#introduction
+:java: https://github.com/gameontext/sample-room-java#introduction
+:swift: https://github.com/gameontext/sample-room-swift#introduction
+:go: https://github.com/gameontext/sample-room-go#introduction
+:samples: https://github.com/gameontext?utf8=✓&q=sample-room
+:registerRoom: link:register-room.html
+
+This game was built to give you reasons to try things, to make it easier (or
+more interesting) for you to learn the hard way.
+
+Creating a simple microservice that provides a room can take as little as 15
+minutes. A simple service must provide a publicly reachable WebSocket endpoint
+that satisfies the {WebSocket}[WebSocket protocol], and that's it for a basic,
+functional room.
+
+== Why are there WebSockets again?
+
+_I thought microservices were about REST!_
+
+Asynchronous interaction patterns are an important part of microservice
+architectures. In our case, WebSockets are a stand-in for messaging protocols
+like MQTT that could be used, but that require much more coordination and setup
+between parties that don't know each other all that well (i.e. us and you, the
+intrepid room writer).
+
+== Visits from the Sweep
+
+Registered rooms are visited periodically by {sweep}[the Sweep].
+The Sweep will score rooms based on on availability, and adherence
+to the Room API (primarily the {WebSocket}[WebSocket protocol]), as well as
+other factors like unique room names and descriptions, or the presence of
+customized items or commands.
+
+Rooms will move in the map based on their score, with high-scoring
+rooms moving toward the center (closer to First Room), and low-scoring
+rooms moving toward the periphery.
+
+== Let's get started!
+
+As mentioned above, creating a room (your very own microservice) is straight-up.
+Your deployment options may vary depending on the language you choose.
+
+* {javascript}[Create a Game On! Room in JavaScript]
+* {java}[Create a Game On! Room in Java]
+* {go}[Create a Game On! Room in Go]
+* {swift}[Create a Game On! Room in Swift]
+* {samples}[... browse for sample rooms in other languages]
+
+Once you have a sample room created and deployed, you'll
+{registerRoom}[register] the room's WebSocket endpoint with the game
+(essentially a webhook).
