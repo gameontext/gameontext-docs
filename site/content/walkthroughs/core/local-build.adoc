@@ -17,8 +17,8 @@ type: book
 :git: link:git.html
 :root: https://github.com/gameontext/gameon
 :sociallogin: link:/walkthroughs/advanced/test-sso-login.html
-:using-compose:  link:local-docker.html
-:using-kubernetes:  link:local-kubernetes.html
+:using-compose: link:local-docker.html#rebuild
+:using-kubernetes: link:local-kubernetes.html#rebuild
 :vagrant: https://www.vagrantup.com/downloads.html
 :wdt-eclipse: link:/walkthroughs/eclipse_and_wdt.html
 
@@ -151,8 +151,8 @@ Then edit source or docker/image files using your favorite IDE.
 TIP: If you plan to edit projects with Eclipse, run `./bin/eclipse.sh` to generate eclipse project files.
 
 4. Compile the source and rebuild docker image
-* <<local-docker.adoc#rebuild,Rebuild with Docker Compose>>
-* <<local-kubernetes.adoc#rebuild,Rebuild with Kubernetes>>
+* {using-compose}[Rebuild with Docker Compose]
+* {using-kubernete}[Rebuild with Kubernetes]
 
 5. Push your changes to a new branch. From the map directory:
 +

@@ -12,6 +12,7 @@ aliases:
 :toc-placement: manual
 :toclevels: 2
 :git: link:/walkthroughs/core/git.html
+:local-k8s: link:/walkthroughs/core/local-kubernetes.html
 :root: https://github.com/gameontext/gameon
 :adventures: link:/walkthroughs/advanced/
 :cluster: https://github.com/gameontext/gameon/tree/master/kubernetes#set-up-a-kubernetes-cluster
@@ -25,7 +26,7 @@ injection].
 
 == Requirements
 
-* A cluster configured and working with GO!, per <<local-kubernetes.adoc,Running with Kubernetes>>
+* A cluster configured and working with GO!, per {local-k8s}[Running with Kubernetes]
 +
 -------------------------------------------
 $ eval $(./go-admin.sh env)  # set script aliases
