@@ -78,11 +78,11 @@ header.head a.button {
 /* Article list
 –––––––––––––––––––––––––––––––––––––––––––––––––– */
 section.articles article {
-  margin-bottom: 3rem;
-  border: 1px solid $light-border-color;
+  margin-bottom: 1rem;
   padding: 15px;
-  border-bottom-right-radius: 3px;
-  border-bottom-left-radius: 3px;
+  // border: 1px solid $light-border-color;
+  // border-bottom-right-radius: 3px;
+  // border-bottom-left-radius: 3px;
 }
 /* Post Header
 –––––––––––––––––––––––––––––––––––––––––––––––––– */
@@ -98,6 +98,10 @@ article header h1 {
 article header .byline {
   color: $subheader-font-color;
 }
+section.articles article h1 {
+  font-size: 1.4em;
+}
+
 /* Other text elements
 –––––––––––––––––––––––––––––––––––––––––––––––––– */
 p {
