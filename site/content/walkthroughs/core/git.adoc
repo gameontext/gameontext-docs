@@ -11,13 +11,13 @@ type: book
 :toclevels: 1
 :submodules: https://git-scm.com/book/en/v2/Git-Tools-Submodules
 :mastery: https://medium.com/@porteneuve/mastering-git-submodules-34c65e940407#.fdmpndvh6
-:notanswer: http://somethingsinistral.net/blog/git-submodules-are-probably-not-the-answer/
+:notanswer: https://www.catalyst.net.nz/blog/git-submodule-misunderstood-beast-or-remorseless-slavering-monster
 :yukmodules: https://codingkilledthecat.wordpress.com/2012/04/28/why-your-company-shouldnt-use-git-submodules/
 :installgit: https://git-scm.com/book/en/v2/Getting-Started-Installing-Git
 :gameontext: https://githubhttps://github.com/gameontext.com/gameontext
 :contribute: https://github.com/gameontext/gameon/blob/master/CONTRIBUTING.md
 
-image::http://imgs.xkcd.com/comics/git.png[caption="", title="xkcd: Git",float="right",align="center",link="http://xkcd.com/1597/", width=250]
+image::https://imgs.xkcd.com/comics/git.png[caption="", title="xkcd: Git",float="right",align="center",link="https://xkcd.com/1597/", width=250]
 
 We use submodules to facilitate grabbing all the core servies in one fell swoop.
 
