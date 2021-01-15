@@ -369,9 +369,6 @@ article header .byline {
 nav.prev-next {
   display: flex;
   flex-wrap: nowrap;
-  justify-content: center;
-}
-main.book nav.prev-next {
   justify-content: space-between;
 }
 main.book nav.prev-next .nav-left,
