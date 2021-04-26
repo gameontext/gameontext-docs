@@ -28,4 +28,7 @@ new ideas, like designing a microservice around a business function or domain in
 of around a data model.{{< /dd >}}
 {{< /dl >}}
 
+{{< media >}}
 {{< youtube OnEDxxAb_go >}}
+{{< youtube qG4Yq4jzxbo >}}
+{{</ media >}}
