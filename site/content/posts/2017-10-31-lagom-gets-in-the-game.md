@@ -14,7 +14,6 @@ I enjoyed working with the Lightbenders; they're a great team, with solid ideas 
 Hugh and I had a blast talking to developers the booth, and generally being ridiculous. So much fun!
 
 {{< media >}}
-{{< youtube sPD8_r25GiQ >}}
 {{< tweet 914889374629732352 >}}
 {{< tweet 915049127754551296 >}}
 {{< tweet 915265418377310209 >}}
