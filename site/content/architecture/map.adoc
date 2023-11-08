@@ -13,12 +13,11 @@ aliases:
 :toclevels: 2
 :12-factor: link:/about/twelve-factors.html
 :security: link:application-security.html
-:swagger: https://gameontext.org/swagger/
 :repo: https://github.com/gameontext/gameon-map
 
 The Map is one of the game's core services. It is implemented in Java using
 WebSphere Liberty. The source is {repo}[available on GitHub]. The public REST API
-is {swagger}[browsable with Swagger]. What follows is a very
+is browsable with Swagger. What follows is a very
 description of how the internals of the map service work.
 
 == API, Language, and Runtime

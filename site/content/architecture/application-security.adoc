@@ -11,7 +11,6 @@ aliases:
 :toc-title:
 :toc-placement: preamble
 :toclevels: 3
-:swagger: https://gameontext.org/swagger/
 :hmac-rfc: http://www.ietf.org/rfc/rfc2104
 :jwt-java: https://github.com/jwtk/jjwt
 :jsrsasign: http://kjur.github.io/jsrsasign/

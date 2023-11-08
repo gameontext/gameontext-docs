@@ -12,7 +12,6 @@ type: book
 :recroom: https://github.com/gameontext/gameon-room
 :security: link:application-security.html
 :simpleroom: https://github.com/gameontext/sample-room-java
-:swagger: https://gameontext.org/swagger/
 :WebSocket: link:websocket-protocol.html
 :walkthroughs: link:/walkthroughs/
 
@@ -68,7 +67,7 @@ one in our next integration pass.
 == Player
 
 Players are represented by the player service, which provides a
-{swagger}[public API] for CRUD operations, and for managing API tokens.
+public API for CRUD operations, and for managing API tokens.
 
 The Player service was one of the first to exist, and is implemented in Java
 using WebSphere Liberty. It stores data in either couchdb (local) or Cloudant.
@@ -129,7 +128,7 @@ preventing repeated access to those rooms until they have been restored.
 and empty) rooms.
 
 The Map service is a Java EE application running on WebSphere Liberty that
-provides a {swagger}[public REST API] using JAX-RS. It stores
+provides a public REST API using JAX-RS. It stores
 data in a NoSQL data store, either couchdb or Cloudant. Methods that modify the
 map require {security}[signed requests].
 
@@ -145,7 +144,7 @@ documented {WebSocket}[WebSocket protocol].
 == Proxy/Gateway
 
 We have a single proxy/gateway that is haproxy based, and is responsible
-for surfacing the {swagger}[collection of APIs] as a single facade for
+for surfacing the collection of APIs as a single facade for
 the entire application.
 
 Today this proxy identifies services via url patterns, and where a request is

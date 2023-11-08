@@ -4,8 +4,7 @@ title: "Home"
 There are lots of new technologies and application patterns associated with
 microservices. If you're like us, learning from reading someone's sample just
 isn't enough.
-
-[Game On!](https://gameontext.org/) is a throwback text-based adventure built to
+Game On! Text adventure is a throwback text-based adventure built to
 help you explore microservice architectures and related concepts.
 There are a few reasons why we love this application:
 

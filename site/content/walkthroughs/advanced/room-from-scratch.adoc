@@ -12,7 +12,6 @@ aliases:
 :toc-placement: preamble
 :toclevels: 2
 :protocol: link:/architecture/websocket-protocol.html
-:swagger: https://gameontext.org/swagger/
 :interactivemap: https://gameontext.org/interactivemap
 :regutil: https://github.com/gameontext/regutil
 :registerroom: link:/walkthroughs/register-room.html
@@ -64,7 +63,7 @@ A room in Game On is basically a WebSocket endpoint, hosted in a way where Game 
 Either the endpoint needs to be directly accessible from the internet (eg, if it's running within a cloud container with a public
 bound ip address, or route).. or indirectly (eg, via a port forward on your own router).
 
-The room is registered to the Game On Map Service, either directly via the Map service {swagger}[REST API], or using the in-game
+The room is registered to the Game On Map Service, either directly via the Map service REST API, or using the in-game
 room management page, or the CLI {regutil}[regutil] or even via the {interactivemap}[Interactive Map]. If you are new to Game On,
 we'd strongly recommend using the in-game room management page. Look {registerroom}[here] for more info.
 

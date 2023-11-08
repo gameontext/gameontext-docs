@@ -38,7 +38,7 @@ It's as simple as;
 
 To check on progress, you can check the cluster gui, or use kubectl to check on the status of the pods in the `gameon-system` namespace. ( `kubectl get pods --namespace=gameon-system -o wide`)
 
-After a short while, once the the pods are all up and running, you should be able to access your Game On! at `https://gameon.192.168.99.100.xip.io`
+After a short while, once the the pods are all up and running, you should be able to access your Game On! at `https://gameon.192.168.99.100.nip.io`
 
 Swap `192.168.99.100` for your cluster ip, the same value you set in `GAMEON_HOST`
 
@@ -50,9 +50,9 @@ Each of the core services has their own yaml, that contains both a kubernetes [s
 
 The `ingress.yaml` defines a [kubernetes ingress](https://kubernetes.io/docs/concepts/services-networking/ingress/) that acts as the front door for the whole setup, routing requests to the appropriate service. Requets are mapped using the path part of the URL just as happens in the `proxy` service when running outside of Kubernetes. `ingress.yaml` also defines and enables HTTPS for the front door, and if we wanted, we could [configure a certificate](https://kubernetes.io/docs/concepts/services-networking/ingress/#tls) to be used for HTTPS in the yaml here.
 
-Lastly, we're using [xip.io](http://xip.io/) which is a handy service that allows you to create hostnames that map to ip addresses, without needing to edit `/etc/hosts` etc. Any url ending in `ipaddress.xip.io` resolves to `ipaddress`, so in our case `gameon.192.168.99.100.xip.io` will resolve to `192.168.99.100`, this is great, because ingress definitions require a hostname, not an ip address, and this lets us create one for testing, without any setup.
+Lastly, we're using [nip.io](http://nip.io/) which is a handy service that allows you to create hostnames that map to ip addresses, without needing to edit `/etc/hosts` etc. Any url ending in `ipaddress.nip.io` resolves to `ipaddress`, so in our case `gameon.192.168.99.100.nip.io` will resolve to `192.168.99.100`, this is great, because ingress definitions require a hostname, not an ip address, and this lets us create one for testing, without any setup.
 
-*TIP:* _your router may be "helpful" and block dns resolution for ip addresses in private networks, such as 192.168.x.x or 10.x.x.x, if so, look in your router for if you can configure a Domain Whitelist for xip.io for RFC1918 responses. This is required at least for OpenWRT/LEDE. If you can't unblock that, you'll have to resort to editing /etc/hosts or equivalent for your platform._
+*TIP:* _your router may be "helpful" and block dns resolution for ip addresses in private networks, such as 192.168.x.x or 10.x.x.x, if so, look in your router for if you can configure a Domain Whitelist for nip.io for RFC1918 responses. This is required at least for OpenWRT/LEDE. If you can't unblock that, you'll have to resort to editing /etc/hosts or equivalent for your platform._
 
 ## Pods of fun!
 

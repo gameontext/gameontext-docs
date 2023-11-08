@@ -12,7 +12,6 @@ type: book
 :recroom: https://github.com/gameontext/gameon-room
 :security: link:application-security.html
 :simpleroom: https://github.com/gameontext/sample-room-java
-:swagger: https://gameontext.org/swagger/
 :WebSocket: link:websocket-protocol.html
 :walkthroughs: link:/walkthroughs/
 

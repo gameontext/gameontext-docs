@@ -17,7 +17,6 @@ aliases:
 :docker-go: https://github.com/gameontext/gameon-room-go#introduction
 :docker-java: https://github.com/gameontext/gameon-room-java#deploy-using-docker
 :first-room: https://gameontext.org/#/play
-:swagger: https://gameontext.org/swagger/
 :sweep: link:/architecture/the-sweep.html
 :WebSocket: link:/architecture/websocket-protocol.html
 

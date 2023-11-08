@@ -30,7 +30,7 @@ of the various backend services.
 We added CORS filters to the app for the time being and moved on.
 
 As a sidenote, we did alleviate this later by also using a proxy
-locally. We could also have addressed this using xip.io to create a
+locally. We could also have addressed this using nip.io to create a
 locally consistent domain, but for that to work, you would need to have a
 live internet connection so the xio.io domain to resolve. Some of us
 are those crazies that work on planes that don't have wifi ...

@@ -17,7 +17,6 @@ aliases:
 :samples: https://github.com/gameontext?utf8=✓&q=sample-room
 :more: link:advanced/
 :first-room: https://gameontext.org/#/play
-:swagger: https://gameontext.org/swagger/
 :sweep: link:/architecture/the-sweep.html
 :WebSocket: link:/architecture/websocket-protocol.html
 
